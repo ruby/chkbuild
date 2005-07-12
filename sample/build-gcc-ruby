@@ -6,7 +6,7 @@ Build.combination(
   ["gcc-trunk", nil],
   ["gcc-4.0", "gcc-4_0-branch"]) {|gcc_curr_dir, gcc_version, gcc_branch|
   Dir.chdir("..") {
-    Build.cvs_update("gcc",
+    Build.cvs("gcc",
       ":ext:anoncvs@savannah.gnu.org:/cvsroot/gcc", "gcc", gcc_branch)
   }
   Build.mkcd("objdir")
