@@ -132,6 +132,7 @@ module Build
               STDERR.sync = true
               Dynamic.assign(:log_filename, log_filename)
               puts start_time.iso8601
+              system("uname -a")
               remove_old_build(start_time, opts.fetch(:old, 3))
               FileUtils.mkpath(public = "#{Build.public_dir}/#{name}")
               FileUtils.mkpath(public_log = "#{public}/log")
