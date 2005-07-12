@@ -1,0 +1,17 @@
+#!/usr/bin/env ruby
+
+require 'build'
+
+Build.combination(["failname"]) {
+    |curr_dir, _|
+  Build.add_finish_hook {
+    log = Build.all_log
+    mark = ''
+    mark << "[BUG]" if /\[BUG\]/i =~ log
+    mark << "[SEGV]" if /Segmentation fault/i =~ log
+    mark << "[FATAL]" if /\[FATAL\]/i =~ log
+    Build.update_title(:mark, mark)
+  }
+  Build.run("echo", "[bug]")
+  Build.run("false")
+}

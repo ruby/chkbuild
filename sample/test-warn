@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+
+require 'build'
+
+Build.combination(["sleep"]) {
+    |curr_dir, _|
+  Build.run("echo", "warn") {|log|
+    Build.update_title(:version, "foo") 
+  }
+}

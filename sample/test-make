@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+
+require 'build'
+
+Build.combination(["makename"]) {
+    |curr_dir, _|
+  Build.make("aa")
+}

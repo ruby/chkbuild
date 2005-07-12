@@ -1,0 +1,43 @@
+#!/usr/bin/env ruby
+
+require 'build'
+
+Build.combination(
+    ["ruby-trunk", nil],
+    ["ruby-1.8", "ruby_1_8"]) {
+    |ruby_curr_dir, ruby_version, ruby_branch|
+  Build.cvs("ruby",
+    ":pserver:anonymous@cvs.ruby-lang.org:/src", "ruby", ruby_branch)
+  Dir.chdir("ruby")
+  Build.run("autoconf")
+  Build.run("./configure", "--prefix=#{ruby_curr_dir}", "CFLAGS=-Wall -g -O2") {|log|
+    if /^checking target system type\.\.\. (\S+)$/ =~ log
+      Build.update_title(:version, "#{ruby_version} #{$1}")
+    end
+  }
+  Build.add_finish_hook {
+    log = Build.all_log
+    mark = ''
+    mark << "[BUG]" if /\[BUG\]/i =~ log
+    mark << "[SEGV]" if /Segmentation fault/i =~ log
+    mark << "[FATAL]" if /\[FATAL\]/i =~ log
+    Build.update_title(:mark, mark)
+  }
+  Build.make
+  Build.run("./ruby", "-v") {|log|
+    if /^ruby [0-9.]+ \([0-9\-]+\) \[\S+\]$/ =~ log
+      Build.update_title(:version, $&)
+    end
+  }
+  Build.make("install")
+  Build.run("./ruby", "sample/test.rb", :reason=>"test.rb")
+  Build.run("./ruby", "test/runner.rb", :reason=>"test-all") {|log|
+    if /^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors$/ =~ log
+      failures = $1.to_i
+      errors = $2.to_i
+      if failures != 0 || errors != 0
+        Build.update_title(:status, "#{failures}F#{errors}E")
+      end
+    end
+  }
+}

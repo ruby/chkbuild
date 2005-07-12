@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+
+require 'build'
+
+Build.combination(["sleep"]) {
+    |curr_dir, _|
+  Build.run("sleep", "60")
+}
