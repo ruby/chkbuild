@@ -281,16 +281,18 @@ module Build
 
   def cvs_revisions
     h = {}
-    Dir.glob("**/CVS/Entries").each {|d|
-      ds = d.split(%r{/})[0...-2]
-      IO.foreach(d) {|line|
-        h[[ds, $1]] = $2 if %r{^/([^/]+)/([^/]*)/} =~ line
+    Dir.glob("**/CVS").each {|cvs_dir|
+      cvsroot = IO.read("#{cvs_dir}/Root").chomp
+      repository = IO.read("#{cvs_dir}/Repository").chomp
+      ds = cvs_dir.split(%r{/})[0...-1]
+      IO.foreach("#{cvs_dir}/Entries") {|line|
+        h[[ds, $1]] = [cvsroot, repository, $2] if %r{^/([^/]+)/([^/]*)/} =~ line
       }
     }
     h
   end
 
-  def cvs_print_revisions(h1, h2)
+  def cvs_print_revisions(h1, h2, viewcvs=nil)
     if !h1
       h2.keys.sort.each {|k|
         f = k.flatten.join('/')
@@ -299,12 +301,20 @@ module Build
     else
       (h1.keys | h2.keys).sort.each {|k|
         f = k.flatten.join('/')
-        r1 = h1[k] || 'none'
-        r2 = h2[k] || 'none'
+        cvsroot1, repository1, r1 = h1[k] || [nil, nil, 'none']
+        cvsroot2, repository2, r2 = h2[k] || [nil, nil, 'none']
         if r1 == r2
           puts "#{f}\t#{r1}"
         else
-          puts "#{f}\t#{r1} -> #{r2}"
+          line = "#{f}\t#{r1} -> #{r2}"
+          if viewcvs
+            repository = repository1 || repository2
+            url = viewcvs.dup
+            url << "/" << repository if repository != '.'
+            url << "/#{k[1]}?r1=#{r1};r2=#{r2}"
+            line << "\t" << url
+          end
+          puts line
         end
       }
     end
@@ -316,7 +326,7 @@ module Build
         h1 = cvs_revisions
         Build.run("cvs", "-f", "-z3", "-Q", "update", "-dP", opts)
         h2 = cvs_revisions
-        cvs_print_revisions(h1, h2)
+        cvs_print_revisions(h1, h2, opts[:viewcvs]||opts[:cvsweb])
       }
     else
       h1 = nil
@@ -334,7 +344,7 @@ module Build
       end
       Dir.chdir(working_dir) {
         h2 = cvs_revisions
-        cvs_print_revisions(h1, h2)
+        cvs_print_revisions(h1, h2, opts[:viewcvs]||opts[:cvsweb])
       }
     end
   end

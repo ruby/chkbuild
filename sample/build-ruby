@@ -7,7 +7,9 @@ Build.target("ruby",
     ["1.8", "ruby_1_8"]) {
     |ruby_curr_dir, ruby_version, ruby_branch|
   Build.cvs("ruby",
-    ":pserver:anonymous@cvs.ruby-lang.org:/src", "ruby", ruby_branch)
+    ":pserver:anonymous@cvs.ruby-lang.org:/src", "ruby", ruby_branch,
+    :cvsweb => "http://www.ruby-lang.org/cgi-bin/cvsweb.cgi"
+    )
   Dir.chdir("ruby")
   Build.run("autoconf")
   Build.run("./configure", "--prefix=#{ruby_curr_dir}", "CFLAGS=-Wall -g -O2") {|log|

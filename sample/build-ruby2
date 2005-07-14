@@ -8,7 +8,8 @@ Build.target("ruby",
     |ruby_curr_dir, ruby_version, ruby_branch|
   Dir.chdir("..") {
     Build.cvs("ruby",
-      ":pserver:anonymous@cvs.ruby-lang.org:/src", "ruby", ruby_branch)
+      ":pserver:anonymous@cvs.ruby-lang.org:/src", "ruby", ruby_branch,
+      :cvsweb => "http://www.ruby-lang.org/cgi-bin/cvsweb.cgi")
     Dir.chdir("ruby")
     Build.run("autoconf")
   }
