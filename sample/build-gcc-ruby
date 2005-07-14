@@ -7,8 +7,9 @@ GCC = Build.target("gcc",
   ["4.0", "gcc-4_0-branch"]) {
     |gcc_curr_dir, gcc_version, gcc_branch|
   Dir.chdir("..") {
+    Build.ssh_known_host("savannah.gnu.org ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAIEAzFQovi+67xa+wymRz9u3plx0ntQnELBoNU4SCl3RkwSFZkrZsRTC0fTpOKatQNs1r/BLFoVt21oVFwIXVevGQwB+Lf0Z+5w9qwVAQNu/YUAFHBPTqBze4wYK/gSWqQOLoj7rOhZk0xtAS6USqcfKdzMdRWgeuZ550P6gSzEHfv0=")
     Build.cvs("gcc",
-      ":ext:anoncvs@savannah.gnu.org:/cvsroot/gcc", "gcc", gcc_branch)
+      ":ext:anoncvs@savannah.gnu.org:/cvsroot/gcc", "gcc", gcc_branch, "ENV:CVS_RSH"=>"ssh")
   }
   Build.mkcd("objdir")
   Build.run("../../gcc/configure", "--prefix=#{gcc_curr_dir}", "--enable-languages=c")
@@ -58,3 +59,5 @@ Build.target("ruby",
     end
   }
 }
+
+

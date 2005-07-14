@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+
+require 'build'
+
+Build.target("env") {|curr_dir|
+  Build.run("sh", "-c", "echo $AAA", "ENV:AAA"=>"foooo")
+}

@@ -9,6 +9,7 @@ require 'escape'
 require 'timeoutcom'
 require 'dynamic'
 require 'gdb'
+require 'ssh'
 
 def tp(obj)
   open("/dev/tty", "w") {|f| f.puts obj.inspect }
@@ -241,6 +242,10 @@ module Build
     puts "+ #{[command, *args].map {|s| Escape.shell_escape s }.join(' ')}"
     pos = STDOUT.pos
     TimeoutCommand.timeout_command(opts.fetch(:timeout, '1h')) {
+      opts.each {|k, v|
+        next if /\AENV:/ !~ k
+        ENV[$'] = v
+      }
       exec command, *args
     }
     begin
@@ -322,6 +327,10 @@ module Build
         Build.run("make", target, :reason => target)
       }
     end
+  end
+
+  def ssh_known_host(arg)
+    SSH.add_known_host(arg)
   end
 
   TOP_DIRECTORY = Dir.getwd
