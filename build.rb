@@ -311,7 +311,14 @@ module Build
             repository = repository1 || repository2
             url = viewcvs.dup
             url << "/" << repository if repository != '.'
-            url << "/#{k[1]}?r1=#{r1};r2=#{r2}"
+            url << "/#{k[1]}"
+            if r1 == 'none'
+              url << "?rev=#{r2}"
+            elsif r2 == 'none'
+              url << "?rev=#{r1}"
+            else
+              url << "?r1=#{r1};r2=#{r2}"
+            end
             line << "\t" << url
           end
           puts line
