@@ -31,15 +31,21 @@ module Build
     Dir.chdir dir
   end
 
-  def remove_old_build(current, num)
-    dirs = Dir.entries("..")
+  def build_time_sequence
+    dirs = Dir.entries(Dynamic.ref(:target_dir))
     dirs.reject! {|d| /\A\d{8}T\d{6}/ !~ d } # year 10000 problem
     dirs.sort!
+    dirs
+  end
+
+  def remove_old_build(current, num)
+    dirs = build_time_sequence
     dirs.delete current
     return if dirs.length <= num
+    target_dir = Dynamic.ref(:target_dir)
     dirs[-num..-1] = []
     dirs.each {|d|
-      FileUtils.rmtree "../#{d}"
+      FileUtils.rmtree "#{target_dir}/#{d}"
     }
   end
 
@@ -106,13 +112,14 @@ module Build
   end
 
   def build_target(opts, start_time_obj, name, *args)
-    target_dir = "#{Build.build_dir}/#{name}"
-    start_time = start_time_obj.strftime("%Y%m%dT%H%M%S")
-    dir = "#{target_dir}/#{start_time}"
-    public = "#{Build.public_dir}/#{name}"
-    public_log = "#{public}/log"
-    latest_new = "#{public}/latest.new"
-    log_filename = "#{dir}/log"
+    Dynamic.bind(
+      :start_time => (start_time = start_time_obj.strftime("%Y%m%dT%H%M%S")),
+      :target_dir => (target_dir = "#{Build.build_dir}/#{name}"),
+      :dir => (dir = "#{target_dir}/#{start_time}"),
+      :public => (public = "#{Build.public_dir}/#{name}"),
+      :public_log => (public_log = "#{public}/log"),
+      :latest_new => (latest_new = "#{public}/latest.new"),
+      :log_filename => (log_filename = "#{dir}/log"))
     Build.mkcd target_dir
     raise "already exist: #{dir}" if File.exist? start_time
     Dir.mkdir start_time # fail if it is already exists.
@@ -121,7 +128,6 @@ module Build
     STDERR.reopen(STDOUT)
     STDOUT.sync = true
     STDERR.sync = true
-    Dynamic.assign(:log_filename, log_filename)
     Build.add_finish_hook { GDB.check_core(dir) }
     puts start_time_obj.iso8601
     system("uname -a")
@@ -149,7 +155,6 @@ module Build
     LOCK.puts name
     Dynamic.bind(:title => {},
                  :title_order => nil,
-                 :log_filename => nil,
                  :finish_hook => []) {
       Dynamic.ref(:title)[:version] = name
       Dynamic.ref(:title)[:hostname] = "(#{Socket.gethostname})"
@@ -268,53 +273,68 @@ module Build
     end
   end
 
+  def identical_file?(f1, f2)
+    s1 = File.stat(f1)
+    s2 = File.stat(f2)
+    s1.dev == s2.dev && s1.ino == s2.ino
+  end
+
+  def cvs_revisions
+    h = {}
+    Dir.glob("**/CVS/Entries").each {|d|
+      ds = d.split(%r{/})[0...-2]
+      IO.foreach(d) {|line|
+        h[[ds, $1]] = $2 if %r{^/([^/]+)/([^/]*)/} =~ line
+      }
+    }
+    h
+  end
+
+  def cvs_print_revisions(h1, h2)
+    if !h1
+      h2.keys.sort.each {|k|
+        f = k.flatten.join('/')
+        puts "#{f}\t#{h2[k]}"
+      }
+    else
+      (h1.keys | h2.keys).sort.each {|k|
+        f = k.flatten.join('/')
+        r1 = h1[k] || 'none'
+        r2 = h2[k] || 'none'
+        if r1 == r2
+          puts "#{f}\t#{r1}"
+        else
+          puts "#{f}\t#{r1} -> #{r2}"
+        end
+      }
+    end
+  end
+
   def cvs(working_dir, cvsroot, mod, branch, opts={})
     if File.directory?(working_dir)
       Dir.chdir(working_dir) {
-        h1 = {}
-        Dir.glob("**/CVS/Entries").each {|d|
-          ds = d.split(%r{/})[0...-2]
-          IO.foreach(d) {|line|
-            h1[[ds, $1]] = $2 if %r{^/([^/]+)/([^/]*)/} =~ line
-          }
-        }
+        h1 = cvs_revisions
         Build.run("cvs", "-f", "-z3", "-Q", "update", "-dP", opts)
-        h2 = {}
-        Dir.glob("**/CVS/Entries").each {|d|
-          ds = d.split(%r{/})[0...-2]
-          IO.foreach(d) {|line|
-            h2[[ds, $1]] = $2 if %r{^/([^/]+)/([^/]*)/} =~ line
-          }
-        }
-        (h1.keys | h2.keys).sort.each {|k|
-          f = k.flatten.join('/')
-          r1 = h1[k] || 'none'
-          r2 = h2[k] || 'none'
-          if r1 == r2
-            puts "#{f}\t#{r1}"
-          else
-            puts "#{f}\t#{r1} -> #{r2}"
-          end
-        }
+        h2 = cvs_revisions
+        cvs_print_revisions(h1, h2)
       }
     else
+      h1 = nil
+      if identical_file?(Dynamic.ref(:dir), '.') &&
+         !(ts = build_time_sequence - [Dynamic.ref(:start_time)]).empty? &&
+         File.directory?(old_working_dir = "#{Dynamic.ref(:target_dir)}/#{ts.last}/#{working_dir}")
+        Dir.chdir(old_working_dir) {
+          h1 = cvs_revisions
+        }
+      end
       if branch
         Build.run("cvs", "-f", "-z3", "-Qd", cvsroot, "co", "-d", working_dir, "-Pr", branch, mod, opts)
       else
         Build.run("cvs", "-f", "-z3", "-Qd", cvsroot, "co", "-d", working_dir, "-P", mod, opts)
       end
       Dir.chdir(working_dir) {
-        h1 = {}
-        Dir.glob("**/CVS/Entries").each {|d|
-          ds = d.split(%r{/})[0...-2]
-          IO.foreach(d) {|line|
-            h1[[ds, $1]] = $2 if %r{^/([^/]+)/([^/]*)/} =~ line
-          }
-        }
-        h1.keys.sort.each {|k|
-          f = k.flatten.join('/')
-          puts "#{f}\t#{h1[k]}"
-        }
+        h2 = cvs_revisions
+        cvs_print_revisions(h1, h2)
       }
     end
   end

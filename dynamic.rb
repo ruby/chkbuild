@@ -30,11 +30,16 @@ module Dynamic
 
   def bind(hash)
     old = Thread.current[DYNAMIC_BINDING_KEY]
-    begin
-      Thread.current[DYNAMIC_BINDING_KEY] = [hash.dup, old]
-      yield
-    ensure
-      Thread.current[DYNAMIC_BINDING_KEY] = old
+    if block_given?
+      begin
+        Thread.current[DYNAMIC_BINDING_KEY] = [hash.dup, old]
+        yield
+      ensure
+        Thread.current[DYNAMIC_BINDING_KEY] = old
+      end
+    else
+      h, b = old
+      h.update hash
     end
   end
 end
