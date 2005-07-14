@@ -7,5 +7,5 @@ GCC = Build.target("savannah") {
   Build.ssh_known_host("savannah.gnu.org ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAIEAzFQovi+67xa+wymRz9u3plx0ntQnELBoNU4SCl3RkwSFZkrZsRTC0fTpOKatQNs1r/BLFoVt21oVFwIXVevGQwB+Lf0Z+5w9qwVAQNu/YUAFHBPTqBze4wYK/gSWqQOLoj7rOhZk0xtAS6USqcfKdzMdRWgeuZ550P6gSzEHfv0=")
   Build.cvs("config",
     ":ext:anoncvs@savannah.gnu.org:/cvsroot/config", "config", nil, "ENV:CVS_RSH"=>"ssh")
-  Build.run("config/config.guess")
+  Build.run("config/config.guess", :reason=>"foo")
 }

@@ -243,7 +243,7 @@ module Build
     pos = STDOUT.pos
     TimeoutCommand.timeout_command(opts.fetch(:timeout, '1h')) {
       opts.each {|k, v|
-        next if /\AENV:/ !~ k
+        next if /\AENV:/ !~ k.to_s
         ENV[$'] = v
       }
       exec command, *args
