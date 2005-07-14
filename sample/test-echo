@@ -2,7 +2,6 @@
 
 require 'build'
 
-Build.target("echo") {
-    |curr_dir|
+Build.target("echo") {|curr_dir|
   Build.run("echo", "foo")
 }

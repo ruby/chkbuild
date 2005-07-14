@@ -2,7 +2,6 @@
 
 require 'build'
 
-Build.target("sleep") {
-    |curr_dir|
+Build.target("sleep") {|curr_dir|
   Build.run("sleep", "60")
 }

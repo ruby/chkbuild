@@ -4,7 +4,8 @@ require 'build'
 
 GCC = Build.target("gcc",
   ["trunk", nil],
-  ["4.0", "gcc-4_0-branch"]) {|gcc_curr_dir, gcc_version, gcc_branch|
+  ["4.0", "gcc-4_0-branch"]) {
+    |gcc_curr_dir, gcc_version, gcc_branch|
   Dir.chdir("..") {
     Build.cvs("gcc",
       ":ext:anoncvs@savannah.gnu.org:/cvsroot/gcc", "gcc", gcc_branch)
@@ -15,9 +16,9 @@ GCC = Build.target("gcc",
 }
 
 Build.target("ruby",
-    ["trunk", nil],
-    ["1.8", "ruby_1_8"],
-    GCC) {
+  ["trunk", nil],
+  ["1.8", "ruby_1_8"],
+  GCC) {
     |ruby_curr_dir, ruby_version, ruby_branch, gcc_dir|
   Dir.chdir("..") {
     Build.cvs("ruby",
