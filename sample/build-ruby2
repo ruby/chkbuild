@@ -2,7 +2,7 @@
 
 require 'build'
 
-Build.target("ruby"
+Build.target("ruby",
     ["trunk", nil],
     ["1.8", "ruby_1_8"]) {
     |ruby_curr_dir, ruby_version, ruby_branch|
