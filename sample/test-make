@@ -2,7 +2,6 @@
 
 require 'build'
 
-Build.combination(["makename"]) {
-    |curr_dir, _|
+Build.target("maketarget") {|curr_dir|
   Build.make("aa")
 }

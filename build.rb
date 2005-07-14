@@ -88,15 +88,15 @@ module Build
     Dynamic.ref(:finish_hook) << block
   end
 
-  def update_summary(name, public, start_time_str, title)
-    open("#{public}/summary.txt", "a") {|f| f.puts "#{start_time_str} #{title}" }
+  def update_summary(name, public, start_time, title)
+    open("#{public}/summary.txt", "a") {|f| f.puts "#{start_time} #{title}" }
     open("#{public}/summary.html", "a") {|f|
       if f.stat.size == 0
         f.puts "<title>#{h name} build summary</title>"
         f.puts "<h1>#{h name} build summary</h1>"
         f.puts "<p><a href=\"../\">autobuild</a></p>"
       end
-      f.puts "<a href=\"log/#{start_time_str}.txt.gz\">#{h start_time_str}</a> #{h title}<br>"
+      f.puts "<a href=\"log/#{start_time}.txt.gz\">#{h start_time}</a> #{h title}<br>"
     }
   end
 
@@ -104,60 +104,126 @@ module Build
     Zlib::GzipWriter.wrap(open(dst, "w")) {|g| g << File.read(src) }
   end
 
-  def combination(*args_list)
-    opts = {}
-    opts = args_list.pop if Hash === args_list.last
-    args_list.each {|name, *args|
-      pid = fork {
-        LOCK.puts name
-        Dynamic.bind(:title => {},
-                     :title_order => nil,
-                     :log_filename => nil,
-                     :finish_hook => []) {
-          Dynamic.ref(:title)[:version] = name
-          Dynamic.ref(:title)[:hostname] = "(#{Socket.gethostname})"
-          Dynamic.assign(:title_order, [:status, :warn, :mark, :version, :hostname])
-          Build.add_finish_hook { count_warns }
-          begin
-            begin
-              start_time = Time.now
-              start_time_str = start_time.strftime("%Y%m%dT%H%M%S")
-              dir = "#{Build.build_dir}/#{name}/#{start_time_str}"
-              raise "already exist: #{dir}" if File.exist? dir
-              Build.add_finish_hook { GDB.check_core(dir) }
-              Build.mkcd dir
-              STDOUT.reopen((log_filename = "#{dir}/log"), "w")
-              STDERR.reopen(STDOUT)
-              STDOUT.sync = true
-              STDERR.sync = true
-              Dynamic.assign(:log_filename, log_filename)
-              puts start_time.iso8601
-              system("uname -a")
-              remove_old_build(start_time, opts.fetch(:old, 3))
-              FileUtils.mkpath(public = "#{Build.public_dir}/#{name}")
-              FileUtils.mkpath(public_log = "#{public}/log")
-              careful_link "log", (latest_new = "#{public}/latest.new")
-              yield dir, name, *args
-              Dynamic.ref(:title)[:status] ||= 'success'
-            ensure
-              Dynamic.ref(:finish_hook).reverse_each {|block|
-                begin
-                  block.call
-                rescue Exception
-                end
-              }
-              puts Time.now.iso8601
-              careful_link latest_new, "#{public}/latest.txt"
-              title = make_title
-              update_summary(name, public, start_time_str, title)
-              compress_file(log_filename, "#{public_log}/#{start_time_str}.txt.gz")
-            end
-          rescue CommandError
-          end
-        }
-      }
-      Process.wait pid
+  def build_target(opts, start_time_obj, name, *args)
+    target_dir = "#{Build.build_dir}/#{name}"
+    start_time = start_time_obj.strftime("%Y%m%dT%H%M%S")
+    dir = "#{target_dir}/#{start_time}"
+    public = "#{Build.public_dir}/#{name}"
+    public_log = "#{public}/log"
+    latest_new = "#{public}/latest.new"
+    log_filename = "#{dir}/log"
+    Build.mkcd target_dir
+    raise "already exist: #{dir}" if File.exist? start_time
+    Dir.mkdir start_time # fail if it is already exists.
+    Dir.chdir start_time
+    STDOUT.reopen(log_filename, "w")
+    STDERR.reopen(STDOUT)
+    STDOUT.sync = true
+    STDERR.sync = true
+    Dynamic.assign(:log_filename, log_filename)
+    Build.add_finish_hook { GDB.check_core(dir) }
+    puts start_time_obj.iso8601
+    system("uname -a")
+    remove_old_build(start_time, opts.fetch(:old, 3))
+    FileUtils.mkpath(public)
+    FileUtils.mkpath(public_log)
+    careful_link "log", latest_new
+    yield dir, *args
+    Dynamic.ref(:title)[:status] ||= 'success'
+  ensure
+    Dynamic.ref(:finish_hook).reverse_each {|block|
+      begin
+        block.call
+      rescue Exception
+      end
     }
+    puts Time.now.iso8601
+    careful_link latest_new, "#{public}/latest.txt" if File.file? latest_new
+    title = make_title
+    update_summary(name, public, start_time, title)
+    compress_file(log_filename, "#{public_log}/#{start_time}.txt.gz")
+  end
+
+  def build_wrapper(opts, start_time_obj, name, *args, &block)
+    LOCK.puts name
+    Dynamic.bind(:title => {},
+                 :title_order => nil,
+                 :log_filename => nil,
+                 :finish_hook => []) {
+      Dynamic.ref(:title)[:version] = name
+      Dynamic.ref(:title)[:hostname] = "(#{Socket.gethostname})"
+      Dynamic.assign(:title_order, [:status, :warn, :mark, :version, :hostname])
+      Build.add_finish_hook { count_warns }
+      begin
+        Build.build_target(opts, start_time_obj, name, *args, &block)
+      rescue CommandError
+      end
+    }
+  end
+
+  def target(target_name, *args, &block)
+    opts = {}
+    opts = args.pop if Hash === args.last
+    branches = []
+    dep_targets = []
+    args.each {|arg|
+      if Depend === arg
+        dep_targets << arg
+      else
+        branches << arg
+      end
+    }
+    if branches.empty?
+      branches << []
+    end
+    succeed = Depend.new
+    branches.each {|branch_info|
+      branch_name = branch_info[0]
+      Depend.perm(dep_targets) {|dependencies|
+        name = target_name.dup
+        name << "-#{branch_name}" if branch_name
+        dep_dirs = []
+        dependencies.each {|dep_target_name, dep_branch_name, dep_dir|
+          name << "_#{dep_target_name}"
+          name << "-#{dep_branch_name}" if dep_branch_name
+          dep_dirs << dep_dir
+        }
+        start_time_obj = Time.now
+        dir = "#{Build.build_dir}/#{name}/#{start_time_obj.strftime("%Y%m%dT%H%M%S")}"
+        pid = fork {
+          Build.build_wrapper(opts, start_time_obj, name, *(branch_info + dep_dirs), &block)
+        }
+        Process.wait(pid)
+        status = $?
+        succeed.add [target_name, branch_name, dir] if status.to_i == 0
+      }
+    }
+    succeed
+  end
+
+  class Depend
+    def initialize
+      @list = []
+    end
+
+    def add(elt)
+      @list << elt
+    end
+
+    def each
+      @list.each {|elt| yield elt }
+    end
+
+    def Depend.perm(depend_list, prefix=[], &block)
+      if depend_list.empty?
+        yield prefix
+      else
+        first, *rest = depend_list
+        first.each {|elt|
+          Depend.perm(rest, prefix + [elt], &block)
+        }
+      end
+    end
   end
 
   class CommandError < StandardError

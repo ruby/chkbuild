@@ -2,9 +2,9 @@
 
 require 'build'
 
-Build.combination(
-    ["ruby-trunk", nil],
-    ["ruby-1.8", "ruby_1_8"]) {
+Build.target("ruby",
+    ["trunk", nil],
+    ["1.8", "ruby_1_8"]) {
     |ruby_curr_dir, ruby_version, ruby_branch|
   Build.cvs("ruby",
     ":pserver:anonymous@cvs.ruby-lang.org:/src", "ruby", ruby_branch)
@@ -12,7 +12,7 @@ Build.combination(
   Build.run("autoconf")
   Build.run("./configure", "--prefix=#{ruby_curr_dir}", "CFLAGS=-Wall -g -O2") {|log|
     if /^checking target system type\.\.\. (\S+)$/ =~ log
-      Build.update_title(:version, "#{ruby_version} #{$1}")
+      Build.update_title(:version, "ruby-#{ruby_version} #{$1}")
     end
   }
   Build.add_finish_hook {

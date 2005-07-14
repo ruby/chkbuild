@@ -2,9 +2,9 @@
 
 require 'build'
 
-Build.combination(
-    ["ruby-trunk", nil],
-    ["ruby-1.8", "ruby_1_8"]) {
+Build.target("ruby"
+    ["trunk", nil],
+    ["1.8", "ruby_1_8"]) {
     |ruby_curr_dir, ruby_version, ruby_branch|
   Dir.chdir("..") {
     Build.cvs("ruby",

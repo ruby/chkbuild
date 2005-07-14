@@ -2,7 +2,7 @@
 
 require 'build'
 
-Build.target("sleep") {
+Build.target("echo") {
     |curr_dir|
-  Build.run("sleep", "60")
+  Build.run("echo", "foo")
 }

@@ -2,8 +2,7 @@
 
 require 'build'
 
-Build.combination(["failname"]) {
-    |curr_dir, _|
+Build.target("failure") {|curr_dir|
   Build.add_finish_hook {
     log = Build.all_log
     mark = ''
