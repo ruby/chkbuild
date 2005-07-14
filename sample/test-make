@@ -3,5 +3,5 @@
 require 'build'
 
 Build.target("maketarget") {|curr_dir|
-  Build.make("aa")
+  Build.make("nonexisting-target")
 }
