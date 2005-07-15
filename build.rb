@@ -120,6 +120,19 @@ def mkcd(dir) FileUtils.mkpath dir
     }
   end
 
+  def markup(str)
+    tp str
+    result = ''
+    i = 0
+    str.scan(/#{URI.regexp(['http'])}/o) {
+      result << h(str[i...$~.begin(0)]) if i < $~.begin(0)
+      result << "<a href=\"#{h $&}\">#{h $&}</a>"
+      i = $~.end(0)
+    }
+    result << h(str[i...str.length]) if i < str.length
+    result
+  end
+
   HTMLTemplate = <<'End'
 <html>
   <head>
@@ -129,7 +142,7 @@ def mkcd(dir) FileUtils.mkpath dir
   <body>
     <h1><%= h title %></h1>
     <p><a href="../">chkbuild</a></p>
-    <pre><%= h log %></pre>
+    <pre><%= markup log %></pre>
     <hr>
     <p><a href="../">chkbuild</a></p>
   </body>

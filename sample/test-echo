@@ -3,5 +3,5 @@
 require 'build'
 
 Build.target("echo") {|curr_dir|
-  Build.run("echo", "foo")
+  Build.run("echo", "f&<>oo http://foo.example.net/bar?a=b&c=d baz")
 }
