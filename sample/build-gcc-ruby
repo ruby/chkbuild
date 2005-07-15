@@ -11,7 +11,7 @@ GCC = Build.target("gcc",
     Build.cvs("gcc",
       ":ext:anoncvs@savannah.gnu.org:/cvsroot/gcc", "gcc", gcc_branch,
       "ENV:CVS_RSH" => "ssh",
-      :viewcvs => "http://savannah.gnu.org/cgi-bin/viewcvs")
+      :viewcvs => "http://savannah.gnu.org/cgi-bin/viewcvs/gcc?diff_format=u")
   }
   Build.mkcd("objdir")
   Build.run("../../gcc/configure", "--prefix=#{gcc_curr_dir}", "--enable-languages=c")
