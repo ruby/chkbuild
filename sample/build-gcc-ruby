@@ -31,7 +31,7 @@ Build.target("ruby",
     Build.run("autoconf")
   }
   Build.mkcd("ruby")
-  Build.run("../../ruby/configure", "--prefix=#{ruby_curr_dir}", "CFLAGS=-Wall -g -O2", "CC=#{gcc_dir}/bin/gcc") {|log|
+  Build.run("../../ruby/configure", "--prefix=#{ruby_curr_dir}", "CFLAGS=-Wall -Wno-parentheses -g -O2", "CC=#{gcc_dir}/bin/gcc") {|log|
     if /^checking target system type\.\.\. (\S+)$/ =~ log
       Build.update_title(:version, "#{ruby_version} #{$1}")
     end

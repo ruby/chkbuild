@@ -12,7 +12,7 @@ Build.target("ruby",
     )
   Dir.chdir("ruby")
   Build.run("autoconf")
-  Build.run("./configure", "--prefix=#{ruby_curr_dir}", "CFLAGS=-Wall -g -O2") {|log|
+  Build.run("./configure", "--prefix=#{ruby_curr_dir}", "CFLAGS=-Wall -Wno-parentheses -g -O2") {|log|
     if /^checking target system type\.\.\. (\S+)$/ =~ log
       Build.update_title(:version, "ruby-#{ruby_version} #{$1}")
     end
