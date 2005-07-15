@@ -25,9 +25,7 @@ module Build
   def public_dir
     "#{TOP_DIRECTORY}/tmp/public_html"
   end
-
-  def mkcd(dir)
-    FileUtils.mkpath dir
+def mkcd(dir) FileUtils.mkpath dir
     Dir.chdir dir
   end
 
@@ -59,6 +57,21 @@ module Build
     }
     File.link old, tmp
     File.rename tmp, new
+  end
+
+  def careful_make_file(filename, content)
+    tmp = nil
+    i = 0
+    begin
+      tmp = "#{filename}.tmp#{i}"
+      f = File.open(tmp, File::WRONLY|File::CREAT|File::TRUNC|File::EXCL)
+    rescue Errno::EEXIST
+      i += 1
+      retry
+    end
+    f << content
+    f.close
+    File.rename tmp, filename
   end
 
   def update_title(key, val)
@@ -101,10 +114,32 @@ module Build
       if f.stat.size == 0
         f.puts "<title>#{h name} build summary</title>"
         f.puts "<h1>#{h name} build summary</h1>"
-        f.puts "<p><a href=\"../\">autobuild</a></p>"
+        f.puts "<p><a href=\"../\">chkbuild</a></p>"
       end
       f.puts "<a href=\"log/#{start_time}.txt.gz\">#{h start_time}</a> #{h title}<br>"
     }
+  end
+
+  HTMLTemplate = <<'End'
+<html>
+  <head>
+    <title><%= h title %></title>
+    <meta name="generator" content="chkbuild">
+  </head>
+  <body>
+    <h1><%= h title %></h1>
+    <p><a href="../">chkbuild</a></p>
+    <pre><%= h log %></pre>
+    <hr>
+    <p><a href="../">chkbuild</a></p>
+  </body>
+</html>
+End
+
+  def make_html_log(log_filename, title, dst)
+    log = File.read(log_filename)
+    content = ERB.new(HTMLTemplate).result(binding)
+    careful_make_file(dst, content)
   end
 
   def compress_file(src, dst)
@@ -148,6 +183,8 @@ module Build
     title = make_title
     update_summary(name, @public, @start_time, title)
     compress_file(@log_filename, "#{@public_log}/#{@start_time}.txt.gz")
+    make_html_log(@log_filename, title, "#{@public}/latest.html")
+    compress_file("#{@public}/latest.html", "#{@public}/latest.html.gz")
   end
 
   def build_wrapper(opts, start_time_obj, name, *args, &block)
