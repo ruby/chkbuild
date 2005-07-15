@@ -294,11 +294,11 @@ module Build
 
   def cvs_print_revisions(h1, h2, viewcvs=nil)
     if h1
+      changes = 'changes:'
       (h1.keys | h2.keys).sort.each {|k|
         f = k.flatten.join('/')
         cvsroot1, repository1, r1 = h1[k] || [nil, nil, 'none']
         cvsroot2, repository2, r2 = h2[k] || [nil, nil, 'none']
-        changes = 'changes:'
         if r1 != r2
           if changes
             puts changes
