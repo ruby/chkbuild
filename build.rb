@@ -4,6 +4,7 @@ require 'socket'
 require 'zlib'
 require "erb"
 include ERB::Util
+require "uri"
 
 require 'escape'
 require 'timeoutcom'
@@ -307,17 +308,21 @@ module Build
           line = "#{f}\t#{r1} -> #{r2}"
           if viewcvs
             repository = repository1 || repository2
-            url = viewcvs.dup
-            url << "/" << repository if repository != '.'
-            url << "/#{k[1]}"
+            uri = URI.parse(viewcvs)
+            path = uri.path.dup
+            path << "/" << repository if repository != '.'
+            path << "/#{k[1]}"
+            uri.path = path
+            query = (uri.query || '').split(/[;&]/)
             if r1 == 'none'
-              url << "?rev=#{r2}"
+              query << "rev=#{r2}"
             elsif r2 == 'none'
-              url << "?rev=#{r1}"
+              query << "rev=#{r1}"
             else
-              url << "?r1=#{r1};r2=#{r2}"
+              query << "r1=#{r1}" << "r2=#{r2}"
             end
-            line << "\t" << url
+            uri.query = query.join(';')
+            line << "\t" << uri.to_s
           end
           puts line
         end
