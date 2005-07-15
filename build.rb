@@ -121,7 +121,6 @@ def mkcd(dir) FileUtils.mkpath dir
   end
 
   def markup(str)
-    tp str
     result = ''
     i = 0
     str.scan(/#{URI.regexp(['http'])}/o) {
