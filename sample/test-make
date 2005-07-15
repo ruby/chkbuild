@@ -2,6 +2,6 @@
 
 require 'build'
 
-Build.target("maketarget") {|curr_dir|
+Build.target("make-failure") {|curr_dir|
   Build.make("nonexisting-target")
 }

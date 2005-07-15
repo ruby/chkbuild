@@ -8,7 +8,6 @@ require "uri"
 
 require 'escape'
 require 'timeoutcom'
-require 'dynamic'
 require 'gdb'
 require 'ssh'
 
@@ -33,7 +32,7 @@ module Build
   end
 
   def build_time_sequence
-    dirs = Dir.entries(Dynamic.ref(:target_dir))
+    dirs = Dir.entries(@target_dir)
     dirs.reject! {|d| /\A\d{8}T\d{6}/ !~ d } # year 10000 problem
     dirs.sort!
     dirs
@@ -43,7 +42,7 @@ module Build
     dirs = build_time_sequence
     dirs.delete current
     return if dirs.length <= num
-    target_dir = Dynamic.ref(:target_dir)
+    target_dir = @target_dir
     dirs[-num..-1] = []
     dirs.each {|d|
       FileUtils.rmtree "#{target_dir}/#{d}"
@@ -63,21 +62,21 @@ module Build
   end
 
   def update_title(key, val)
-    h = Dynamic.ref(:title)
+    h = @title
     h[key] = val
   end
 
   def all_log
-    File.read(Dynamic.ref(:log_filename))
+    File.read(@log_filename)
   end
 
   def count_warns
     num_warns = all_log.scan(/warn/i).length
-    Dynamic.ref(:title)[:warn] = "#{num_warns}W" if 0 < num_warns
+    @title[:warn] = "#{num_warns}W" if 0 < num_warns
   end
 
   def make_title
-    if !Dynamic.ref(:title)[:status]
+    if !@title[:status]
       if $!
         if CommandError === $!
           Build.update_title(:status, "failed(#{$!.reason})")
@@ -88,12 +87,12 @@ module Build
         Build.update_title(:status, "failed")
       end
     end
-    title_hash = Dynamic.ref(:title)
-    Dynamic.ref(:title_order).map {|key| title_hash[key] }.join(' ').gsub(/\s+/, ' ').strip
+    title_hash = @title
+    @title_order.map {|key| title_hash[key] }.join(' ').gsub(/\s+/, ' ').strip
   end
 
   def add_finish_hook(&block)
-    Dynamic.ref(:finish_hook) << block
+    @finish_hook << block
   end
 
   def update_summary(name, public, start_time, title)
@@ -113,59 +112,56 @@ module Build
   end
 
   def build_target(opts, start_time_obj, name, *args)
-    Dynamic.bind(
-      :start_time => (start_time = start_time_obj.strftime("%Y%m%dT%H%M%S")),
-      :target_dir => (target_dir = "#{Build.build_dir}/#{name}"),
-      :dir => (dir = "#{target_dir}/#{start_time}"),
-      :public => (public = "#{Build.public_dir}/#{name}"),
-      :public_log => (public_log = "#{public}/log"),
-      :latest_new => (latest_new = "#{public}/latest.new"),
-      :log_filename => (log_filename = "#{dir}/log"))
-    Build.mkcd target_dir
-    raise "already exist: #{dir}" if File.exist? start_time
-    Dir.mkdir start_time # fail if it is already exists.
-    Dir.chdir start_time
-    STDOUT.reopen(log_filename, "w")
+    @start_time = start_time_obj.strftime("%Y%m%dT%H%M%S")
+    @target_dir = "#{Build.build_dir}/#{name}"
+    @dir = "#{@target_dir}/#{@start_time}"
+    @public = "#{Build.public_dir}/#{name}"
+    @public_log = "#{@public}/log"
+    @latest_new = "#{@public}/latest.new"
+    @log_filename = "#{@dir}/log"
+    Build.mkcd @target_dir
+    raise "already exist: #{dir}" if File.exist? @start_time
+    Dir.mkdir @start_time # fail if it is already exists.
+    Dir.chdir @start_time
+    STDOUT.reopen(@log_filename, "w")
     STDERR.reopen(STDOUT)
     STDOUT.sync = true
     STDERR.sync = true
-    Build.add_finish_hook { GDB.check_core(dir) }
+    Build.add_finish_hook { GDB.check_core(@dir) }
     puts start_time_obj.iso8601
     system("uname -a")
-    remove_old_build(start_time, opts.fetch(:old, 3))
-    FileUtils.mkpath(public)
-    FileUtils.mkpath(public_log)
-    careful_link "log", latest_new
-    yield dir, *args
-    Dynamic.ref(:title)[:status] ||= 'success'
+    remove_old_build(@start_time, opts.fetch(:old, 3))
+    FileUtils.mkpath(@public)
+    FileUtils.mkpath(@public_log)
+    careful_link "log", @latest_new
+    yield @dir, *args
+    @title[:status] ||= 'success'
   ensure
-    Dynamic.ref(:finish_hook).reverse_each {|block|
+    @finish_hook.reverse_each {|block|
       begin
         block.call
       rescue Exception
       end
     }
     puts Time.now.iso8601
-    careful_link latest_new, "#{public}/latest.txt" if File.file? latest_new
+    careful_link @latest_new, "#{@public}/latest.txt" if File.file? @latest_new
     title = make_title
-    update_summary(name, public, start_time, title)
-    compress_file(log_filename, "#{public_log}/#{start_time}.txt.gz")
+    update_summary(name, @public, @start_time, title)
+    compress_file(@log_filename, "#{@public_log}/#{@start_time}.txt.gz")
   end
 
   def build_wrapper(opts, start_time_obj, name, *args, &block)
     LOCK.puts name
-    Dynamic.bind(:title => {},
-                 :title_order => nil,
-                 :finish_hook => []) {
-      Dynamic.ref(:title)[:version] = name
-      Dynamic.ref(:title)[:hostname] = "(#{Socket.gethostname})"
-      Dynamic.assign(:title_order, [:status, :warn, :mark, :version, :hostname])
-      Build.add_finish_hook { count_warns }
-      begin
-        Build.build_target(opts, start_time_obj, name, *args, &block)
-      rescue CommandError
-      end
-    }
+   @title = {}
+   @finish_hook = []
+   @title[:version] = name
+   @title[:hostname] = "(#{Socket.gethostname})"
+   @title_order = [:status, :warn, :mark, :version, :hostname]
+   add_finish_hook { count_warns }
+   begin
+     Build.build_target(opts, start_time_obj, name, *args, &block)
+   rescue CommandError
+   end
   end
 
   def target(target_name, *args, &block)
@@ -269,7 +265,7 @@ module Build
       end
     ensure
       if block_given?
-        yield File.read(Dynamic.ref(:log_filename), nil, pos)
+        yield File.read(@log_filename, nil, pos)
       end
     end
   end
@@ -346,9 +342,9 @@ module Build
       }
     else
       h1 = nil
-      if identical_file?(Dynamic.ref(:dir), '.') &&
-         !(ts = build_time_sequence - [Dynamic.ref(:start_time)]).empty? &&
-         File.directory?(old_working_dir = "#{Dynamic.ref(:target_dir)}/#{ts.last}/#{working_dir}")
+      if identical_file?(@dir, '.') &&
+         !(ts = build_time_sequence - [@start_time]).empty? &&
+         File.directory?(old_working_dir = "#{@target_dir}/#{ts.last}/#{working_dir}")
         Dir.chdir(old_working_dir) {
           h1 = cvs_revisions
         }
