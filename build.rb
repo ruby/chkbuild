@@ -293,19 +293,17 @@ module Build
   end
 
   def cvs_print_revisions(h1, h2, viewcvs=nil)
-    if !h1
-      h2.keys.sort.each {|k|
-        f = k.flatten.join('/')
-        puts "#{f}\t#{h2[k]}"
-      }
-    else
+    if h1
       (h1.keys | h2.keys).sort.each {|k|
         f = k.flatten.join('/')
         cvsroot1, repository1, r1 = h1[k] || [nil, nil, 'none']
         cvsroot2, repository2, r2 = h2[k] || [nil, nil, 'none']
-        if r1 == r2
-          puts "#{f}\t#{r1}"
-        else
+        changes = 'changes:'
+        if r1 != r2
+          if changes
+            puts changes
+            changes = nil
+          end
           line = "#{f}\t#{r1} -> #{r2}"
           if viewcvs
             repository = repository1 || repository2
@@ -325,6 +323,12 @@ module Build
         end
       }
     end
+    puts 'revisions:'
+    h2.keys.sort.each {|k|
+      f = k.flatten.join('/')
+      cvsroot2, repository2, r2 = h2[k] || [nil, nil, 'none']
+      puts "#{f}\t#{r2}"
+    }
   end
 
   def cvs(working_dir, cvsroot, mod, branch, opts={})
