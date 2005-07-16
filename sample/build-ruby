@@ -2,6 +2,8 @@
 
 require 'build'
 
+#Build.rsync_ssh_upload_target("akr2@localhost::serein-localhost-upload")
+
 Build.target("ruby",
     ["trunk", nil],
     ["1.8", "ruby_1_8"]) {

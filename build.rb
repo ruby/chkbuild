@@ -5,6 +5,7 @@ require 'zlib'
 require "erb"
 include ERB::Util
 require "uri"
+require "etc"
 
 require 'escape'
 require 'timeoutcom'
@@ -108,6 +109,10 @@ def mkcd(dir) FileUtils.mkpath dir
     @finish_hook << block
   end
 
+  def add_upload_hook(&block)
+    @upload_hook << block
+  end
+
   def update_summary(name, public, start_time, title)
     open("#{public}/summary.txt", "a") {|f| f.puts "#{start_time} #{title}" }
     open("#{public}/summary.html", "a") {|f|
@@ -197,20 +202,28 @@ End
     compress_file(@log_filename, "#{@public_log}/#{@start_time}.txt.gz")
     make_html_log(@log_filename, title, "#{@public}/latest.html")
     compress_file("#{@public}/latest.html", "#{@public}/latest.html.gz")
+    @upload_hook.reverse_each {|block|
+      begin
+        block.call name
+      rescue Exception
+      end
+    }
   end
 
+  @upload_hook ||= []
   def build_wrapper(opts, start_time_obj, name, *args, &block)
     LOCK.puts name
-   @title = {}
-   @finish_hook = []
-   @title[:version] = name
-   @title[:hostname] = "(#{Socket.gethostname})"
-   @title_order = [:status, :warn, :mark, :version, :hostname]
-   add_finish_hook { count_warns }
-   begin
-     Build.build_target(opts, start_time_obj, name, *args, &block)
-   rescue CommandError
-   end
+    @title = {}
+    @finish_hook = []
+    @upload_hook ||= []
+    @title[:version] = name
+    @title[:hostname] = "(#{Socket.gethostname})"
+    @title_order = [:status, :warn, :mark, :version, :hostname]
+    add_finish_hook { count_warns }
+    begin
+      Build.build_target(opts, start_time_obj, name, *args, &block)
+    rescue CommandError
+    end
   end
 
   def target(target_name, *args, &block)
@@ -382,6 +395,10 @@ End
   end
 
   def cvs(working_dir, cvsroot, mod, branch, opts={})
+    opts = opts.dup
+    if !File.exist? "#{ENV['HOME']}/.cvspass"
+      opts['ENV:CVS_PASSFILE'] = '/dev/null' # avoid warning
+    end
     if File.directory?(working_dir)
       Dir.chdir(working_dir) {
         h1 = cvs_revisions
@@ -422,6 +439,29 @@ End
 
   def ssh_known_host(arg)
     SSH.add_known_host(arg)
+  end
+
+  def rsync_ssh_upload_target(rsync_target, private_key=nil)
+    Build.add_upload_hook {|name|
+      Build.do_upload_rsync_ssh(rsync_target, private_key, name)
+    }
+  end
+
+  def do_upload_rsync_ssh(rsync_target, private_key, name)
+    if %r{\A(?:([^@:]+)@)([^:]+)::(.*)\z} !~ rsync_target
+      raise "invalid rsync target: #{rsync_target.inspect}"
+    end
+    remote_user = $1 || ENV['USER'] || Etc.getpwuid.name
+    remote_host = $2
+    remote_path = $3
+    local_host = Socket.gethostname
+    private_key ||= "#{ENV['HOME']}/.ssh/chkbuild-#{local_host}-#{remote_host}"
+
+    pid = fork {
+      ENV.delete 'SSH_AUTH_SOCK'
+      exec "rsync", "--delete", "-rte", "ssh -akxi #{private_key}", "#{Build.public_dir}/#{name}", "#{rsync_target}"
+    }
+    Process.wait pid
   end
 
   TOP_DIRECTORY = Dir.getwd

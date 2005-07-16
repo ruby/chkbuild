@@ -1,0 +1,508 @@
+#!/usr/bin/env ruby
+
+# usage: setup/upload-rsync-ssh chkbuild-user remoteuser@remotehost
+#
+# setup/upload-rsync-ssh setups upload configuration.
+# 1. generate ssh key dedicated for the upload.
+#    localhost:~/.ssh/chkbuild-localhost-remotehost
+#    localhost:~/.ssh/chkbuild-localhost-remotehost.pub
+# 2. ssh client setup
+#    localhost:~chkbuild-user/.ssh/chkbuild-localhost-remotehost
+#    localhost:~chkbuild-user/.ssh/known_hosts
+# 2. setup rsync server via ssh on remotehost.
+#    remotehost:~remoteuser/.ssh/chkbuild-rsyncd-localhost-remotehost.conf
+#    remotehost:~remoteuser/.ssh/authorized_keys
+#    remotehost:~remoteuser/public_html/chkbuild/localhost/
+
+# You need an user dedicated to chkbuild before using setup/upload-rsync-ssh.
+# Assume the login name of the dedicated user is chkbuild and
+# your login name is luser.
+#
+#   # adduser --disabled-login --no-create-home --shell /home/luser/chkbuild/sample/build-ruby chkbuild
+#   # usermod -G ...,chkbuild luser
+#   # cd /home
+#   # mkdir chkbuild chkbuild/build chkbuild/public_html
+#   # chown luser chkbuild
+#   # chown chkbuild:luser chkbuild/build chkbuild/public_html
+#   # chmod 2775 chkbuild/build chkbuild/public_html
+#   # setup/upload-rsync-ssh chkbuild remote-user@remotehost
+#   ...
+#   rsync target: remote-user@remotehost::localhost-remotehost-upload
+#
+# Note that setup/upload-rsync-ssh invokes ssh twice.
+
+require 'etc'
+require 'socket'
+require 'fileutils'
+
+local_host = Socket.gethostname
+DEFAULT_REMOTE_DIR = "public_html/#{local_host}"
+
+def usage(status)
+  puts <<"End"
+usage: setup/upload-rsync-ssh chkbuild-user remoteuser@remotehost
+default:
+  remote-dir = #{DEFAULT_REMOTE_DIR.inspect}
+End
+  exit status
+end
+
+if ARGV.length < 2 || 3 < ARGV.length
+  puts "setup/upload-rsync-ssh needs exactly 2 or 3 arguments"
+  usage(1)
+end
+
+chkbuild_user, remote_info, remote_dir = ARGV
+remote_dir ||= DEFAULT_REMOTE_DIR
+
+if /@/ !~ remote_info
+  puts "remote-user@remote-host not given: #{remote_info.inspect}"
+  exit 1
+end
+
+remote_user = $`
+remote_host = $'
+
+local_user = Etc.getpwuid
+
+begin
+  chkbuild_user = Etc.getpwnam(chkbuild_user)
+rescue ArgumentError
+  puts "no such user: #{chkbuild_user.inspect}"
+  exit 1
+end
+
+begin
+  chkbuild_group = Etc.getgrgid(chkbuild_user.gid)
+rescue ArgumentError
+  puts "no group which gid is #{chkbuild_user.gid}"
+  exit 1
+end
+
+if !chkbuild_group.mem.include?(local_user.name)
+  puts "#{local_user.name.inspect} is not a member of group #{chkbuild_group.name.inspect}"
+  exit 1
+end
+
+if !Process.groups.include?(chkbuild_user.gid)
+  puts "process supplementary groups doesn't contain #{chkbuild_group.name.inspect}"
+  exit 1
+end
+
+class FileMap
+  def initialize(filemap)
+    @paths = []
+    @filemap = {}
+    filemap.each_line {|line|
+      next if /\A\s*\z/ =~ line
+      path, *spec_list = line.split(/\s+/)
+      if %r{/\z} =~ path
+        spec_list << "dir"
+        path.sub!(%r{/\z}, '')
+      end
+      specs = {}
+      spec_list.each {|spec|
+        if /=/ =~ spec
+          key = $`
+          val = $'
+          case key
+          when /\Auser\z/
+            val = val.to_i
+          when /\Agroup\z/
+            val = val.to_i
+          when /\Amode\z/
+            mode, mask = val.split(%r{/})
+            val = [mode.oct, mask.oct]
+          end
+          specs[key] = val
+        else
+          specs[spec] = true
+        end
+      }
+      @paths << path
+      @filemap[path] = specs
+    }
+    @filemap.each {|path, specs|
+      dir = File.dirname(path)
+      while @filemap.include? dir
+        @filemap[dir]['dir'] = true
+        dir = File.dirname(dir)
+      end
+    }
+  end
+
+  def creatable_target?(specs, parent_specs, parent)
+    parent_uid = nil
+    parent_gid = nil
+    parent_mode = nil
+    parent_mask = nil
+    if parent_specs
+      parent_specs.each {|key, val|
+        case key
+        when /\Auser\z/ then parent_uid = val
+        when /\Agroup\z/ then parent_gid = val
+        when /\Amode\z/ then parent_mode, parent_mask = val
+        when /\Afile\z/ then return false
+        end
+      }
+    else
+      begin
+        parent_stat = File.stat(parent)
+        return false unless parent_stat.directory?
+        parent_uid = parent_stat.uid
+        parent_gid = parent_stat.gid
+        parent_mode = parent_stat.mode
+        parent_mask = 07777
+      rescue Errno::ENOENT
+      end
+    end
+    if parent_uid && Process.uid == parent_uid
+      unless parent_mask & 0300 == 0300 && parent_mode & 0300 == 0300
+        return false
+      end
+    elsif parent_uid && parent_gid && (Process.gid == parent_gid || Process.groups.include?(parent_gid))
+      unless parent_mask & 0030 == 0030 && parent_mode & 0030 == 0030
+        return false
+      end
+    elsif parent_uid && parent_gid
+      unless parent_mask & 0003 == 0003 && parent_mode & 0003 == 0003
+        return false
+      end
+    else
+      return false
+    end
+    specs.each {|key, val|
+      case key
+      when /\Auser\z/
+        return false if Process.uid != val
+      when /\Agroup\z/
+        unless Process.gid == val ||
+               Process.groups.include?(val) ||
+               (parent_mask && parent_gid && parent_mask & 02000 != 0 && parent_mode & 02000 != 0 && parent_gid == val)
+          return false
+        end
+      end
+    }
+    return true
+  end
+
+  def check
+    stats = {}
+    errors = {}
+    fixable = {}
+    @paths.each {|path|
+      specs = @filemap[path]
+      errors[path] ||= []
+      fixable[path] ||= []
+      begin
+        stat = File.stat(path)
+      rescue Errno::ENOENT
+        parent = File.dirname(path)
+        if creatable_target?(specs, @filemap[parent], parent)
+          fixable[path] = specs
+        else
+          errors[path] << 'not-exist'
+        end
+      end
+      if stat
+        stats[path] = stat
+        specs.each {|key, val|
+          case key
+          when /\Auser\z/
+            errors[path] << [key, val, stat] if stat.uid != val
+          when /\Agroup\z/
+            if stat.gid != val
+              if specs['user'] == Process.uid && Process.groups.include?(val)
+                fixable[path] << [key, val, stat]
+              else
+                errors[path] << [key, val, stat]
+              end
+            end
+          when /\Amode\z/
+            mode, mask = val
+            if stat.mode & mask != mode
+              if specs['user'] == Process.uid
+                fixable[path] << [key, val, stat]
+              else
+                errors[path] << [key, val, stat]
+              end
+            end
+          when /\Afile\z/
+            errors[path] << [key, val, stat] if !stat.file?
+          when /\Adir\z/
+            errors[path] << [key, val, stat] if !stat.directory?
+          else
+            raise "unexpected file spec: #{key.inspect} (#{path.inspect})"
+          end
+        }
+      end
+      errors.delete(path) if errors[path].empty?
+      fixable.delete(path) if fixable[path].empty?
+    }
+    if errors.empty?
+      @stats = stats
+      @fixable = fixable
+      true
+    else
+      @errors = errors
+      false
+    end
+  end
+  attr_reader :stats
+
+  def inspect_uid(uid)
+    begin
+      info = Etc.getpwuid(uid)
+    rescue ArgumentError
+      uid.to_s
+    end
+    "#{uid} (#{info.name})"
+  end
+
+  def inspect_gid(gid)
+    begin
+      info = Etc.getgrgid(gid)
+    rescue ArgumentError
+      gid.to_s
+    end
+    "#{gid} (#{info.name})"
+  end
+
+  def print_errors
+    @errors.keys.sort.each {|path|
+      @errors[path].each {|errinfo|
+        key, val, *rest = errinfo
+        case key
+        when /\Auser\z/
+          stat, = rest
+          puts "#{path.inspect}: uid exected #{inspect_uid val} but #{inspect_uid stat.uid}"
+        when /\Agroup\z/
+          stat, = rest
+          puts "#{path.inspect}: gid exected #{inspect_gid val} but #{inspect_gid stat.gid}"
+        when %r{\Amode\z}
+          mode, mask = val
+          stat, = rest
+          puts "#{path.inspect}: mode exected #{"%o" % mode} but #{"%o" % (stat.mode & mask)} (mask=#{"%o" % mask})"
+        when /\Afile\z/
+          stat, = rest
+          puts "#{path.inspect}: regular file exected but #{stat.ftype}"
+        when /\Adir\z/
+          stat, = rest
+          puts "#{path.inspect}: directory exected but #{stat.ftype}"
+        when /\Anot-exist\z/
+          puts "#{path.inspect}: not exist"
+        else
+          raise "unexpected file spec: #{key.inspect} (#{path.inspect})"
+        end
+      }
+    }
+  end
+
+  def fix_permission(path, uid, gid, mode, mask, stat=nil)
+    if !stat
+      begin
+        stat = File.stat(path)
+      rescue Errno::ENOENT
+        puts "#{path.inspect}: not exist."
+        exit 1
+      end
+    end
+    if uid && stat.uid != uid
+      puts "#{path.inspect}: uid expected #{inspect_uid uid} but #{inspect_uid stat.uid}"
+      exit 1
+    end
+    if gid && stat.gid != gid
+      File.chown(-1, gid, path)
+    end
+    if mode && stat.mode & mask != mode
+      File.chmod(stat.mode & ~mask | mode, path)
+    end
+    stat = File.stat(path)
+    if gid && stat.gid != gid
+      puts "#{path.inspect}: gid expected #{inspect_uid gid} but #{inspect_gid stat.gid}"
+      exit 1
+    end
+    if mode && stat.mode & mask != mode
+      puts "#{path.inspect}: mode expected #{"%o" % gid} but #{"%o" % stat.gid}"
+      exit 1
+    end
+  end
+
+  def fix_directories
+    dirs = @paths.reject {|path| !@filemap[path]['dir'] }
+    dirs.each {|dir|
+      uid = @filemap[dir]['user']
+      gid = @filemap[dir]['group']
+      mode, mask = @filemap[dir]['mode']
+      stat = @stats[dir]
+      if !stat
+        Dir.mkdir(dir, mode)
+        stat = File.stat(dir)
+      end
+      fix_permission(dir, uid, gid, mode, mask, stat)
+    }
+  end
+
+  def fix_files
+    errors = 0
+    paths = @paths.reject {|path| @filemap[path]['dir'] }
+    paths.each {|path|
+      uid = @filemap[path]['user']
+      gid = @filemap[path]['group']
+      mode, mask = @filemap[path]['mode']
+      begin
+        stat = File.stat(path)
+      rescue Errno::ENOENT
+        puts "#{path.inspect}: not generated."
+        exit 1
+      end
+      fix_permission(path, uid, gid, mode, mask, stat)
+    }
+  end
+
+end
+
+cdir = chkbuild_user.dir
+cuid = chkbuild_user.uid
+cgid = chkbuild_user.gid
+ldir = local_user.dir
+luid = local_user.uid
+lgid = local_user.gid
+
+host_pair = "#{local_host}-#{remote_host}"
+filemap = FileMap.new(<<"End")
+#{cdir}                                user=#{luid} group=#{cgid} mode=750/777
+#{cdir}/.ssh                           user=#{luid} group=#{cgid} mode=750/777
+#{cdir}/.ssh/chkbuild-#{host_pair}     user=#{luid} group=#{cgid} mode=640/777   file
+#{cdir}/.ssh/known_hosts               user=#{luid} group=#{cgid} mode=640/777   file
+#{cdir}/build/                         user=#{cuid} group=#{lgid} mode=2775/7777
+#{cdir}/public_html/                   user=#{cuid} group=#{lgid} mode=2775/7777
+
+#{ldir}/.ssh/chkbuild-#{host_pair}     user=#{luid} group=#{lgid} mode=400/777   file
+#{ldir}/.ssh/chkbuild-#{host_pair}.pub user=#{luid} group=#{lgid} mode=444/777   file
+End
+
+unless filemap.check
+  filemap.print_errors
+  exit 1
+end
+
+stats = filemap.stats
+
+local_secret_key = "#{ldir}/.ssh/chkbuild-#{host_pair}"
+local_public_key = "#{ldir}/.ssh/chkbuild-#{host_pair}.pub"
+if stats[local_secret_key] && !stats[local_public_key]
+  puts "#{local_public_key.inspect}: local ssh secret key exists but no public key"
+  exit 1
+end
+if !stats[local_secret_key] && stats[local_public_key]
+  puts "#{local_secret_key.inspect}: local ssh public key exists but no secret key"
+  exit 1
+end
+
+chkbuild_secret_key = "#{cdir}/.ssh/chkbuild-#{host_pair}"
+if stats[chkbuild_secret_key]
+  if !stats[local_secret_key]
+    puts "#{chkbuild_secret_key.inspect} exists but not #{local_secret_key.inspect}"
+    exit 1
+  end
+  if !FileUtils.compare_file(chkbuild_secret_key, local_secret_key)
+    puts "different content: #{chkbuild_secret_key.inspect} and #{local_secret_key.inspect}"
+    exit 1
+  end
+end
+
+puts "trying to check rsync & ssh #{remote_user}@#{remote_host} possible..."
+system "ssh", "#{remote_user}@#{remote_host}", "rsync --version"
+if $?.to_i != 0
+  puts "ssh/rsync failed."
+  exit 1
+end
+# xxx: check rsync version
+
+######################################################################
+
+filemap.fix_directories
+
+if !stats[local_secret_key]
+  system "ssh-keygen", "-t", "dsa", "-N", "", "-f", local_secret_key, "-C", "chkbuild@#{local_host}@#{remote_host}"
+  exit 1 if $?.to_i != 0
+end
+FileUtils.copy_file(local_secret_key, chkbuild_secret_key)
+
+chkbuild_known_hosts = "#{cdir}/.ssh/known_hosts"
+local_known_hosts = "#{ldir}/.ssh/known_hosts"
+known_hosts_line = nil
+IO.foreach(local_known_hosts) {|line|
+  next if /\A#/ =~ line || /\A\s*\z/ =~ line
+  if /\A\S+/ =~ line
+    rest = $'
+    hostnames = $&.split(/,/)
+    if hostnames.include? remote_host
+      addrs = [remote_host]
+      Socket.getaddrinfo(remote_host, "ssh").each {|addrfamily, port, host, addr|
+        if addrfamily == 'AF_INET'
+          addrs << addr
+        end
+      }
+      addrs.uniq!
+      known_hosts_line = "#{addrs.join(',')}#{rest}"
+      break
+    end
+  end
+}
+if !known_hosts_line
+  puts "#{remote_host.inspect} is not known in #{local_known_hosts.inspect}"
+  exit 1
+end
+open(chkbuild_known_hosts, File::RDWR|File::CREAT) {|f|
+  f.each_line {|line|
+    if line == known_hosts_line
+      known_hosts_line = nil
+    end
+  }
+  f.puts known_hosts_line if known_hosts_line
+}
+
+filemap.fix_files
+
+public_key = File.read(local_public_key).chomp
+
+puts "setup remote files using ssh #{remote_user}@#{remote_host}..."
+IO.popen("ssh #{remote_user}@#{remote_host} sh -s", "w") {|f|
+  f << <<"End"
+[ -d public_html ] || (
+  mkdir public_html
+  chmod 755 public_html
+)
+[ -d public_html/chkbuild ] || (
+  mkdir public_html/chkbuild
+  chmod 755 public_html/chkbuild
+)
+[ -d public_html/chkbuild/#{local_host} ] || (
+  mkdir public_html/chkbuild/#{local_host}
+  chmod 755 public_html/chkbuild/#{local_host}
+)
+[ -d .ssh ] || (
+  mkdir .ssh
+  chmod 700 .ssh
+)
+cat <<E > .ssh/chkbuild-rsyncd-#{host_pair}.conf
+[#{host_pair}-upload]
+path = $HOME/public_html/chkbuild/#{local_host}
+use chroot = no
+read only = no
+write only = yes
+E
+[ -f .ssh/authorized_keys ] || touch .ssh/authorized_keys
+cp .ssh/authorized_keys .ssh/authorized_keys.bak
+cat - .ssh/authorized_keys.bak <<E | sort | uniq > .ssh/authorized_keys.new
+command="`which rsync` --server --daemon --config=$HOME/.ssh/chkbuild-rsyncd-#{host_pair}.conf .",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty #{public_key}
+E
+mv .ssh/authorized_keys.new .ssh/authorized_keys
+End
+}
+
+puts "rsync target: #{remote_user}@#{remote_host}::#{host_pair}-upload"
+
+
