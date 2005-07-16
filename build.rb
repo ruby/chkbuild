@@ -12,6 +12,8 @@ require 'timeoutcom'
 require 'gdb'
 require 'ssh'
 
+File.umask(002)
+
 def tp(obj)
   open("/dev/tty", "w") {|f| f.puts obj.inspect }
 end
@@ -26,7 +28,9 @@ module Build
   def public_dir
     "#{TOP_DIRECTORY}/tmp/public_html"
   end
-def mkcd(dir) FileUtils.mkpath dir
+
+  def mkcd(dir)
+    FileUtils.mkpath dir
     Dir.chdir dir
   end
 
@@ -467,11 +471,16 @@ End
   TOP_DIRECTORY = Dir.getwd
 
   FileUtils.mkpath Build.build_dir
-  LOCK = open("#{Build.build_dir}/.lock", "w")
+  lock_path = "#{Build.build_dir}/.lock"
+  LOCK = open(lock_path, "w")
   if LOCK.flock(File::LOCK_EX|File::LOCK_NB) == false
     raise "another chkbuild is running."
   end
   LOCK.sync = true
+  lock_pid = $$
+  at_exit {
+    File.unlink lock_path if $$ == lock_pid
+  }
 end
 
 STDOUT.sync = true
