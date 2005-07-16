@@ -12,6 +12,11 @@ require 'timeoutcom'
 require 'gdb'
 require 'ssh'
 
+begin
+  Process.setpriority(Process::PRIO_PROCESS, 0, 10)
+rescue Errno::EACCES # already niced to 11 or more
+end
+
 File.umask(002)
 STDIN.reopen("/dev/null", "r")
 
