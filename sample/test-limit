@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+
+require 'build'
+
+Build.target("limit") {|curr_dir|
+  Build.run("sh", "-c", "ulimit -a", :rlimit_data => 10)
+}

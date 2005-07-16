@@ -296,6 +296,33 @@ End
     end
   end
 
+  def resource_unlimit(resource)
+    if Symbol === resource
+      begin
+        resource = Process.const_get(resource)
+      rescue NameError
+        return
+      end
+    end
+    cur_limit, max_limit = Process.getrlimit(resource)
+    Process.setrlimit(resource, max_limit, max_limit)
+  end
+
+  def resource_limit(resource, val)
+    if Symbol === resource
+      begin
+        resource = Process.const_get(resource)
+      rescue NameError
+        return
+      end
+    end
+    cur_limit, max_limit = Process.getrlimit(resource)
+    if max_limit < val
+      val = max_limit
+    end
+    Process.setrlimit(resource, val, val)
+  end
+
   class CommandError < StandardError
     def initialize(status, reason, message=reason)
       super message
@@ -315,6 +342,13 @@ End
         next if /\AENV:/ !~ k.to_s
         ENV[$'] = v
       }
+      if Process.respond_to? :setrlimit
+        resource_unlimit(:RLIMIT_CORE)
+        resource_limit(:RLIMIT_CPU, opts.fetch(:rlimit_cpu, 3600 * 4))
+        resource_limit(:RLIMIT_DATA, opts.fetch(:rlimit_data, 1024 * 1024 * 200))
+        resource_limit(:RLIMIT_STACK, opts.fetch(:rlimit_stack, 1024 * 1024 * 40))
+        resource_limit(:RLIMIT_AS, opts.fetch(:rlimit_as, 1024 * 1024 * 200))
+      end
       exec command, *args
     }
     begin
