@@ -2,7 +2,7 @@
 
 require 'build'
 
-#Build.rsync_ssh_upload_target("akr2@localhost::serein-localhost-upload")
+#Build.rsync_ssh_upload_target("akr2@localhost::upload")
 
 Build.target("echo") {|curr_dir|
   Build.run("echo", "f&<>oo http://foo.example.net/bar?a=b&c=d baz")

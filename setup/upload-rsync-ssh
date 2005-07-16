@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-# usage: setup/upload-rsync-ssh chkbuild-user remoteuser@remotehost
+# usage: setup/upload-rsync-ssh remoteuser@remotehost [remote-dir [chkbuild-user]]
 #
 # setup/upload-rsync-ssh setups upload configuration.
 # 1. generate ssh key dedicated for the upload.
@@ -27,7 +27,7 @@
 #   # chmod 2775 chkbuild/build chkbuild/public_html
 #   # setup/upload-rsync-ssh chkbuild remote-user@remotehost
 #   ...
-#   rsync target: remote-user@remotehost::localhost-remotehost-upload
+#   rsync target: remote-user@remotehost::upload
 #
 # Note that setup/upload-rsync-ssh invokes ssh twice.
 
@@ -36,34 +36,37 @@ require 'socket'
 require 'fileutils'
 
 local_host = Socket.gethostname
-DEFAULT_REMOTE_DIR = "public_html/#{local_host}"
+DEFAULT_CHKBUILD_UESR = 'chkbuild'
+DEFAULT_REMOTE_DIR = "public_html/chkbuild/#{local_host}"
 
 def usage(status)
   puts <<"End"
-usage: setup/upload-rsync-ssh chkbuild-user remoteuser@remotehost
+usage: setup/upload-rsync-ssh [remoteuser@]remotehost [remote-dir [chkbuild-user]]
 default:
-  remote-dir = #{DEFAULT_REMOTE_DIR.inspect}
+  remote-dir    = #{DEFAULT_REMOTE_DIR.inspect}
+  chkbuild-user = #{DEFAULT_CHKBUILD_UESR.inspect}
 End
   exit status
 end
 
-if ARGV.length < 2 || 3 < ARGV.length
-  puts "setup/upload-rsync-ssh needs exactly 2 or 3 arguments"
+if ARGV.length < 1 || 3 < ARGV.length
+  puts "setup/upload-rsync-ssh needs exactly 1 to 3 arguments"
   usage(1)
 end
 
-chkbuild_user, remote_info, remote_dir = ARGV
+remote_info, remote_dir, chkbuild_user = ARGV
 remote_dir ||= DEFAULT_REMOTE_DIR
-
-if /@/ !~ remote_info
-  puts "remote-user@remote-host not given: #{remote_info.inspect}"
-  exit 1
-end
-
-remote_user = $`
-remote_host = $'
+chkbuild_user ||= DEFAULT_CHKBUILD_UESR
 
 local_user = Etc.getpwuid
+
+if /@/ =~ remote_info
+  remote_user = $`
+  remote_host = $'
+else
+  remote_user = local_user.name
+  remote_host = remote_info
+end
 
 begin
   chkbuild_user = Etc.getpwnam(chkbuild_user)
@@ -413,12 +416,23 @@ if stats[chkbuild_secret_key]
 end
 
 puts "trying to check rsync & ssh #{remote_user}@#{remote_host} possible..."
-system "ssh", "#{remote_user}@#{remote_host}", "rsync --version"
+output = `ssh #{remote_user}@#{remote_host} rsync --version`
 if $?.to_i != 0
   puts "ssh/rsync failed."
   exit 1
 end
-# xxx: check rsync version
+if /rsync\s+version\s+([\d.]+)/ !~ output
+  puts "unexpected ssh/rsync output:"
+  puts "--------------------------------"
+  puts output
+  puts "--------------------------------"
+  exit 1
+end
+rsync_version = $1
+if (rsync_version.split(/\./).map {|n| n.to_i } <=> [2,6,3]) < 0
+  puts "rsync in #{remote_host.inspect} is too old: #{rsync_version} (must be newer than or equal 2.6.3)"
+  exit 1
+end
 
 ######################################################################
 
@@ -470,39 +484,42 @@ public_key = File.read(local_public_key).chomp
 
 puts "setup remote files using ssh #{remote_user}@#{remote_host}..."
 IO.popen("ssh #{remote_user}@#{remote_host} sh -s", "w") {|f|
-  f << <<"End"
-[ -d public_html ] || (
-  mkdir public_html
-  chmod 755 public_html
-)
-[ -d public_html/chkbuild ] || (
-  mkdir public_html/chkbuild
-  chmod 755 public_html/chkbuild
-)
-[ -d public_html/chkbuild/#{local_host} ] || (
-  mkdir public_html/chkbuild/#{local_host}
-  chmod 755 public_html/chkbuild/#{local_host}
-)
+  commands = <<'End'
 [ -d .ssh ] || (
   mkdir .ssh
   chmod 700 .ssh
 )
+End
+  d = []
+  remote_dir.scan(%r{[^/]+}) {|n|
+    next if /\A\.\.?\z/ =~ n
+    d << n
+    dir = d.join('/')
+    commands << <<"End"
+[ -d #{dir} ] || (
+  mkdir #{dir}
+  chmod 755 #{dir}
+)
+End
+  }
+  dir = d.join('/')
+  commands << <<"End"
 cat <<E > .ssh/chkbuild-rsyncd-#{host_pair}.conf
-[#{host_pair}-upload]
-path = $HOME/public_html/chkbuild/#{local_host}
+[upload]
+path = $HOME/#{dir}
 use chroot = no
 read only = no
 write only = yes
 E
 [ -f .ssh/authorized_keys ] || touch .ssh/authorized_keys
-cp .ssh/authorized_keys .ssh/authorized_keys.bak
-cat - .ssh/authorized_keys.bak <<E | sort | uniq > .ssh/authorized_keys.new
+cp .ssh/authorized_keys .ssh/authorized_keys.bak &&
+cat - .ssh/authorized_keys <<E | sort | uniq > .ssh/authorized_keys.new && 
 command="`which rsync` --server --daemon --config=$HOME/.ssh/chkbuild-rsyncd-#{host_pair}.conf .",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty #{public_key}
 E
 mv .ssh/authorized_keys.new .ssh/authorized_keys
 End
+  f << commands
 }
 
-puts "rsync target: #{remote_user}@#{remote_host}::#{host_pair}-upload"
-
+puts "rsync target: #{remote_user}@#{remote_host}::upload"
 
