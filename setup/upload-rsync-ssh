@@ -275,20 +275,20 @@ class FileMap
         case key
         when /\Auser\z/
           stat, = rest
-          puts "#{path.inspect}: uid exected #{inspect_uid val} but #{inspect_uid stat.uid}"
+          puts "#{path.inspect}: uid expected #{inspect_uid val} but #{inspect_uid stat.uid}"
         when /\Agroup\z/
           stat, = rest
-          puts "#{path.inspect}: gid exected #{inspect_gid val} but #{inspect_gid stat.gid}"
+          puts "#{path.inspect}: gid expected #{inspect_gid val} but #{inspect_gid stat.gid}"
         when %r{\Amode\z}
           mode, mask = val
           stat, = rest
-          puts "#{path.inspect}: mode exected #{"%o" % mode} but #{"%o" % (stat.mode & mask)} (mask=#{"%o" % mask})"
+          puts "#{path.inspect}: mode expected #{"%o" % mode} but #{"%o" % (stat.mode & mask)} (mask=#{"%o" % mask})"
         when /\Afile\z/
           stat, = rest
-          puts "#{path.inspect}: regular file exected but #{stat.ftype}"
+          puts "#{path.inspect}: regular file expected but #{stat.ftype}"
         when /\Adir\z/
           stat, = rest
-          puts "#{path.inspect}: directory exected but #{stat.ftype}"
+          puts "#{path.inspect}: directory expected but #{stat.ftype}"
         when /\Anot-exist\z/
           puts "#{path.inspect}: not exist"
         else
@@ -371,12 +371,12 @@ lgid = local_user.gid
 
 host_pair = "#{local_host}-#{remote_host}"
 filemap = FileMap.new(<<"End")
-#{cdir}                                user=#{luid} group=#{cgid} mode=750/777
-#{cdir}/.ssh                           user=#{luid} group=#{cgid} mode=750/777
+#{cdir}                                user=#{luid} group=#{cgid} mode=2750/7777
+#{cdir}/.ssh                           user=#{luid} group=#{cgid} mode=2750/7777
 #{cdir}/.ssh/chkbuild-#{host_pair}     user=#{luid} group=#{cgid} mode=640/777   file
 #{cdir}/.ssh/known_hosts               user=#{luid} group=#{cgid} mode=640/777   file
-#{cdir}/build/                         user=#{cuid} group=#{lgid} mode=2775/7777
-#{cdir}/public_html/                   user=#{cuid} group=#{lgid} mode=2775/7777
+#{cdir}/build/                         user=#{luid} group=#{cgid} mode=2775/7777
+#{cdir}/public_html/                   user=#{luid} group=#{cgid} mode=2775/7777
 
 #{ldir}/.ssh/chkbuild-#{host_pair}     user=#{luid} group=#{lgid} mode=400/777   file
 #{ldir}/.ssh/chkbuild-#{host_pair}.pub user=#{luid} group=#{lgid} mode=444/777   file
