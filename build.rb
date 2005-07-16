@@ -13,6 +13,7 @@ require 'gdb'
 require 'ssh'
 
 File.umask(002)
+STDIN.reopen("/dev/null", "r")
 
 def tp(obj)
   open("/dev/tty", "w") {|f| f.puts obj.inspect }
