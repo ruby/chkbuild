@@ -37,8 +37,8 @@ chkbuild は、定期的にソフトウェアをビルドし、
     適当なものをコピーして編集します。
 
       % cd chkbuild
-      % cp sample/build-ruby build
-      % vi build
+      % cp sample/build-ruby start-build
+      % vi start-build
 
     設定内容について詳しくは次節で述べます。
 
@@ -58,13 +58,13 @@ chkbuild は、定期的にソフトウェアをビルドし、
       /home/chkbuild/public_html  user=you group=chkbuild mode=2775
 
       % su
-      # adduser --disabled-login --no-create-home --shell /home/you/chkbuild/build chkbuild
+      # adduser --disabled-login --no-create-home --shell /home/you/chkbuild/start-build chkbuild
       # usermod -G ...,chkbuild you
       # cd /home
       # mkdir chkbuild
       # chown you:chkbuild chkbuild
       # chmod 2750 chkbuild
-      # su akr
+      # su you
       % cd chkbuild
       % mkdir build public_html
       % chgrp chkbuild build public_html
