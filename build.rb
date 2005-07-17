@@ -180,7 +180,7 @@ End
     @dir = "#{@target_dir}/#{@start_time}"
     @public = "#{Build.public_dir}/#{name}"
     @public_log = "#{@public}/log"
-    @latest_new = "#{@public}/latest.new"
+    @current_txt = "#{@public}/current.txt"
     @log_filename = "#{@dir}/log"
     Build.mkcd @target_dir
     raise "already exist: #{dir}" if File.exist? @start_time
@@ -196,7 +196,7 @@ End
     remove_old_build(@start_time, opts.fetch(:old, 3))
     FileUtils.mkpath(@public)
     FileUtils.mkpath(@public_log)
-    careful_link "log", @latest_new
+    careful_link "log", @current_txt
     yield @dir, *args
     @title[:status] ||= 'success'
   ensure
@@ -207,7 +207,7 @@ End
       end
     }
     puts Time.now.iso8601
-    careful_link @latest_new, "#{@public}/latest.txt" if File.file? @latest_new
+    careful_link @current_txt, "#{@public}/latest.txt" if File.file? @current_txt
     title = make_title
     update_summary(name, @public, @start_time, title)
     compress_file(@log_filename, "#{@public_log}/#{@start_time}.txt.gz")
