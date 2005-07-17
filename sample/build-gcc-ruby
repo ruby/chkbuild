@@ -27,8 +27,9 @@ Build.target("ruby",
     Build.cvs("ruby",
       ":pserver:anonymous@cvs.ruby-lang.org:/src", "ruby", ruby_branch,
       :cvsweb => "http://www.ruby-lang.org/cgi-bin/cvsweb.cgi")
-    Dir.chdir("ruby")
-    Build.run("autoconf")
+    Dir.chdir("ruby") {
+      Build.run("autoconf")
+    }
   }
   Build.mkcd("ruby")
   Build.run("../../ruby/configure", "--prefix=#{ruby_curr_dir}", "CFLAGS=-Wall -Wno-parentheses -g -O2", "CC=#{gcc_dir}/bin/gcc") {|log|
