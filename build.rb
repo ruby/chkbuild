@@ -6,6 +6,7 @@ require "erb"
 include ERB::Util
 require "uri"
 require "etc"
+require "digest/sha2"
 
 require 'escape'
 require 'timeoutcom'
@@ -436,8 +437,20 @@ End
     h2.keys.sort.each {|k|
       f = k.flatten.join('/')
       cvsroot2, repository2, r2 = h2[k] || [nil, nil, 'none']
-      puts "#{f}\t#{r2}"
+      digest = sha256_digest_file(f)
+      puts "#{f}\t#{r2}\t#{digest}"
     }
+  end
+
+  def sha256_digest_file(filename)
+    d = Digest::SHA256.new
+    open(filename) {|f|
+      buf = ""
+      while f.read(4096, buf)
+        d << buf
+      end
+    }
+    "sha256:#{d.hexdigest}"
   end
 
   def cvs(cvsroot, mod, branch, opts={})
@@ -449,7 +462,7 @@ End
     if File.directory?(working_dir)
       Dir.chdir(working_dir) {
         h1 = cvs_revisions
-        Build.run("cvs", "-f", "-z3", "-Q", "update", "-dP", opts)
+        Build.run("cvs", "-f", "-z3", "-Q", "update", "-kb", "-dP", opts)
         h2 = cvs_revisions
         cvs_print_revisions(h1, h2, opts[:viewcvs]||opts[:cvsweb])
       }
@@ -463,9 +476,9 @@ End
         }
       end
       if branch
-        Build.run("cvs", "-f", "-z3", "-Qd", cvsroot, "co", "-d", working_dir, "-Pr", branch, mod, opts)
+        Build.run("cvs", "-f", "-z3", "-Qd", cvsroot, "co", "-kb", "-d", working_dir, "-Pr", branch, mod, opts)
       else
-        Build.run("cvs", "-f", "-z3", "-Qd", cvsroot, "co", "-d", working_dir, "-P", mod, opts)
+        Build.run("cvs", "-f", "-z3", "-Qd", cvsroot, "co", "-kb", "-d", working_dir, "-P", mod, opts)
       end
       Dir.chdir(working_dir) {
         h2 = cvs_revisions
