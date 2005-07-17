@@ -2,16 +2,22 @@
 
 require 'build'
 
+def modify_file(filename)
+  content = yield File.read(filename)
+  open(filename, "w") {|f|
+    f.print content
+  }
+end
+
 Autoconf = Build.target("autoconf") {|dir|
   Dir.chdir("..") {
     Build.gnu_savannah_cvs('autoconf', 'autoconf', nil)
   }
   Build.mkcd("objdir")
   Build.run("../../autoconf/configure", "--prefix=#{dir}")
-  makefile = File.read("Makefile")
-  makefile.sub!(/^SUBDIRS\s*=.*$/) { $&.sub(/ man /, ' ') }
-  open("Makefile", "w") {|f|
-    f.print makefile
+  # modify Makefile to not use help2man.
+  modify_file("Makefile") {|content|
+    content.sub(/^SUBDIRS\s*=.*$/) { $&.sub(/ man /, ' ') }
   }
   Build.make
   Build.make("install")

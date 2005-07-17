@@ -192,6 +192,7 @@ End
     STDERR.sync = true
     Build.add_finish_hook { GDB.check_core(@dir) }
     puts start_time_obj.iso8601
+    puts "args: #{args.inspect}"
     system("uname -a")
     remove_old_build(@start_time, opts.fetch(:old, 3))
     FileUtils.mkpath(@public)
