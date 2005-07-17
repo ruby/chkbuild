@@ -439,8 +439,9 @@ End
     }
   end
 
-  def cvs(working_dir, cvsroot, mod, branch, opts={})
+  def cvs(cvsroot, mod, branch, opts={})
     opts = opts.dup
+    working_dir = opts.fetch(:working_dir, mod)
     if !File.exist? "#{ENV['HOME']}/.cvspass"
       opts['ENV:CVS_PASSFILE'] = '/dev/null' # avoid warning
     end

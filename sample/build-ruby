@@ -8,7 +8,7 @@ Build.target("ruby",
     ["trunk", nil],
     ["1.8", "ruby_1_8"]) {
     |ruby_curr_dir, ruby_version, ruby_branch|
-  Build.cvs("ruby",
+  Build.cvs(
     ":pserver:anonymous@cvs.ruby-lang.org:/src", "ruby", ruby_branch,
     :cvsweb => "http://www.ruby-lang.org/cgi-bin/cvsweb.cgi"
     )
