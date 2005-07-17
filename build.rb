@@ -208,12 +208,12 @@ End
       end
     }
     puts Time.now.iso8601
-    careful_link @current_txt, "#{@public}/latest.txt" if File.file? @current_txt
+    careful_link @current_txt, "#{@public}/last.txt" if File.file? @current_txt
     title = make_title
     update_summary(name, @public, @start_time, title)
     compress_file(@log_filename, "#{@public_log}/#{@start_time}.txt.gz")
-    make_html_log(@log_filename, title, "#{@public}/latest.html")
-    compress_file("#{@public}/latest.html", "#{@public}/latest.html.gz")
+    make_html_log(@log_filename, title, "#{@public}/last.html")
+    compress_file("#{@public}/last.html", "#{@public}/last.html.gz")
     @upload_hook.reverse_each {|block|
       begin
         block.call name
