@@ -4,11 +4,7 @@ require 'build'
 
 Autoconf = Build.target("autoconf") {|dir|
   Dir.chdir("..") {
-    Build.ssh_known_host("savannah.gnu.org ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAIEAzFQovi+67xa+wymRz9u3plx0ntQnELBoNU4SCl3RkwSFZkrZsRTC0fTpOKatQNs1r/BLFoVt21oVFwIXVevGQwB+Lf0Z+5w9qwVAQNu/YUAFHBPTqBze4wYK/gSWqQOLoj7rOhZk0xtAS6USqcfKdzMdRWgeuZ550P6gSzEHfv0=")
-    Build.cvs(
-      ":ext:anoncvs@savannah.gnu.org:/cvsroot/autoconf", "autoconf", nil,
-      "ENV:CVS_RSH" => "ssh",
-      :viewcvs => "http://savannah.gnu.org/cgi-bin/viewcvs/autoconf?diff_format=u")
+    Build.gnu_savannah_cvs('autoconf', 'autoconf', nil)
   }
   Build.mkcd("objdir")
   Build.run("../../autoconf/configure", "--prefix=#{dir}")

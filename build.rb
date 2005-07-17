@@ -473,6 +473,14 @@ End
     end
   end
 
+  def gnu_savannah_cvs(proj, mod, branch, opts={})
+    Build.ssh_known_host("savannah.gnu.org ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAIEAzFQovi+67xa+wymRz9u3plx0ntQnELBoNU4SCl3RkwSFZkrZsRTC0fTpOKatQNs1r/BLFoVt21oVFwIXVevGQwB+Lf0Z+5w9qwVAQNu/YUAFHBPTqBze4wYK/gSWqQOLoj7rOhZk0xtAS6USqcfKdzMdRWgeuZ550P6gSzEHfv0=")
+    opts = opts.dup
+    opts["ENV:CVS_RSH"] ||= "ssh"
+    opts[:viewcvs] ||= "http://savannah.gnu.org/cgi-bin/viewcvs/#{proj}?diff_format=u"
+    Build.cvs(":ext:anoncvs@savannah.gnu.org:/cvsroot/#{proj}", mod, branch, opts)
+  end
+
   def make(*targets)
     if targets.empty?
       Build.run("make")
