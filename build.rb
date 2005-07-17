@@ -151,6 +151,7 @@ module Build
 <html>
   <head>
     <title><%= h title %></title>
+    <meta name="author" content="chkbuild">
     <meta name="generator" content="chkbuild">
   </head>
   <body>
