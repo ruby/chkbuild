@@ -1,0 +1,18 @@
+#!/usr/bin/env ruby
+
+require 'build'
+
+Dep1 = Build.target("dep1",
+  ["dev", nil],
+  ["stable", "stable-branch"]) {
+    |dir, version, branch|
+}
+
+Build.target("dep2",
+  ["dev", nil],
+  ["stable", "stable-branch"],
+  Dep1) {
+    |dir, version, branch, dep1_dir|
+}
+
+
