@@ -194,10 +194,10 @@ End
     puts start_time_obj.iso8601
     puts "args: #{args.inspect}"
     system("uname -a")
-    remove_old_build(@start_time, opts.fetch(:old, 3))
     FileUtils.mkpath(@public)
     FileUtils.mkpath(@public_log)
     careful_link "log", @current_txt
+    remove_old_build(@start_time, opts.fetch(:old, 3))
     yield @dir, *args
     @title[:status] ||= 'success'
   ensure
