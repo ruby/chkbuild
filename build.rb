@@ -106,6 +106,7 @@ module Build
         if CommandError === $!
           Build.update_title(:status, "failed(#{$!.reason})")
         else
+          show_backtrace
           Build.update_title(:status, "failed(#{$!.class}:#{$!.message})")
         end
       else
@@ -173,6 +174,11 @@ End
 
   def compress_file(src, dst)
     Zlib::GzipWriter.wrap(open(dst, "w")) {|g| g << File.read(src) }
+  end
+
+  def show_backtrace(err=$!)
+    puts "|#{err.message} (#{err.class})"
+    err.backtrace.each {|pos| puts "| #{pos}" }
   end
 
   def build_target(opts, start_time_obj, name, *args)
