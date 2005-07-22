@@ -7,6 +7,7 @@ include ERB::Util
 require "uri"
 require "etc"
 require "digest/sha2"
+require "fcntl"
 
 require 'escape'
 require 'timeoutcom'
@@ -547,6 +548,8 @@ End
     raise "another chkbuild is running."
   end
   LOCK.sync = true
+  flags = LOCK.fcntl(Fcntl::F_GETFD)
+  LOCK.fcntl(Fcntl::F_SETFD, flags|Fcntl::FD_CLOEXEC)
   lock_pid = $$
   at_exit {
     File.unlink lock_path if $$ == lock_pid
