@@ -8,11 +8,13 @@ require "uri"
 require "etc"
 require "digest/sha2"
 require "fcntl"
+require "tempfile"
 
 require 'escape'
 require 'timeoutcom'
 require 'gdb'
 require 'ssh'
+require "udiff"
 
 begin
   Process.setpriority(Process::PRIO_PROCESS, 0, 10)
@@ -44,7 +46,7 @@ module Build
 
   def build_time_sequence
     dirs = Dir.entries(@target_dir)
-    dirs.reject! {|d| /\A\d{8}T\d{6}/ !~ d } # year 10000 problem
+    dirs.reject! {|d| /\A\d{8}T\d{6}\z/ !~ d } # year 10000 problem
     dirs.sort!
     dirs
   end
@@ -134,7 +136,7 @@ module Build
         f.puts "<h1>#{h name} build summary</h1>"
         f.puts "<p><a href=\"../\">chkbuild</a></p>"
       end
-      f.puts "<a href=\"log/#{start_time}.txt.gz\">#{h start_time}</a> #{h title}<br>"
+      f.puts "<a href=\"log/#{start_time}.txt.gz\">#{h start_time}</a> #{h title} (<a href=\"log/#{start_time}.diff.txt.gz\">diff</a>)<br>"
     }
   end
 
@@ -174,7 +176,11 @@ End
   end
 
   def compress_file(src, dst)
-    Zlib::GzipWriter.wrap(open(dst, "w")) {|g| g << File.read(src) }
+    Zlib::GzipWriter.wrap(open(dst, "w")) {|z|
+      open(src) {|f|
+        FileUtils.copy_stream(f, z)
+      }
+    }
   end
 
   def show_backtrace(err=$!)
@@ -191,7 +197,7 @@ End
     @current_txt = "#{@public}/current.txt"
     @log_filename = "#{@dir}/log"
     Build.mkcd @target_dir
-    raise "already exist: #{dir}" if File.exist? @start_time
+    raise "already exist: #{@start_time}" if File.exist? @start_time
     Dir.mkdir @start_time # fail if it is already exists.
     Dir.chdir @start_time
     STDOUT.reopen(@log_filename, "w")
@@ -220,6 +226,7 @@ End
     title = make_title
     update_summary(name, @public, @start_time, title)
     compress_file(@log_filename, "#{@public_log}/#{@start_time}.txt.gz")
+    make_diff
     make_html_log(@log_filename, title, "#{@public}/last.html")
     compress_file("#{@public}/last.html", "#{@public}/last.html.gz")
     @upload_hook.reverse_each {|block|
@@ -227,6 +234,40 @@ End
         block.call name
       rescue Exception
       end
+    }
+  end
+
+  def make_diff_content(time)
+    tmp = Tempfile.open("#{time}.")
+    pat = /#{time}/
+    Zlib::GzipReader.wrap(open("#{@public_log}/#{time}.txt.gz")) {|z|
+      z.each_line {|line|
+        tmp << line.gsub(time, '<buildtime>')
+      }
+    }
+    tmp.flush
+    tmp
+  end
+
+  def make_diff
+    time2 = @start_time
+    entries = Dir.entries(@public_log)
+    time_seq = []
+    entries.each {|f|
+      if /\A(\d{8}T\d{6})\.txt\.gz\z/ =~ f # year 10000 problem
+        time_seq << $1
+      end
+    }
+    time_seq.sort!
+    time_seq.delete time2
+    return if time_seq.empty?
+    time1 = time_seq.last
+    tmp1 = make_diff_content(time1)
+    tmp2 = make_diff_content(time2)
+    Zlib::GzipWriter.wrap(open("#{@public_log}/#{time2}.diff.txt.gz", "w")) {|z|
+      z.puts "--- #{time1}"
+      z.puts "+++ #{time2}"
+      UDiff.diff(tmp1.path, tmp2.path, z)
     }
   end
 
