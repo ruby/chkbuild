@@ -14,9 +14,7 @@ module SSH
       end
       open("#{HOME_DIRECTORY}/.ssh/known_hosts", File::RDWR|File::CREAT) {|f|
         f.each_line {|line|
-          line[/\A[^ ]+/].scan(/[^,]+/) {|h|
-            return if h == host
-          }
+	  return if line == arg
         }
         f.puts arg
       }
