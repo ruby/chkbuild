@@ -133,6 +133,8 @@ class UDiff
           v = v1
           puts_add_line(v)
         }
+      else
+        raise "[bug] unexpected diff line: #{com.inspect}"
       end
     end
   end
