@@ -11,7 +11,7 @@ GCC = Build.target("gcc",
   }
   Build.mkcd("objdir")
   Build.run("../../gcc/configure", "--prefix=#{gcc_curr_dir}", "--enable-languages=c")
-  Build.make("bootstrap", "install")
+  Build.make("bootstrap", "install", :timeout=>'5h')
 }
 
 Build.target("ruby",
@@ -41,7 +41,7 @@ Build.target("ruby",
     mark << "[FATAL]" if /\[FATAL\]/i =~ log
     Build.update_title(:mark, mark)
   }
-  Build.make
+  Build.make("ENV:LD_RUN_PATH" => "#{gcc_dir}/lib")
   Build.run("./ruby", "-v") {|log|
     if /^ruby [0-9.]+ \([0-9\-]+\) \[\S+\]$/ =~ log
       Build.update_title(:version, $&)

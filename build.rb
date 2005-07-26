@@ -545,11 +545,15 @@ End
   end
 
   def make(*targets)
+    opts = {}
+    opts = targets.pop if Hash === targets.last
     if targets.empty?
-      Build.run("make")
+      Build.run("gmake", opts)
     else
       targets.each {|target|
-        Build.run("make", target, :reason => target)
+	h = opts.dup
+	h[:reason] = target
+        Build.run("gmake", target, h)
       }
     end
   end
