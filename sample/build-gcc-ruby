@@ -10,7 +10,7 @@ GCC = Build.target("gcc",
     Build.gnu_savannah_cvs('gcc', 'gcc', gcc_branch)
   }
   Build.mkcd("objdir")
-  Build.run("../../gcc/configure", "--prefix=#{gcc_curr_dir}", "--enable-languages=c")
+  Build.run("../../gcc/configure", "--prefix=#{gcc_curr_dir}", "--enable-languages=c", "--disable-shared")
   Build.make("bootstrap", "install", :timeout=>'5h')
 }
 
