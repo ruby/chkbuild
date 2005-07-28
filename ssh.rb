@@ -13,15 +13,20 @@ module SSH
         Dir.mkdir("#{HOME_DIRECTORY}/.ssh", 0700)
       rescue Errno::EEXIST
       end
-      open("#{HOME_DIRECTORY}/.ssh/known_hosts", File::RDWR|File::CREAT) {|f|
-        f.each_line {|line|
-          hs, t, kr = line.split(/\s+/, 3)
-          next if t != type
-          hs = hs.split(/,/)
-          if !(hs & hostnames).empty?
-            return
-          end
-        }
+      begin
+	open("#{HOME_DIRECTORY}/.ssh/known_hosts", 'r') {|f|
+	  f.each_line {|line|
+	    hs, t, kr = line.split(/\s+/, 3)
+	    next if t != type
+	    hs = hs.split(/,/)
+	    if !(hs & hostnames).empty?
+	      return
+	    end
+	  }
+	}
+      rescue Errno::ENOENT
+      end
+      open("#{HOME_DIRECTORY}/.ssh/known_hosts", 'a') {|f|
         f.puts arg
       }
     else
