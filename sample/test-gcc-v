@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby
+
+require 'build'
+
+Build.target("gcc-v") {|curr_dir|
+  Build.run("gcc", '-v') {|log|
+    if /^gcc version (.*)$/ =~ log
+      Build.update_title(:gcc_version, "(gcc #{$1})")
+    end
+  }
+}

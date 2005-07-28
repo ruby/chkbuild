@@ -92,6 +92,9 @@ module Build
   def update_title(key, val)
     h = @title
     h[key] = val
+    unless @title_order.include? key
+      @title_order[-1,0] = [key]
+    end
   end
 
   def all_log
