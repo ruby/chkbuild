@@ -13,7 +13,6 @@ require "tempfile"
 require 'escape'
 require 'timeoutcom'
 require 'gdb'
-require 'ssh'
 require "udiff"
 
 begin
@@ -538,11 +537,32 @@ End
     end
   end
 
+  def with_tempfile(content) # :yield: tempfile
+    t = Tempfile.new("chkbuild")
+    t << content
+    t.sync
+    yield t
+  end
+
   def gnu_savannah_cvs(proj, mod, branch, opts={})
-    Build.ssh_known_host("savannah.gnu.org ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAIEAzFQovi+67xa+wymRz9u3plx0ntQnELBoNU4SCl3RkwSFZkrZsRTC0fTpOKatQNs1r/BLFoVt21oVFwIXVevGQwB+Lf0Z+5w9qwVAQNu/YUAFHBPTqBze4wYK/gSWqQOLoj7rOhZk0xtAS6USqcfKdzMdRWgeuZ550P6gSzEHfv0=")
-    Build.ssh_known_host("savannah.gnu.org ssh-dss AAAAB3NzaC1kc3MAAACBAKLl34W7mqhsngZRtqw3ReQzrmAu7BRZ3WghdJcjhWWkIMS4pypUpc9xyG+Y4fzpa+4slCkd2zzyMQ0jVkokQcXKGZOqnW5IaqCsc+JN3+0vKUqpLlVW3g5HZwexgVY6NRQnRwvAC2dzEIqO3n6NRg2ttVVl19KOc81VW7ZMJ0+DAAAAFQCu723exNWolB8MOWkPBNdJ8rupswAAAIBwFb691MgZsDsjBaWXh0WBYvwGAUVg2z3NAezXgoXil+adwvxcqoNvCvydfMb/LnNqeE+6Jl3Dn+yc7mr/jB/DZPgoSmO/AjIife+taYY/RjufhfzxrL2L3iZxodFwa4mYB1tNHyrTBV5e2g6+qpVY95cWlk18vK9HhVxOITEMUQAAAIBSv/APkxRRWFH+Oa65UkCeF5qgodJDEu9evPp09m+mj0LZEDX+7jOB1f3DYxM66xjJk27iPXfglWdrB32Lsy1X5kYdy/Cadp9x+vIHP1Qpw7SXz8h/0ewXqIpJVFkcpMvFL8PD/71Ab4b8A9+1AC6s1/JyDJdgaz8QKsRLe1jm0g==")
+    known_hosts = Tempfile.new("chkbuild")
+    known_hosts << <<'End'
+savannah.gnu.org ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAIEAzFQovi+67xa+wymRz9u3plx0ntQnELBoNU4SCl3RkwSFZkrZsRTC0fTpOKatQNs1r/BLFoVt21oVFwIXVevGQwB+Lf0Z+5w9qwVAQNu/YUAFHBPTqBze4wYK/gSWqQOLoj7rOhZk0xtAS6USqcfKdzMdRWgeuZ550P6gSzEHfv0=
+savannah.gnu.org ssh-dss AAAAB3NzaC1kc3MAAACBAKLl34W7mqhsngZRtqw3ReQzrmAu7BRZ3WghdJcjhWWkIMS4pypUpc9xyG+Y4fzpa+4slCkd2zzyMQ0jVkokQcXKGZOqnW5IaqCsc+JN3+0vKUqpLlVW3g5HZwexgVY6NRQnRwvAC2dzEIqO3n6NRg2ttVVl19KOc81VW7ZMJ0+DAAAAFQCu723exNWolB8MOWkPBNdJ8rupswAAAIBwFb691MgZsDsjBaWXh0WBYvwGAUVg2z3NAezXgoXil+adwvxcqoNvCvydfMb/LnNqeE+6Jl3Dn+yc7mr/jB/DZPgoSmO/AjIife+taYY/RjufhfzxrL2L3iZxodFwa4mYB1tNHyrTBV5e2g6+qpVY95cWlk18vK9HhVxOITEMUQAAAIBSv/APkxRRWFH+Oa65UkCeF5qgodJDEu9evPp09m+mj0LZEDX+7jOB1f3DYxM66xjJk27iPXfglWdrB32Lsy1X5kYdy/Cadp9x+vIHP1Qpw7SXz8h/0ewXqIpJVFkcpMvFL8PD/71Ab4b8A9+1AC6s1/JyDJdgaz8QKsRLe1jm0g==
+End
+    known_hosts.flush
+    cvs_rsh = Tempfile.new("chkbuild")
+    cvs_rsh << <<"End"
+#!/bin/sh
+
+exec ssh -o 'UserKnownHostsFile #{known_hosts.path}' "$@"
+End
+    cvs_rsh.flush
+    File.chmod(0700, cvs_rsh.path)
+    cvs_rsh.close
+
     opts = opts.dup
-    opts["ENV:CVS_RSH"] ||= "ssh"
+    opts["ENV:CVS_RSH"] ||= cvs_rsh.path
     opts[:viewcvs] ||= "http://savannah.gnu.org/cgi-bin/viewcvs/#{proj}?diff_format=u"
     Build.cvs(":ext:anoncvs@savannah.gnu.org:/cvsroot/#{proj}", mod, branch, opts)
   end
@@ -559,10 +579,6 @@ End
         Build.run("gmake", target, h)
       }
     end
-  end
-
-  def ssh_known_host(arg)
-    SSH.add_known_host(arg)
   end
 
   def rsync_ssh_upload_target(rsync_target, private_key=nil)
