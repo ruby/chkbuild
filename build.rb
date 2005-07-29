@@ -555,7 +555,10 @@ End
     cvs_rsh << <<"End"
 #!/bin/sh
 
-exec ssh -o 'UserKnownHostsFile #{known_hosts.path}' "$@"
+exec ssh \
+-o 'UserKnownHostsFile #{known_hosts.path}' \
+-o 'StrictHostKeyChecking yes' \
+"$@"
 End
     cvs_rsh.flush
     File.chmod(0700, cvs_rsh.path)
