@@ -22,7 +22,7 @@ Build.target("ruby",
   gcc = "#{gcc_dir}/bin/gcc"
   Build.run(gcc, '-v') {|log|
     if /^gcc version (.*)$/ =~ log
-      Build.update_title(:gcc_version, $1)
+      Build.update_title(:gcc_version, "(gcc #{$1})")
     end
   }
   Dir.chdir("..") {
