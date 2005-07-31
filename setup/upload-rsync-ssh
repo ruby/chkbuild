@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-# usage: setup/upload-rsync-ssh remoteuser@remotehost [remote-dir [chkbuild-user]]
+# usage: setup/upload-rsync-ssh [remoteuser@]remotehost [remote-dir [chkbuild-user]]
 #
 # setup/upload-rsync-ssh setups upload configuration.
 # 1. generate ssh key dedicated for the upload.
@@ -372,6 +372,11 @@ ldir = local_user.dir
 luid = local_user.uid
 lgid = local_user.gid
 
+if cdir == ldir
+  puts "same home directory for #{local_user.name.inspect} and #{chkbuild_user.name.inspect}: #{cdir.inspect}"
+  exit 1
+end
+
 host_pair = "#{local_host}-#{remote_host}"
 filemap = FileMap.new(<<"End")
 #{cdir}                                user=#{luid} group=#{cgid} mode=2750/7777
@@ -442,40 +447,44 @@ if !stats[local_secret_key]
   system "ssh-keygen", "-t", "dsa", "-N", "", "-f", local_secret_key, "-C", "chkbuild@#{local_host}@#{remote_host}"
   exit 1 if $?.to_i != 0
 end
+begin
+  File.unlink chkbuild_secret_key
+rescue Errno::ENOENT
+end
 FileUtils.copy_file(local_secret_key, chkbuild_secret_key)
 
 chkbuild_known_hosts = "#{cdir}/.ssh/known_hosts"
 local_known_hosts = "#{ldir}/.ssh/known_hosts"
 known_hosts_line = nil
-IO.foreach(local_known_hosts) {|line|
-  next if /\A#/ =~ line || /\A\s*\z/ =~ line
-  if /\A\S+/ =~ line
-    rest = $'
-    hostnames = $&.split(/,/)
-    if hostnames.include? remote_host
-      addrs = [remote_host]
-      Socket.getaddrinfo(remote_host, "ssh").each {|addrfamily, port, host, addr|
-        if addrfamily == 'AF_INET'
-          addrs << addr
-        end
-      }
-      addrs.uniq!
-      known_hosts_line = "#{addrs.join(',')}#{rest}"
-      break
-    end
-  end
-}
-if !known_hosts_line
-  puts "#{remote_host.inspect} is not known in #{local_known_hosts.inspect}"
-  exit 1
-end
-open(chkbuild_known_hosts, File::RDWR|File::CREAT) {|f|
-  f.each_line {|line|
-    if line == known_hosts_line
-      known_hosts_line = nil
+if File.exist? local_known_hosts
+  IO.foreach(local_known_hosts) {|line|
+    next if /\A#/ =~ line || /\A\s*\z/ =~ line
+    if /\A\S+/ =~ line
+      rest = $'
+      hostnames = $&.split(/,/)
+      if hostnames.include? remote_host
+	addrs = [remote_host]
+	Socket.getaddrinfo(remote_host, "ssh").each {|addrfamily, port, host, addr|
+	  if addrfamily == 'AF_INET'
+	    addrs << addr
+	  end
+	}
+	addrs.uniq!
+	known_hosts_line = "#{addrs.join(',')}#{rest}"
+	break
+      end
     end
   }
-  f.puts known_hosts_line if known_hosts_line
+end
+open(chkbuild_known_hosts, File::RDWR|File::CREAT) {|f|
+  if known_hosts_line
+    f.each_line {|line|
+      if line == known_hosts_line
+	known_hosts_line = nil
+      end
+    }
+    f.puts known_hosts_line if known_hosts_line
+  end
 }
 
 filemap.fix_files
