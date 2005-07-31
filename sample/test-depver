@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby
+
+require 'build'
+
+GCC = Build.target("depver-1") {|curr_dir|
+  Build.update_title(:version, "dep1")
+}
+
+Build.target("depver-2", GCC) {|curr_dir, gcc|
+  Build.update_title(:version, "dep2")
+}
