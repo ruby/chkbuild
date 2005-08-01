@@ -12,6 +12,11 @@ GCC = Build.target("gcc",
   Build.mkcd("objdir")
   Build.run("../../gcc/configure", "--prefix=#{gcc_curr_dir}", "--enable-languages=c", "--disable-shared")
   Build.make("bootstrap", "install", :timeout=>'5h')
+  Build.run("#{gcc_dir}/bin/gcc", '-v') {|log|
+    if /^gcc version (.*)$/ =~ log
+      Build.update_title(:version, "gcc #{$1}")
+    end
+  }
 }
 
 Build.target("ruby",
@@ -20,11 +25,6 @@ Build.target("ruby",
   GCC) {
     |ruby_curr_dir, ruby_version, ruby_branch, gcc_dir|
   gcc = "#{gcc_dir}/bin/gcc"
-  Build.run(gcc, '-v') {|log|
-    if /^gcc version (.*)$/ =~ log
-      Build.update_title(:gcc_version, "(gcc #{$1})")
-    end
-  }
   Dir.chdir("..") {
     Build.cvs(
       ":pserver:anonymous@cvs.ruby-lang.org:/src", "ruby", ruby_branch,
@@ -34,9 +34,9 @@ Build.target("ruby",
     }
   }
   Build.mkcd("ruby")
-  Build.run("../../ruby/configure", "--prefix=#{ruby_curr_dir}", "CFLAGS=-Wall -Wno-parentheses -g -O2", "CC=#{gcc_dir}/bin/gcc") {|log|
+  Build.run("../../ruby/configure", "--prefix=#{ruby_curr_dir}", "CFLAGS=-Wall -Wno-parentheses -g -O2", "CC=#{gcc}") {|log|
     if /^checking target system type\.\.\. (\S+)$/ =~ log
-      Build.update_title(:version, "#{ruby_version} #{$1}")
+      Build.update_title(:version, "ruby-#{ruby_version} #{$1}")
     end
   }
   Build.add_finish_hook {
