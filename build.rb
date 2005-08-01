@@ -447,7 +447,17 @@ End
         resource_limit(:RLIMIT_STACK, opts.fetch(:rlimit_stack, 1024 * 1024 * 40))
         resource_limit(:RLIMIT_AS, opts.fetch(:rlimit_as, 1024 * 1024 * 500))
       end
-      exec command, *args
+      alt_commands = opts.fetch(:alt_commands, [])
+      begin
+        exec command, *args
+      rescue Errno::ENOENT
+        if !alt_commands.empty?
+          command = alt_commands.shift
+          retry
+        else
+          raise
+        end
+      end
     }
     begin
       if $?.exitstatus != 0
@@ -613,6 +623,8 @@ End
   def make(*targets)
     opts = {}
     opts = targets.pop if Hash === targets.last
+    opts = opts.dup
+    opts[:alt_commands] = ['make']
     if targets.empty?
       Build.run("gmake", opts)
     else
