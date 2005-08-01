@@ -5,12 +5,12 @@ require 'build'
 GCC = Build.target("gcc",
   ["trunk", nil],
   ["4.0", "gcc-4_0-branch"]) {
-    |gcc_curr_dir, gcc_version, gcc_branch|
+    |gcc_dir, gcc_version, gcc_branch|
   Dir.chdir("..") {
     Build.gnu_savannah_cvs('gcc', 'gcc', gcc_branch)
   }
   Build.mkcd("objdir")
-  Build.run("../../gcc/configure", "--prefix=#{gcc_curr_dir}", "--enable-languages=c", "--disable-shared")
+  Build.run("../../gcc/configure", "--prefix=#{gcc_dir}", "--enable-languages=c", "--disable-shared")
   Build.make("bootstrap", "install", :timeout=>'5h')
   Build.run("#{gcc_dir}/bin/gcc", '-v') {|log|
     if /^gcc version (.*)$/ =~ log
