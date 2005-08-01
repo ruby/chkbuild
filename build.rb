@@ -27,6 +27,23 @@ def tp(obj)
   open("/dev/tty", "w") {|f| f.puts obj.inspect }
 end
 
+class IO
+  def close_on_exec
+    self.fcntl(Fcntl::F_GETFD) & Fcntl::FD_CLOEXEC != 0
+  end
+
+  def close_on_exec=(v)
+    flags = self.fcntl(Fcntl::F_GETFD)
+    if v
+      flags |= Fcntl::FD_CLOEXEC
+    else
+      flags &= ~Fcntl::FD_CLOEXEC
+    end
+    self.fcntl(Fcntl::F_SETFD, flags)
+    v
+  end
+end
+
 module Build
   module_function
 
@@ -105,21 +122,21 @@ module Build
     @title[:warn] = "#{num_warns}W" if 0 < num_warns
   end
 
-  def make_title
+  def make_title(err=$!)
     if !@title[:status]
-      if $!
-        if CommandError === $!
-          Build.update_title(:status, "failed(#{$!.reason})")
+      if err
+        if CommandError === err
+          Build.update_title(:status, "failed(#{err.reason})")
         else
           show_backtrace
-          Build.update_title(:status, "failed(#{$!.class}:#{$!.message})")
+          Build.update_title(:status, "failed(#{err.class}:#{err.message})")
         end
       else
         Build.update_title(:status, "failed")
       end
     end
     title_hash = @title
-    @title_order.map {|key| title_hash[key] }.join(' ').gsub(/\s+/, ' ').strip
+    @title_order.map {|key| title_hash[key] }.flatten.join(' ').gsub(/\s+/, ' ').strip
   end
 
   def add_finish_hook(&block)
@@ -138,7 +155,9 @@ module Build
         f.puts "<h1>#{h name} build summary</h1>"
         f.puts "<p><a href=\"../\">chkbuild</a></p>"
       end
-      f.puts "<a href=\"log/#{start_time}.txt.gz\">#{h start_time}</a> #{h title} (<a href=\"log/#{start_time}.diff.txt.gz\">diff</a>)<br>"
+      f.print "<a href=\"log/#{start_time}.txt.gz\">#{h start_time}</a> #{h title}"
+      f.print " (<a href=\"log/#{start_time}.diff.txt.gz\">diff</a>)" # xxx: diff file may not exist.
+      f.puts "<br>"
     }
   end
 
@@ -226,6 +245,8 @@ End
     puts Time.now.iso8601
     careful_link @current_txt, "#{@public}/last.txt" if File.file? @current_txt
     title = make_title
+    Marshal.dump([@title, @title_order], @parent_pipe)
+    @parent_pipe.close
     update_summary(name, @public, @start_time, title)
     compress_file(@log_filename, "#{@public_log}/#{@start_time}.txt.gz")
     make_diff
@@ -274,17 +295,19 @@ End
   end
 
   @upload_hook ||= []
-  def build_wrapper(opts, start_time_obj, name, *args, &block)
+  def build_wrapper(parent_pipe, opts, start_time_obj, simple_name, name, dep_versions, *args, &block)
     LOCK.puts name
+    @parent_pipe = parent_pipe
     @title = {}
     @finish_hook = []
     @upload_hook ||= []
-    @title[:version] = name
+    @title[:version] = simple_name
+    @title[:dep_versions] = dep_versions
     @title[:hostname] = "(#{Socket.gethostname})"
-    @title_order = [:status, :warn, :mark, :version, :hostname]
+    @title_order = [:status, :warn, :mark, :version, :dep_versions, :hostname]
     add_finish_hook { count_warns }
     begin
-      Build.build_target(opts, start_time_obj, name, *args, &block)
+      build_target(opts, start_time_obj, name, *args, &block)
     rescue CommandError
     end
   end
@@ -310,20 +333,37 @@ End
       Depend.perm(dep_targets) {|dependencies|
         name = target_name.dup
         name << "-#{branch_name}" if branch_name
+        simple_name = name.dup
         dep_dirs = []
-        dependencies.each {|dep_target_name, dep_branch_name, dep_dir|
+        dep_versions = []
+        dependencies.each {|dep_target_name, dep_branch_name, dep_dir, dep_ver|
           name << "_#{dep_target_name}"
           name << "-#{dep_branch_name}" if dep_branch_name
           dep_dirs << dep_dir
+          dep_versions.concat dep_ver
         }
         start_time_obj = Time.now
         dir = "#{Build.build_dir}/#{name}/#{start_time_obj.strftime("%Y%m%dT%H%M%S")}"
+        r, w = IO.pipe
+        r.close_on_exec = true
+        w.close_on_exec = true
         pid = fork {
-          Build.build_wrapper(opts, start_time_obj, name, *(branch_info + dep_dirs), &block)
+          r.close
+          Build.build_wrapper(w, opts, start_time_obj, simple_name, name, dep_versions, *(branch_info + dep_dirs), &block)
         }
+        w.close
+        str = r.read
+        r.close
         Process.wait(pid)
         status = $?
-        succeed.add [target_name, branch_name, dir] if status.to_i == 0
+        begin
+          title, title_order = Marshal.load(str)
+          version = title[:version]
+          version_list = ["(#{version})", *title[:dep_versions]]
+        rescue ArgumentError
+          version_list = []
+        end
+        succeed.add [target_name, branch_name, dir, version_list] if status.to_i == 0
       }
     }
     succeed
@@ -616,8 +656,7 @@ End
     raise "another chkbuild is running."
   end
   LOCK.sync = true
-  flags = LOCK.fcntl(Fcntl::F_GETFD)
-  LOCK.fcntl(Fcntl::F_SETFD, flags|Fcntl::FD_CLOEXEC)
+  LOCK.close_on_exec = true
   lock_pid = $$
   at_exit {
     File.unlink lock_path if $$ == lock_pid

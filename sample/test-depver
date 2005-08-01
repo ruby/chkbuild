@@ -2,10 +2,11 @@
 
 require 'build'
 
-GCC = Build.target("depver-1") {|curr_dir|
-  Build.update_title(:version, "dep1")
+Dep1 = Build.target("lib1", ["dev"], ["stable"]) {|curr_dir|
 }
 
-Build.target("depver-2", GCC) {|curr_dir, gcc|
-  Build.update_title(:version, "dep2")
+Dep2 = Build.target("lib2", ["dev"], ["stable"]) {|curr_dir|
+}
+
+Build.target("app", ["dev"], ["stable"], Dep1, Dep2) {|curr_dir, lib1, lib2|
 }
