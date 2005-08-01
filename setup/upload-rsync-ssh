@@ -18,7 +18,11 @@
 # Assume the login name of the dedicated user is chkbuild and
 # your login name is luser.
 #
-#   # adduser --disabled-login --no-create-home --shell /home/luser/chkbuild/sample/build-ruby chkbuild
+#   /home/chkbuild              user=luser group=chkbuild mode=2750
+#   /home/chkbuild/build        user=luser group=chkbuild mode=2775
+#   /home/chkbuild/public_html  user=luser group=chkbuild mode=2775
+#
+#   # adduser --disabled-login --no-create-home --shell /home/luser/chkbuild/start-build chkbuild
 #   # usermod -G ...,chkbuild luser
 #   # cd /home
 #   # mkdir chkbuild chkbuild/build chkbuild/public_html
@@ -122,6 +126,9 @@ class FileMap
           specs[spec] = true
         end
       }
+      if @filemap[path]
+        raise ArgumentError, "duplicate path: #{path.inspect}"
+      end
       @paths << path
       @filemap[path] = specs
     }
