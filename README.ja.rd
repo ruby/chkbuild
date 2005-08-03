@@ -33,16 +33,17 @@ chkbuild は、定期的にソフトウェアをビルドし、
 
 (2) chkbuild の設定
 
-    サンプルの設定が sample ディレクトリにありますので、
-    適当なものをコピーして編集します。
+    さまざまなサンプルの設定が sample ディレクトリにありますので、
+    適当なものを編集します。
+    また、start-build はサンプルを呼び出すスクリプトです。
 
       % cd chkbuild
-      % cp sample/build-ruby start-build
+      % vi sample/build-ruby
       % vi start-build
 
     設定内容について詳しくは次節で述べます。
 
-    なお、設定の内容を変更せず、ruby sample/build-ruby として実行した場合は、
+    なお、設定の内容を変更せず、ruby start-build として実行した場合は、
     Ruby の main trunk と ruby_1_8 branch を /home/you/chkbuild/tmp 以下でビルドします。
 
 (3) chkbuild ユーザの作成

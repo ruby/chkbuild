@@ -96,6 +96,13 @@ if !Process.groups.include?(chkbuild_user.gid)
   exit 1
 end
 
+if local_user.uid == chkbuild_user.uid
+  puts "same uid #{local_user.name.inspect} and #{chkbuild_user.name}: #{local_user.uid}"
+  exit 1
+end
+
+# xxx: gid check?
+
 class FileMap
   def initialize(filemap)
     @paths = []

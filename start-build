@@ -1,0 +1,13 @@
+#!/usr/bin/env ruby
+
+#ENV['PATH'] = "/usr/local/bin:#{ENV['PATH']}"
+
+require 'build'
+
+#Build.rsync_ssh_upload_target("akr@boron.rubyist.net::upload")
+
+load "sample/build-ruby"
+
+#load "sample/build-gcc-ruby"
+
+#load "sample/test-echo"
