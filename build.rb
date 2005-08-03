@@ -209,6 +209,11 @@ End
     err.backtrace.each {|pos| puts "| #{pos}" }
   end
 
+  class << Build
+    attr_accessor :num_oldbuilds
+  end
+  Build.num_oldbuilds = 3
+
   def build_target(opts, start_time_obj, name, *args)
     @start_time = start_time_obj.strftime("%Y%m%dT%H%M%S")
     @target_dir = "#{Build.build_dir}/#{name}"
@@ -232,7 +237,7 @@ End
     FileUtils.mkpath(@public)
     FileUtils.mkpath(@public_log)
     careful_link "log", @current_txt
-    remove_old_build(@start_time, opts.fetch(:old, 3))
+    remove_old_build(@start_time, opts.fetch(:old, Build.num_oldbuilds))
     yield @dir, *args
     @title[:status] ||= 'success'
   ensure
