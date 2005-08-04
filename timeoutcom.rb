@@ -52,6 +52,7 @@ module TimeoutCommand
     begin
       Process.setpgid(pid, pid)
     rescue Errno::EACCES # already execed.
+    rescue Errno::ESRCH # already exited. (setpgid for a zombie fails on OpenBSD)
     end
     begin
       timeout(secs) { Process.wait pid }
