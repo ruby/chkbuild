@@ -11,7 +11,8 @@ GCC = Build.target("gcc",
   }
   Build.mkcd("objdir")
   Build.run("../../gcc/configure", "--prefix=#{gcc_dir}", "--enable-languages=c", "--disable-shared")
-  Build.make("bootstrap", "install", :timeout=>'5h')
+  Build.make("bootstrap", "install", :timeout=>'5h',
+    :rlimit_data=>1024*1024*200, :rlimit_as=>1024*1024*200)
   Build.run("#{gcc_dir}/bin/gcc", '-v') {|log|
     if /^gcc version (.*)$/ =~ log
       Build.update_title(:version, "gcc #{$1}")

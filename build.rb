@@ -448,9 +448,9 @@ End
       if Process.respond_to? :setrlimit
         resource_unlimit(:RLIMIT_CORE)
         resource_limit(:RLIMIT_CPU, opts.fetch(:rlimit_cpu, 3600 * 4))
-        resource_limit(:RLIMIT_DATA, opts.fetch(:rlimit_data, 1024 * 1024 * 500))
+        resource_limit(:RLIMIT_DATA, opts.fetch(:rlimit_data, 1024 * 1024 * 100))
         resource_limit(:RLIMIT_STACK, opts.fetch(:rlimit_stack, 1024 * 1024 * 40))
-        resource_limit(:RLIMIT_AS, opts.fetch(:rlimit_as, 1024 * 1024 * 500))
+        resource_limit(:RLIMIT_AS, opts.fetch(:rlimit_as, 1024 * 1024 * 100))
       end
       alt_commands = opts.fetch(:alt_commands, [])
       begin
