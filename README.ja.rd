@@ -128,4 +128,4 @@ chroot, jail, user mode linux, VMware, ... ¤Ê¤É¤Ç´Ä¶­¤ò¸ÂÄê¤¹¤ë¤³¤È¤â¸¡Æ¤¤·¤Æ¤¯¤
 
 == TODO
 
-* index.html ¤òÀ¸À®¤¹¤ë
+* index.html ¤òÀ¸À®¤¹¤ë¡£
