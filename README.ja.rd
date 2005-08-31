@@ -124,7 +124,7 @@ CVS がクラックされ、悪意のある人物が危険なコードを挿入する可能性があります。
 あなたの権限でもいいですし、root でもかまいません。
 
 なお、さらに注意深くありたい場合には、
-chroot, jail, user mode linux, VMware, ... などで環境を限定することも検討してください。
+xen, chroot, jail, user mode linux, VMware, ... などで環境を限定することも検討してください。
 
 == TODO
 
