@@ -182,10 +182,10 @@ module Build
   </head>
   <body>
     <h1><%= h title %></h1>
-    <p><a href="../">chkbuild</a></p>
+    <p><a href="../">chkbuild</a> <a href="summary.html">summary</a></p>
     <pre><%= markup log %></pre>
     <hr>
-    <p><a href="../">chkbuild</a></p>
+    <p><a href="../">chkbuild</a> <a href="summary.html">summary</a></p>
   </body>
 </html>
 End
