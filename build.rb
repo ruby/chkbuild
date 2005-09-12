@@ -469,9 +469,9 @@ End
         if $?.exited?
           puts "exit #{$?.exitstatus}"
         elsif $?.signaled?
-          puts "signal #{$?.termsig}"
+          puts "signal #{SignalNum2Name[$?.termsig]} (#{$?.termsig})"
         elsif $?.stopped?
-          puts "stop #{$?.stopsig}"
+          puts "stop #{SignalNum2Name[$?.stopsig]} (#{$?.stopsig})"
         else
           p $?
         end
@@ -483,6 +483,9 @@ End
       end
     end
   end
+
+  SignalNum2Name = Signal.list.invert
+  SignalNum2Name.default = 'unknown signal'
 
   def identical_file?(f1, f2)
     s1 = File.stat(f1)
