@@ -2,7 +2,9 @@ module Escape
   module_function
 
   def shell_escape(str)
-    if %r{\A[0-9A-Za-z+,./:=@_-]+\z} =~ str
+    if str.empty?
+      "''"
+    elsif %r{\A[0-9A-Za-z+,./:=@_-]+\z} =~ str
       str
     else
       result = ''
