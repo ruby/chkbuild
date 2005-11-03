@@ -2,17 +2,30 @@
 
 require 'build'
 
+def Build.svn(url, working_dir)
+  if File.exist?(working_dir) && File.exist?("#{working_dir}/.svn")
+    Dir.chdir(working_dir) {
+      Build.run "svn", "update"
+    }
+  else
+    if File.exist?(working_dir)
+      FileUtils.rm_rf(working_dir)
+    end
+    Build.run "svn", "checkout", url, working_dir
+  end
+end
+
 GCC = Build.target("gcc",
-  ["trunk", nil],
-  ["4.0", "gcc-4_0-branch"]) {
+  ["trunk", "trunk"],
+  ["4.0", "branches/gcc-4_0-branch"]) {
     |gcc_dir, gcc_version, gcc_branch|
   Dir.chdir("..") {
-    Build.gnu_savannah_cvs('gcc', 'gcc', gcc_branch)
+    Build.svn("svn://gcc.gnu.org/svn/gcc/#{gcc_branch}", 'gcc')
   }
   Build.mkcd("objdir")
   Build.run("../../gcc/configure", "--prefix=#{gcc_dir}", "--enable-languages=c", "--disable-shared")
   Build.make("bootstrap", "install", :timeout=>'5h',
-    :rlimit_data=>1024*1024*200, :rlimit_as=>1024*1024*200)
+    :rlimit_data=>1024*1024*300, :rlimit_as=>1024*1024*300)
   Build.run("#{gcc_dir}/bin/gcc", '-v') {|log|
     if /^gcc version (.*)$/ =~ log
       Build.update_title(:version, "gcc #{$1}")
