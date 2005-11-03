@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+require 'build'
+
+Build.target("modlog") {|curr_dir|
+  Build.run("echo", "aaa") {|log|
+    log.modify_log "zzz\n"
+  }
+}

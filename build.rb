@@ -479,7 +479,14 @@ End
       end
     ensure
       if block_given?
-        yield File.read(@log_filename, nil, pos)
+        log = File.read(@log_filename, nil, pos)
+        log_filename = @log_filename
+        class << log; self end.fcall(:define_method, :modify_log) {|str|
+          STDOUT.seek(pos)
+          File.truncate(log_filename, pos)
+          STDOUT.print str
+        }
+        yield log
       end
     end
   end
