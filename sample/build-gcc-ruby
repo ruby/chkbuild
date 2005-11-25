@@ -17,7 +17,9 @@ end
 
 GCC = Build.target("gcc",
   ["trunk", "trunk"],
-  ["4.0", "branches/gcc-4_0-branch"]) {
+  ["4.1", "branches/gcc-4_1-branch"],
+  ["4.0", "branches/gcc-4_0-branch"],
+  :old => 1) {
     |gcc_dir, gcc_version, gcc_branch|
   Dir.chdir("..") {
     Build.svn("svn://gcc.gnu.org/svn/gcc/#{gcc_branch}", 'gcc')
