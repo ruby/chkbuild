@@ -481,7 +481,7 @@ End
       if block_given?
         log = File.read(@log_filename, nil, pos)
         log_filename = @log_filename
-        class << log; self end.fcall(:define_method, :modify_log) {|str|
+        class << log; self end.funcall(:define_method, :modify_log) {|str|
           STDOUT.seek(pos)
           File.truncate(log_filename, pos)
           STDOUT.print str
