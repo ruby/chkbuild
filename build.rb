@@ -453,7 +453,7 @@ End
         resource_limit(:RLIMIT_STACK, limit.fetch(:stack))
         resource_limit(:RLIMIT_DATA, limit.fetch(:data))
         resource_limit(:RLIMIT_AS, limit.fetch(:as))
-	system('sh', '-c', "ulimit -a")
+	#system('sh', '-c', "ulimit -a")
       end
       alt_commands = opts.fetch(:alt_commands, [])
       begin
