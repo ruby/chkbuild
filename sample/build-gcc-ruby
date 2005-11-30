@@ -2,9 +2,12 @@
 
 require 'build'
 
+Build.limit(:data=>1024*1024*600, :as=>1024*1024*600)
+
 def Build.svn(url, working_dir)
   if File.exist?(working_dir) && File.exist?("#{working_dir}/.svn")
     Dir.chdir(working_dir) {
+      Build.run "svn", "cleanup"
       Build.run "svn", "update"
     }
   else
@@ -25,9 +28,8 @@ GCC = Build.target("gcc",
     Build.svn("svn://gcc.gnu.org/svn/gcc/#{gcc_branch}", 'gcc')
   }
   Build.mkcd("objdir")
-  Build.run("../../gcc/configure", "--prefix=#{gcc_dir}", "--enable-languages=c", "--disable-shared")
-  Build.make("bootstrap", "install", :timeout=>'5h',
-    :rlimit_data=>1024*1024*300, :rlimit_as=>1024*1024*300)
+  Build.run("../../gcc/configure", "--prefix=#{gcc_dir}", "--enable-languages=c", "--disable-shared", "--disable-multilib")
+  Build.make("bootstrap", "install", :timeout=>'5h')
   Build.run("#{gcc_dir}/bin/gcc", '-v') {|log|
     if /^gcc version (.*)$/ =~ log
       Build.update_title(:version, "gcc #{$1}")

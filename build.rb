@@ -447,10 +447,13 @@ End
       }
       if Process.respond_to? :setrlimit
         resource_unlimit(:RLIMIT_CORE)
-        resource_limit(:RLIMIT_CPU, opts.fetch(:rlimit_cpu, 3600 * 4))
-        resource_limit(:RLIMIT_DATA, opts.fetch(:rlimit_data, 1024 * 1024 * 100))
-        resource_limit(:RLIMIT_STACK, opts.fetch(:rlimit_stack, 1024 * 1024 * 40))
-        resource_limit(:RLIMIT_AS, opts.fetch(:rlimit_as, 1024 * 1024 * 100))
+	limit = DefaultLimit.dup
+	opts.each {|k, v| limit[$'.intern] = v if /\Arlimit_/ =~ k.to_s }
+        resource_limit(:RLIMIT_CPU, limit.fetch(:cpu))
+        resource_limit(:RLIMIT_STACK, limit.fetch(:stack))
+        resource_limit(:RLIMIT_DATA, limit.fetch(:data))
+        resource_limit(:RLIMIT_AS, limit.fetch(:as))
+	system('sh', '-c', "ulimit -a")
       end
       alt_commands = opts.fetch(:alt_commands, [])
       begin
@@ -672,6 +675,17 @@ End
       exec "rsync", "--delete", "-rte", "ssh -akxi #{private_key}", "#{Build.public_dir}/#{name}", "#{rsync_target}"
     }
     Process.wait pid
+  end
+
+  DefaultLimit = {
+    :cpu => 3600 * 4,
+    :stack => 1024 * 1024 * 40,
+    :data => 1024 * 1024 * 100,
+    :as => 1024 * 1024 * 100
+  }
+
+  def limit(hash)
+    DefaultLimit.update(hash)
   end
 
   TOP_DIRECTORY = Dir.getwd
