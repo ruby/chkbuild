@@ -1,0 +1,16 @@
+#!/usr/bin/env ruby
+
+require 'build'
+
+COMBFAIL1 = Build.target("combfail1",
+  ["succ", "true"],
+  ["fail", "false"]) {|curr_dir, name, command|
+  Build.run(command)
+}
+
+Build.target("combfail2", COMBFAIL1) {
+    |combfail2_dir, combfail2_dir|
+  Build.run(*%W(echo #{combfail2_dir}))
+}
+
+

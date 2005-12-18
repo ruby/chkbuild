@@ -311,10 +311,13 @@ End
     @title[:hostname] = "(#{Socket.gethostname})"
     @title_order = [:status, :warn, :mark, :version, :dep_versions, :hostname]
     add_finish_hook { count_warns }
+    success = false
     begin
       build_target(opts, start_time_obj, name, *args, &block)
+      success = true
     rescue CommandError
     end
+    success
   end
 
   def target(target_name, *args, &block)
@@ -354,7 +357,11 @@ End
         w.close_on_exec = true
         pid = fork {
           r.close
-          Build.build_wrapper(w, opts, start_time_obj, simple_name, name, dep_versions, *(branch_info + dep_dirs), &block)
+          if Build.build_wrapper(w, opts, start_time_obj, simple_name, name, dep_versions, *(branch_info + dep_dirs), &block)
+	    exit 0
+	  else
+	    exit 1
+	  end
         }
         w.close
         str = r.read
@@ -368,7 +375,9 @@ End
         rescue ArgumentError
           version_list = []
         end
-        succeed.add [target_name, branch_name, dir, version_list] if status.to_i == 0
+	if status.to_i == 0
+	  succeed.add [target_name, branch_name, dir, version_list] if status.to_i == 0
+	end
       }
     }
     succeed
