@@ -38,10 +38,12 @@ GCC = Build.target("gcc",
 }
 
 Build.target("ruby",
-  ["trunk", nil],
-  ["1.8", "ruby_1_8"],
+  ["trunk", "-O2", nil],
+  ["1.8", "-O2", "ruby_1_8"],
+  ["trunk-o3", "-O3", nil],
+  ["1.8-o3", "-O3", "ruby_1_8"],
   GCC) {
-    |ruby_curr_dir, ruby_version, ruby_branch, gcc_dir|
+    |ruby_curr_dir, ruby_version, cflags, ruby_branch, gcc_dir|
   gcc = "#{gcc_dir}/bin/gcc"
   Dir.chdir("..") {
     Build.cvs(
@@ -52,7 +54,7 @@ Build.target("ruby",
     }
   }
   Build.mkcd("ruby")
-  Build.run("../../ruby/configure", "--prefix=#{ruby_curr_dir}", "CFLAGS=-Wall -Wno-parentheses -g -O2 -DRUBY_GC_DEBUG", "CC=#{gcc}") {|log|
+  Build.run("../../ruby/configure", "--prefix=#{ruby_curr_dir}", "CFLAGS=-Wall -Wno-parentheses -g #{cflags} -DRUBY_GC_DEBUG", "CC=#{gcc}") {|log|
     if /^checking target system type\.\.\. (\S+)$/ =~ log
       Build.update_title(:version, "ruby-#{ruby_version} #{$1}")
     end
