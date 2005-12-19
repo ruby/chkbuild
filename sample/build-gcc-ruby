@@ -46,7 +46,8 @@ Build.target("ruby",
   ["1.8-pth", ['--enable-pthread'], "-O2", "ruby_1_8"],
   ["trunk-o3-pth", ['--enable-pthread'], "-O3", nil],
   ["1.8-o3-pth", ['--enable-pthread'], "-O3", "ruby_1_8"],
-  GCC) {
+  GCC,
+  :old => 1) {
     |ruby_curr_dir, ruby_version, configure_flags, cflags, ruby_branch, gcc_dir|
   gcc = "#{gcc_dir}/bin/gcc"
   Dir.chdir("..") {
