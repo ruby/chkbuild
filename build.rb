@@ -27,6 +27,16 @@ def tp(obj)
   open("/dev/tty", "w") {|f| f.puts obj.inspect }
 end
 
+module Kernel
+  if !nil.respond_to?(:funcall)
+    if nil.respond_to?(:fcall) 
+      alias funcall fcall
+    else
+      alias funcall send
+    end
+  end
+end
+
 class IO
   def close_on_exec
     self.fcntl(Fcntl::F_GETFD) & Fcntl::FD_CLOEXEC != 0
