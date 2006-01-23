@@ -701,10 +701,11 @@ End
 
   FileUtils.mkpath Build.build_dir
   lock_path = "#{Build.build_dir}/.lock"
-  LOCK = open(lock_path, "w")
+  LOCK = open(lock_path, File::WRONLY|File::CREAT)
   if LOCK.flock(File::LOCK_EX|File::LOCK_NB) == false
     raise "another chkbuild is running."
   end
+  LOCK.truncate(0)
   LOCK.sync = true
   LOCK.close_on_exec = true
   lock_pid = $$
