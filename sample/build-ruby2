@@ -2,10 +2,14 @@
 
 require 'build'
 
+Build.limit(:data=>1024*1024*300, :as=>1024*1024*300)
+
 Build.target("ruby",
-    ["trunk", nil],
-    ["1.8", "ruby_1_8"]) {
-    |ruby_curr_dir, ruby_version, ruby_branch|
+    ["trunk", [], "", nil],
+    ["1.8", [], "", "ruby_1_8"],
+    ["trunk-pth", %w{--enable-pthread}, "", nil],
+    ["1.8-pth", %w{--enable-pthread}, "", "ruby_1_8"]) {
+    |ruby_curr_dir, ruby_version, configure_flags, cflags, ruby_branch|
   Dir.chdir("..") {
     Build.cvs(
       ":pserver:anonymous@cvs.ruby-lang.org:/src", "ruby", ruby_branch,
@@ -15,7 +19,7 @@ Build.target("ruby",
     }
   }
   Build.mkcd("ruby")
-  Build.run("../../ruby/configure", "--prefix=#{ruby_curr_dir}", "CFLAGS=-Wall -Wno-parentheses -g -O2") {|log|
+  Build.run("../../ruby/configure", "--prefix=#{ruby_curr_dir}", "CFLAGS=-Wall -Wno-parentheses -g -O2 -DRUBY_GC_STRESS #{cflags}", *configure_flags) {|log|
     if /^checking target system type\.\.\. (\S+)$/ =~ log
       Build.update_title(:version, "ruby-#{ruby_version} #{$1}")
     end
