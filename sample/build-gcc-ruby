@@ -4,20 +4,6 @@ require 'build'
 
 Build.limit(:data=>1024*1024*600, :as=>1024*1024*600)
 
-def Build.svn(url, working_dir)
-  if File.exist?(working_dir) && File.exist?("#{working_dir}/.svn")
-    Dir.chdir(working_dir) {
-      Build.run "svn", "cleanup"
-      Build.run "svn", "update"
-    }
-  else
-    if File.exist?(working_dir)
-      FileUtils.rm_rf(working_dir)
-    end
-    Build.run "svn", "checkout", url, working_dir
-  end
-end
-
 GCC = Build.target("gcc",
   ["trunk", "trunk"],
   ["4.1", "branches/gcc-4_1-branch"],

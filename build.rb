@@ -624,6 +624,20 @@ End
     end
   end
 
+  def svn(url, working_dir)
+    if File.exist?(working_dir) && File.exist?("#{working_dir}/.svn")
+      Dir.chdir(working_dir) {
+        Build.run "svn", "cleanup"
+        Build.run "svn", "update"
+      }
+    else
+      if File.exist?(working_dir)
+        FileUtils.rm_rf(working_dir)
+      end
+      Build.run "svn", "checkout", url, working_dir
+    end
+  end
+
   def with_tempfile(content) # :yield: tempfile
     t = Tempfile.new("chkbuild")
     t << content
