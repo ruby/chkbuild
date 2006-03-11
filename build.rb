@@ -624,17 +624,17 @@ End
     end
   end
 
-  def svn(url, working_dir)
+  def svn(url, working_dir, opts={})
     if File.exist?(working_dir) && File.exist?("#{working_dir}/.svn")
       Dir.chdir(working_dir) {
-        Build.run "svn", "cleanup"
-        Build.run "svn", "update"
+        Build.run "svn", "cleanup", opts
+        Build.run "svn", "update", opts
       }
     else
       if File.exist?(working_dir)
         FileUtils.rm_rf(working_dir)
       end
-      Build.run "svn", "checkout", url, working_dir
+      Build.run "svn", "checkout", url, working_dir, opts
     end
   end
 
