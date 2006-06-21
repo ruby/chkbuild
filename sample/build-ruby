@@ -18,7 +18,7 @@ Build.target("ruby",
     )
   Dir.chdir("ruby")
   Build.run("autoconf")
-  Build.run("./configure", "--prefix=#{ruby_curr_dir}", "CFLAGS=-Wall -Wno-parentheses -g -O2 -DRUBY_GC_STRESS #{cflags}", *configure_flags) {|log|
+  Build.run("./configure", "--prefix=#{ruby_curr_dir}", "CFLAGS=-Wall -Wformat=2 -Wno-parentheses -g -O2 -DRUBY_GC_STRESS #{cflags}", *configure_flags) {|log|
     if /^checking target system type\.\.\. (\S+)$/ =~ log
       Build.update_title(:version, "ruby-#{ruby_version} #{$1}")
     end
@@ -40,7 +40,7 @@ Build.target("ruby",
   }
   Build.make("install")
   Build.run("./ruby", "sample/test.rb", :reason=>"test.rb")
-  Build.run("./ruby", "test/runner.rb", :reason=>"test-all") {|log|
+  Build.run("./ruby", "test/runner.rb", "-v", :reason=>"test-all") {|log|
     if /^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors$/ =~ log
       failures = $1.to_i
       errors = $2.to_i

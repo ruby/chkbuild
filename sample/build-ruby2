@@ -41,7 +41,7 @@ Build.target("ruby",
   }
   Build.make("install")
   Build.run("./ruby", "../../ruby/sample/test.rb", :reason=>"test.rb")
-  Build.run("./ruby", "../../ruby/test/runner.rb", :reason=>"test-all") {|log|
+  Build.run("./ruby", "../../ruby/test/runner.rb", "-v", :reason=>"test-all") {|log|
     if /^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors$/ =~ log
       failures = $1.to_i
       errors = $2.to_i
