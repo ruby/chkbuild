@@ -3,5 +3,5 @@
 require 'build'
 
 Build.target("limit") {|curr_dir|
-  Build.run("sh", "-c", "ulimit -a", :rlimit_data => 10)
+  Build.run("sh", "-c", "ulimit -a", :rlimit_data => 800*1024)
 }
