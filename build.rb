@@ -255,6 +255,7 @@ End
       begin
         block.call
       rescue Exception
+        p $!
       end
     }
     puts Time.now.iso8601
@@ -271,6 +272,7 @@ End
       begin
         block.call name
       rescue Exception
+        p $!
       end
     }
   end

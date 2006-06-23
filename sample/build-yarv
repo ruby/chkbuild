@@ -22,7 +22,7 @@ Build.target("yarv") {
     log = Build.all_log
     mark = ''
     mark << "[BUG]" if /\[BUG\]/i =~ log
-    mark << "[SEGV]" if /segmentation fault/i =~
+    mark << "[SEGV]" if /segmentation fault|signal segv/i =~
       log.sub(/combination may cause frequent hang or segmentation fault/, '') # skip tk message.
     mark << "[FATAL]" if /\[FATAL\]/i =~ log
     Build.update_title(:mark, mark)
