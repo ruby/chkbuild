@@ -165,7 +165,7 @@ module Build
         f.puts "<h1>#{h name} build summary</h1>"
         f.puts "<p><a href=\"../\">chkbuild</a></p>"
       end
-      f.print "<a href=\"log/#{start_time}.txt.gz\">#{h start_time}</a> #{h title}"
+      f.print "<a href=\"log/#{start_time}.txt.gz\" name=\"#{start_time}\">#{h start_time}</a> #{h title}"
       f.print " (<a href=\"log/#{start_time}.diff.txt.gz\">diff</a>)" # xxx: diff file may not exist.
       f.puts "<br>"
     }
