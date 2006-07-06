@@ -14,6 +14,7 @@ require 'escape'
 require 'timeoutcom'
 require 'gdb'
 require "udiff"
+require "logfile"
 
 begin
   Process.setpriority(Process::PRIO_PROCESS, 0, 10)
@@ -236,19 +237,22 @@ End
     raise "already exist: #{@start_time}" if File.exist? @start_time
     Dir.mkdir @start_time # fail if it is already exists.
     Dir.chdir @start_time
-    STDOUT.reopen(@log_filename, "w")
-    STDERR.reopen(STDOUT)
-    STDOUT.sync = true
-    STDERR.sync = true
+
+    @logfile = LogFile.new(@log_filename)
+    Thread.current[:logfile] = @logfile
+    @logfile.change_default_output
+
     Build.add_finish_hook { GDB.check_core(@dir) }
-    puts start_time_obj.iso8601
+    @logfile.start_section name
     puts "args: #{args.inspect}"
     system("uname -a")
     FileUtils.mkpath(@public)
     FileUtils.mkpath(@public_log)
     careful_link "log", @current_txt
     remove_old_build(@start_time, opts.fetch(:old, Build.num_oldbuilds))
+    @logfile.start_section 'build'
     yield @dir, *args
+    @logfile.start_section 'success'
     @title[:status] ||= 'success'
   ensure
     @finish_hook.reverse_each {|block|
@@ -457,8 +461,12 @@ End
     attr_accessor :reason
   end
   def run(command, *args)
+
     opts = {}
     opts = args.pop if Hash === args.last
+
+    Thread.current[:logfile].start_section(opts[:section] || opts[:reason] || File.basename(command))
+
     puts "+ #{[command, *args].map {|s| Escape.shell_escape s }.join(' ')}"
     pos = STDOUT.pos
     TimeoutCommand.timeout_command(opts.fetch(:timeout, '1h')) {
@@ -594,6 +602,7 @@ End
 
   def cvs(cvsroot, mod, branch, opts={})
     opts = opts.dup
+    opts[:section] ||= 'cvs'
     working_dir = opts.fetch(:working_dir, mod)
     if !File.exist? "#{ENV['HOME']}/.cvspass"
       opts['ENV:CVS_PASSFILE'] = '/dev/null' # avoid warning
@@ -627,6 +636,8 @@ End
   end
 
   def svn(url, working_dir, opts={})
+    opts = opts.dup
+    opts[:section] ||= 'svn'
     if File.exist?(working_dir) && File.exist?("#{working_dir}/.svn")
       Dir.chdir(working_dir) {
         Build.run "svn", "cleanup", opts
@@ -659,11 +670,13 @@ End
     opts = opts.dup
     opts[:alt_commands] = ['make']
     if targets.empty?
+      opts[:section] ||= 'make'
       Build.run("gmake", opts)
     else
       targets.each {|target|
 	h = opts.dup
 	h[:reason] = target
+        h[:section] = target
         Build.run("gmake", target, h)
       }
     end
