@@ -250,7 +250,7 @@ End
     FileUtils.mkpath(@public_log)
     careful_link "log", @current_txt
     remove_old_build(@start_time, opts.fetch(:old, Build.num_oldbuilds))
-    @logfile.start_section 'build'
+    @logfile.start_section 'start'
     yield @dir, *args
     @logfile.start_section 'success'
     @title[:status] ||= 'success'
@@ -262,7 +262,7 @@ End
         p $!
       end
     }
-    puts Time.now.iso8601
+    @logfile.start_section 'end'
     careful_link @current_txt, "#{@public}/last.txt" if File.file? @current_txt
     title = make_title
     Marshal.dump([@title, @title_order], @parent_pipe)
