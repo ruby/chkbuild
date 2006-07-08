@@ -461,11 +461,14 @@ End
     attr_accessor :reason
   end
   def run(command, *args)
-
     opts = {}
     opts = args.pop if Hash === args.last
 
-    Thread.current[:logfile].start_section(opts[:section] || opts[:reason] || File.basename(command))
+    if opts.include?(:section)
+      Thread.current[:logfile].start_section(opts[:section]) if opts[:section]
+    else
+      Thread.current[:logfile].start_section(opts[:reason] || File.basename(command))
+    end
 
     puts "+ #{[command, *args].map {|s| Escape.shell_escape s }.join(' ')}"
     pos = STDOUT.pos
@@ -641,6 +644,7 @@ End
     if File.exist?(working_dir) && File.exist?("#{working_dir}/.svn")
       Dir.chdir(working_dir) {
         Build.run "svn", "cleanup", opts
+        opts[:section] = nil
         Build.run "svn", "update", opts
       }
     else
