@@ -37,7 +37,7 @@ class LogFile
   end
 
   def detect_sections
-    ret = []
+    ret = {}
     @io.rewind
     pat = /\A#{Regexp.quote @mark} /
     @io.each {|line|
@@ -45,7 +45,7 @@ class LogFile
         epos = @io.pos
         spos = epos - line.length
         secname = $'.chomp.sub(/#.*/, '').strip
-        ret << [spos, secname]
+        ret[secname] = spos
       end
     }
     ret
@@ -80,26 +80,24 @@ class LogFile
       end
     end
     spos = @io.pos
-    @sections << [spos, secname.strip]
-    #@io.write "#{@mark} #{secname} \# #{'*' * 1000} #{Time.now.iso8601} #{'*' * 1000}\n"
+    secname = secname.strip
+    if @sections[secname]
+      i = 2
+      while @sections["#{secname} (#{i})"]
+        i += 1
+      end
+      secname = "#{secname} (#{i})"
+    end
+    @sections[secname] = spos
     @io.write "#{@mark} #{secname} \# #{Time.now.iso8601}\n"
+    secname
   end
 
   def get_section(secname)
-    @sections.each_index {|i|
-      spos, sname = @sections[i]
-      if sname == secname
-        if i+1 < @sections.length
-          epos = @sections[i+1][0]
-        else
-          epos = @io.stat.size
-        end
-        @io.seek spos
-        line = @io.gets
-        return @io.read(epos - spos - line.length)
-      end
-    }
-    return nil
+    spos = @sections[secname]
+    return nil if !spos
+    @io.seek spos
+    @io.gets("\n#{@mark} ").chomp("#{@mark} ").sub(/\A.*\n/, '')
   end
 
   def get_all_log
