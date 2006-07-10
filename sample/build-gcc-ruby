@@ -66,16 +66,32 @@ Build.target("ruby",
     end
   }
   Build.make("install")
-  Build.run("./ruby", "../../ruby/sample/test.rb", :reason=>"test.rb")
-  Build.run("./ruby", "../../ruby/test/runner.rb", "-v", :reason=>"test-all") {|log|
-    if /^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors$/ =~ log
-      failures = $1.to_i
-      errors = $2.to_i
-      if failures != 0 || errors != 0
-        Build.update_title(:status, "#{failures}F#{errors}E")
+  Build.run("./ruby", "../../ruby/sample/test.rb", :reason=>"test.rb") {|log|
+    Build.update_title(:status) {|val|
+      if !val
+        if /^end of test/ !~ log
+          if /^test: \d+ failed (\d+)/ =~ log
+            "#{$1}NotOK"
+          else
+            "SomethingFail"
+          end
+        end
       end
-    end
+    }
+  }
+  Build.run("./ruby", "../../ruby/test/runner.rb", "-v", :reason=>"test-all") {|log|
+    Build.update_title(:status) {|val|
+      if !val
+        if /^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors$/ =~ log
+          failures = $1.to_i
+          errors = $2.to_i
+          if failures != 0 || errors != 0
+            "#{failures}F#{errors}E"
+          end
+        else
+          "SomethingFail"
+        end
+      end
+    }
   }
 }
-
-

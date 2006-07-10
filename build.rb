@@ -116,9 +116,12 @@ module Build
     File.rename tmp, filename
   end
 
-  def update_title(key, val)
-    h = @title
-    h[key] = val
+  def update_title(key, val=nil)
+    if val == nil && block_given?
+      val = yield @title[key]
+      return if !val
+    end
+    @title[key] = val
     unless @title_order.include? key
       @title_order[-1,0] = [key]
     end
