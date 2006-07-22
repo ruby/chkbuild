@@ -119,10 +119,6 @@ module Build
     @finish_hook << block
   end
 
-  def add_upload_hook(&block)
-    @upload_hook << block
-  end
-
   def update_summary(name, public, start_time, title)
     open("#{public}/summary.txt", "a") {|f| f.puts "#{start_time} #{title}" }
     open("#{public}/summary.html", "a") {|f|
@@ -237,13 +233,7 @@ End
     make_diff
     make_html_log(@log_filename, title, "#{@public}/last.html")
     compress_file("#{@public}/last.html", "#{@public}/last.html.gz")
-    @upload_hook.reverse_each {|block|
-      begin
-        block.call name
-      rescue Exception
-        p $!
-      end
-    }
+    Build.run_upload_hooks
   end
 
   def make_diff_content(time)
@@ -280,13 +270,11 @@ End
     }
   end
 
-  @upload_hook ||= []
   def build_wrapper(parent_pipe, opts, start_time_obj, simple_name, name, dep_versions, *args, &block)
     LOCK.puts name
     @parent_pipe = parent_pipe
     @title = {}
     @finish_hook = []
-    @upload_hook ||= []
     @title[:version] = simple_name
     @title[:dep_versions] = dep_versions
     @title[:hostname] = "(#{Socket.gethostname})"
@@ -476,6 +464,20 @@ End
 
   def limit(hash)
     DefaultLimit.update(hash)
+  end
+
+  @upload_hook = []
+  def self.add_upload_hook(&block)
+    @upload_hook << block
+  end
+  def self.run_upload_hooks
+    @upload_hook.reverse_each {|block|
+      begin
+        block.call name
+      rescue Exception
+        p $!
+      end
+    }
   end
 
   TOP_DIRECTORY = Dir.getwd
