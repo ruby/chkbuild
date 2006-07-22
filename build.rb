@@ -22,16 +22,17 @@ end
 File.umask(002)
 STDIN.reopen("/dev/null", "r")
 
-module Build
-  module_function
-
-  def build_dir
-    "#{TOP_DIRECTORY}/tmp/build"
+class Build
+  def Build.target(target_name, *args, &block)
+    b = Build.new
+    $Build = b
+    result = b.start(target_name, *args, &block)
+    $Build = nil
+    result
   end
 
-  def public_dir
-    "#{TOP_DIRECTORY}/tmp/public_html"
-  end
+  def self.build_dir() "#{TOP_DIRECTORY}/tmp/build" end
+  def self.public_dir() "#{TOP_DIRECTORY}/tmp/public_html" end
 
   def build_time_sequence
     dirs = Dir.entries(@target_dir)
@@ -78,6 +79,7 @@ module Build
     File.rename tmp, filename
   end
 
+  def Build.update_title(*args, &b) $Build.update_title(*args, &b) end
   def update_title(key, val=nil)
     if val == nil && block_given?
       val = yield @title[key]
@@ -89,6 +91,7 @@ module Build
     end
   end
 
+  def Build.all_log(*args, &b) $Build.all_log(*args, &b) end
   def all_log
     File.read(@log_filename)
   end
@@ -102,19 +105,20 @@ module Build
     if !@title[:status]
       if err
         if CommandError === err
-          Build.update_title(:status, "failed(#{err.reason})")
+          update_title(:status, "failed(#{err.reason})")
         else
           show_backtrace
-          Build.update_title(:status, "failed(#{err.class}:#{err.message})")
+          update_title(:status, "failed(#{err.class}:#{err.message})")
         end
       else
-        Build.update_title(:status, "failed")
+        update_title(:status, "failed")
       end
     end
     title_hash = @title
     @title_order.map {|key| title_hash[key] }.flatten.join(' ').gsub(/\s+/, ' ').strip
   end
 
+  def Build.add_finish_hook(*args, &b) $Build.add_finish_hook(*args, &b) end
   def add_finish_hook(&block)
     @finish_hook << block
   end
@@ -194,7 +198,7 @@ End
     @public_log = "#{@public}/log"
     @current_txt = "#{@public}/current.txt"
     @log_filename = "#{@dir}/log"
-    Build.mkcd @target_dir
+    mkcd @target_dir
     raise "already exist: #{@start_time}" if File.exist? @start_time
     Dir.mkdir @start_time # fail if it is already exists.
     Dir.chdir @start_time
@@ -203,7 +207,7 @@ End
     Thread.current[:logfile] = @logfile
     @logfile.change_default_output
 
-    Build.add_finish_hook { GDB.check_core(@dir) }
+    add_finish_hook { GDB.check_core(@dir) }
     @logfile.start_section name
     puts "args: #{args.inspect}"
     system("uname -a")
@@ -289,7 +293,7 @@ End
     success
   end
 
-  def target(target_name, *args, &block)
+  def start(target_name, *args, &block)
     opts = {}
     opts = args.pop if Hash === args.last
     branches = []
@@ -326,7 +330,7 @@ End
         w.close_on_exec = true
         pid = fork {
           r.close
-          if Build.build_wrapper(w, opts, start_time_obj, simple_name, name, dep_versions, *(branch_info + dep_dirs), &block)
+          if build_wrapper(w, opts, start_time_obj, simple_name, name, dep_versions, *(branch_info + dep_dirs), &block)
 	    exit 0
 	  else
 	    exit 1
@@ -386,6 +390,7 @@ End
 
     attr_accessor :reason
   end
+  def Build.run(*args, &b) $Build.run(*args, &b) end
   def run(command, *args)
     opts = {}
     opts = args.pop if Hash === args.last
@@ -462,7 +467,7 @@ End
     :as => 1024 * 1024 * 100
   }
 
-  def limit(hash)
+  def self.limit(hash)
     DefaultLimit.update(hash)
   end
 

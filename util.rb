@@ -37,9 +37,8 @@ class IO
   end
 end
 
-module Build
-  module_function
-
+class Build
+  def Build.mkcd(*args, &b) $Build.mkcd(*args, &b) end
   def mkcd(dir)
     FileUtils.mkpath dir
     Dir.chdir dir
@@ -146,6 +145,7 @@ module Build
     "sha256:#{d.hexdigest}"
   end
 
+  def Build.cvs(*args, &b) $Build.cvs(*args, &b) end
   def cvs(cvsroot, mod, branch, opts={})
     opts = opts.dup
     opts[:section] ||= 'cvs'
@@ -156,7 +156,7 @@ module Build
     if File.directory?(working_dir)
       Dir.chdir(working_dir) {
         h1 = cvs_revisions
-        Build.run("cvs", "-f", "-z3", "-Q", "update", "-kb", "-dP", opts)
+        $Build.run("cvs", "-f", "-z3", "-Q", "update", "-kb", "-dP", opts)
         h2 = cvs_revisions
         cvs_print_revisions(h1, h2, opts[:viewcvs]||opts[:cvsweb])
       }
@@ -170,9 +170,9 @@ module Build
         }
       end
       if branch
-        Build.run("cvs", "-f", "-z3", "-Qd", cvsroot, "co", "-kb", "-d", working_dir, "-Pr", branch, mod, opts)
+        $Build.run("cvs", "-f", "-z3", "-Qd", cvsroot, "co", "-kb", "-d", working_dir, "-Pr", branch, mod, opts)
       else
-        Build.run("cvs", "-f", "-z3", "-Qd", cvsroot, "co", "-kb", "-d", working_dir, "-P", mod, opts)
+        $Build.run("cvs", "-f", "-z3", "-Qd", cvsroot, "co", "-kb", "-d", working_dir, "-P", mod, opts)
       end
       Dir.chdir(working_dir) {
         h2 = cvs_revisions
@@ -181,20 +181,21 @@ module Build
     end
   end
 
+  def Build.svn(*args, &b) $Build.svn(*args, &b) end
   def svn(url, working_dir, opts={})
     opts = opts.dup
     opts[:section] ||= 'svn'
     if File.exist?(working_dir) && File.exist?("#{working_dir}/.svn")
       Dir.chdir(working_dir) {
-        Build.run "svn", "cleanup", opts
+        $Build.run "svn", "cleanup", opts
         opts[:section] = nil
-        Build.run "svn", "update", opts
+        $Build.run "svn", "update", opts
       }
     else
       if File.exist?(working_dir)
         FileUtils.rm_rf(working_dir)
       end
-      Build.run "svn", "checkout", url, working_dir, opts
+      $Build.run "svn", "checkout", url, working_dir, opts
     end
   end
 
@@ -205,12 +206,14 @@ module Build
     yield t
   end
 
+  def Build.gnu_savannah_cvs(*args, &b) $Build.gnu_savannah_cvs(*args, &b) end
   def gnu_savannah_cvs(proj, mod, branch, opts={})
     opts = opts.dup
     opts[:viewcvs] ||= "http://savannah.gnu.org/cgi-bin/viewcvs/#{proj}?diff_format=u"
-    Build.cvs(":pserver:anonymous@cvs.savannah.gnu.org:/sources/#{proj}", mod, branch, opts)
+    $Build.cvs(":pserver:anonymous@cvs.savannah.gnu.org:/sources/#{proj}", mod, branch, opts)
   end
 
+  def Build.make(*args, &b) $Build.make(*args, &b) end
   def make(*targets)
     opts = {}
     opts = targets.pop if Hash === targets.last
@@ -218,24 +221,24 @@ module Build
     opts[:alt_commands] = ['make']
     if targets.empty?
       opts[:section] ||= 'make'
-      Build.run("gmake", opts)
+      $Build.run("gmake", opts)
     else
       targets.each {|target|
 	h = opts.dup
 	h[:reason] = target
         h[:section] = target
-        Build.run("gmake", target, h)
+        $Build.run("gmake", target, h)
       }
     end
   end
 
-  def rsync_ssh_upload_target(rsync_target, private_key=nil)
+  def self.rsync_ssh_upload_target(rsync_target, private_key=nil)
     Build.add_upload_hook {|name|
       Build.do_upload_rsync_ssh(rsync_target, private_key, name)
     }
   end
 
-  def do_upload_rsync_ssh(rsync_target, private_key, name)
+  def self.do_upload_rsync_ssh(rsync_target, private_key, name)
     if %r{\A(?:([^@:]+)@)([^:]+)::(.*)\z} !~ rsync_target
       raise "invalid rsync target: #{rsync_target.inspect}"
     end
