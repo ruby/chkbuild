@@ -35,6 +35,7 @@ class LogFile
     end
     mark || InitialMark
   end
+  private :read_separator
 
   def detect_sections
     ret = {}
@@ -50,6 +51,7 @@ class LogFile
     }
     ret
   end
+  private :detect_sections
 
   # logfile.with_default_output { ... }
   def with_default_output
@@ -103,5 +105,42 @@ class LogFile
   def get_all_log
     @io.rewind
     @io.read
+  end
+
+  def modify_section(secname, data)
+    spos = @sections[secname]
+    raise ArgumentError, "no section: #{secname.inspect}" if !spos
+    data += "\n" if /\n\z/ !~ data
+    old = nil
+    File.open(@filename, File::RDWR) {|f|
+      f.seek spos
+      rest = f.read
+      if /\n#{Regexp.quote @mark} / =~ rest
+        epos = $~.begin(0) + 1
+        curr = rest[0...epos]
+        rest = rest[epos..-1]
+      else
+        curr = rest
+        rest = ''
+      end
+      if /\n/ =~ curr
+        secline = $` + $&
+        old = $'
+      else
+        secline = curr + "\n"
+        old = ''
+      end
+      f.seek spos
+      f.print secline, data, rest
+      f.flush
+      f.truncate(f.pos)
+    }
+    off = data.length - old.length
+    @sections.each_pair {|n, pos|
+      if spos < pos
+        @sections[n] = pos + off
+      end
+    }
+    nil
   end
 end
