@@ -26,10 +26,80 @@ class Build
   def Build.target(target_name, *args, &block)
     b = Build.new
     $Build = b
-    result = b.start(target_name, *args, &block)
+    result = b.def_target(target_name, *args, &block)
+    result = b.start
     $Build = nil
     result
   end
+
+  def def_target(target_name, *args, &block)
+    @target_name = target_name
+    @build_proc = block
+    @opts = {}
+    @opts = args.pop if Hash === args.last
+    @branches = []
+    @dep_targets = []
+    args.each {|arg|
+      if Depend === arg
+        @dep_targets << arg
+      else
+        @branches << arg
+      end
+    }
+    if @branches.empty?
+      @branches << []
+    end
+  end
+
+  def start
+    succeed = Depend.new
+    @branches.each {|branch_info|
+      branch_name = branch_info[0]
+      Depend.perm(@dep_targets) {|dependencies|
+        name = @target_name.dup
+        name << "-#{branch_name}" if branch_name
+        simple_name = name.dup
+        dep_dirs = []
+        dep_versions = []
+        dependencies.each {|dep_target_name, dep_branch_name, dep_dir, dep_ver|
+          name << "_#{dep_target_name}"
+          name << "-#{dep_branch_name}" if dep_branch_name
+          dep_dirs << dep_dir
+          dep_versions.concat dep_ver
+        }
+        start_time_obj = Time.now
+        dir = "#{Build.build_dir}/#{name}/#{start_time_obj.strftime("%Y%m%dT%H%M%S")}"
+        r, w = IO.pipe
+        r.close_on_exec = true
+        w.close_on_exec = true
+        pid = fork {
+          r.close
+          if build_wrapper(w, @opts, start_time_obj, simple_name, name, dep_versions, *(branch_info + dep_dirs), &@build_proc)
+	    exit 0
+	  else
+	    exit 1
+	  end
+        }
+        w.close
+        str = r.read
+        r.close
+        Process.wait(pid)
+        status = $?
+        begin
+          title, title_order = Marshal.load(str)
+          version = title[:version]
+          version_list = ["(#{version})", *title[:dep_versions]]
+        rescue ArgumentError
+          version_list = []
+        end
+	if status.to_i == 0
+	  succeed.add [@target_name, branch_name, dir, version_list] if status.to_i == 0
+	end
+      }
+    }
+    succeed
+  end
+
 
   def self.build_dir() "#{TOP_DIRECTORY}/tmp/build" end
   def self.public_dir() "#{TOP_DIRECTORY}/tmp/public_html" end
@@ -291,69 +361,6 @@ End
     rescue CommandError
     end
     success
-  end
-
-  def start(target_name, *args, &block)
-    opts = {}
-    opts = args.pop if Hash === args.last
-    branches = []
-    dep_targets = []
-    args.each {|arg|
-      if Depend === arg
-        dep_targets << arg
-      else
-        branches << arg
-      end
-    }
-    if branches.empty?
-      branches << []
-    end
-    succeed = Depend.new
-    branches.each {|branch_info|
-      branch_name = branch_info[0]
-      Depend.perm(dep_targets) {|dependencies|
-        name = target_name.dup
-        name << "-#{branch_name}" if branch_name
-        simple_name = name.dup
-        dep_dirs = []
-        dep_versions = []
-        dependencies.each {|dep_target_name, dep_branch_name, dep_dir, dep_ver|
-          name << "_#{dep_target_name}"
-          name << "-#{dep_branch_name}" if dep_branch_name
-          dep_dirs << dep_dir
-          dep_versions.concat dep_ver
-        }
-        start_time_obj = Time.now
-        dir = "#{Build.build_dir}/#{name}/#{start_time_obj.strftime("%Y%m%dT%H%M%S")}"
-        r, w = IO.pipe
-        r.close_on_exec = true
-        w.close_on_exec = true
-        pid = fork {
-          r.close
-          if build_wrapper(w, opts, start_time_obj, simple_name, name, dep_versions, *(branch_info + dep_dirs), &block)
-	    exit 0
-	  else
-	    exit 1
-	  end
-        }
-        w.close
-        str = r.read
-        r.close
-        Process.wait(pid)
-        status = $?
-        begin
-          title, title_order = Marshal.load(str)
-          version = title[:version]
-          version_list = ["(#{version})", *title[:dep_versions]]
-        rescue ArgumentError
-          version_list = []
-        end
-	if status.to_i == 0
-	  succeed.add [target_name, branch_name, dir, version_list] if status.to_i == 0
-	end
-      }
-    }
-    succeed
   end
 
   class Depend
