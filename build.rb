@@ -81,7 +81,7 @@ class Build
         w.close_on_exec = true
         pid = fork {
           r.close
-          if build_wrapper(w, start_time_obj, simple_name, name, dep_versions, *(branch_info + dep_dirs), &@build_proc)
+          if build_wrapper(w, start_time_obj, simple_name, name, dep_versions, *(branch_info + dep_dirs))
 	    exit 0
 	  else
 	    exit 1
@@ -107,7 +107,7 @@ class Build
     succeed
   end
 
-  def build_wrapper(parent_pipe, start_time_obj, simple_name, name, dep_versions, *args, &block)
+  def build_wrapper(parent_pipe, start_time_obj, simple_name, name, dep_versions, *args)
     LOCK.puts name
     @parent_pipe = parent_pipe
     @title = {}
@@ -119,7 +119,7 @@ class Build
     add_finish_hook { count_warns }
     success = false
     begin
-      build_target(start_time_obj, name, *args, &block)
+      build_target(start_time_obj, name, *args)
       success = true
     rescue CommandError
     end
@@ -153,7 +153,7 @@ class Build
     careful_link "log", @current_txt
     remove_old_build(@start_time, opts.fetch(:old, Build.num_oldbuilds))
     @logfile.start_section 'start'
-    yield @dir, *args
+    @build_proc.call(@dir, *args)
     @logfile.start_section 'success'
     @title[:status] ||= 'success'
   ensure
