@@ -32,6 +32,13 @@ class Build
     result
   end
 
+  def initialize
+    @title_hook = []
+  end
+
+  def add_title_hook(&block) @title_hook << block end
+  def run_title_hooks() @title_hook.each {|block| block.call } end
+
   def def_target(target_name, *args, &block)
     @target_name = target_name
     @build_proc = block
@@ -100,6 +107,74 @@ class Build
     succeed
   end
 
+  def build_wrapper(parent_pipe, opts, start_time_obj, simple_name, name, dep_versions, *args, &block)
+    LOCK.puts name
+    @parent_pipe = parent_pipe
+    @title = {}
+    @finish_hook = []
+    @title[:version] = simple_name
+    @title[:dep_versions] = dep_versions
+    @title[:hostname] = "(#{Socket.gethostname})"
+    @title_order = [:status, :warn, :mark, :version, :dep_versions, :hostname]
+    add_finish_hook { count_warns }
+    success = false
+    begin
+      build_target(opts, start_time_obj, name, *args, &block)
+      success = true
+    rescue CommandError
+    end
+    success
+  end
+
+  def build_target(opts, start_time_obj, name, *args)
+    @start_time = start_time_obj.strftime("%Y%m%dT%H%M%S")
+    @target_dir = "#{Build.build_dir}/#{name}"
+    @dir = "#{@target_dir}/#{@start_time}"
+    @public = "#{Build.public_dir}/#{name}"
+    @public_log = "#{@public}/log"
+    @current_txt = "#{@public}/current.txt"
+    @log_filename = "#{@dir}/log"
+    mkcd @target_dir
+    raise "already exist: #{@start_time}" if File.exist? @start_time
+    Dir.mkdir @start_time # fail if it is already exists.
+    Dir.chdir @start_time
+
+    @logfile = LogFile.new(@log_filename)
+    Thread.current[:logfile] = @logfile
+    @logfile.change_default_output
+
+    add_finish_hook { GDB.check_core(@dir) }
+    @logfile.start_section name
+    puts "args: #{args.inspect}"
+    system("uname -a")
+    FileUtils.mkpath(@public)
+    FileUtils.mkpath(@public_log)
+    careful_link "log", @current_txt
+    remove_old_build(@start_time, opts.fetch(:old, Build.num_oldbuilds))
+    @logfile.start_section 'start'
+    yield @dir, *args
+    @logfile.start_section 'success'
+    @title[:status] ||= 'success'
+  ensure
+    @finish_hook.reverse_each {|block|
+      begin
+        block.call
+      rescue Exception
+        p $!
+      end
+    }
+    @logfile.start_section 'end'
+    careful_link @current_txt, "#{@public}/last.txt" if File.file? @current_txt
+    title = make_title
+    Marshal.dump([@title, @title_order], @parent_pipe)
+    @parent_pipe.close
+    update_summary(name, @public, @start_time, title)
+    compress_file(@log_filename, "#{@public_log}/#{@start_time}.txt.gz")
+    make_diff
+    make_html_log(@log_filename, title, "#{@public}/last.html")
+    compress_file("#{@public}/last.html", "#{@public}/last.html.gz")
+    Build.run_upload_hooks
+  end
 
   def self.build_dir() "#{TOP_DIRECTORY}/tmp/build" end
   def self.public_dir() "#{TOP_DIRECTORY}/tmp/public_html" end
@@ -260,56 +335,6 @@ End
   end
   Build.num_oldbuilds = 3
 
-  def build_target(opts, start_time_obj, name, *args)
-    @start_time = start_time_obj.strftime("%Y%m%dT%H%M%S")
-    @target_dir = "#{Build.build_dir}/#{name}"
-    @dir = "#{@target_dir}/#{@start_time}"
-    @public = "#{Build.public_dir}/#{name}"
-    @public_log = "#{@public}/log"
-    @current_txt = "#{@public}/current.txt"
-    @log_filename = "#{@dir}/log"
-    mkcd @target_dir
-    raise "already exist: #{@start_time}" if File.exist? @start_time
-    Dir.mkdir @start_time # fail if it is already exists.
-    Dir.chdir @start_time
-
-    @logfile = LogFile.new(@log_filename)
-    Thread.current[:logfile] = @logfile
-    @logfile.change_default_output
-
-    add_finish_hook { GDB.check_core(@dir) }
-    @logfile.start_section name
-    puts "args: #{args.inspect}"
-    system("uname -a")
-    FileUtils.mkpath(@public)
-    FileUtils.mkpath(@public_log)
-    careful_link "log", @current_txt
-    remove_old_build(@start_time, opts.fetch(:old, Build.num_oldbuilds))
-    @logfile.start_section 'start'
-    yield @dir, *args
-    @logfile.start_section 'success'
-    @title[:status] ||= 'success'
-  ensure
-    @finish_hook.reverse_each {|block|
-      begin
-        block.call
-      rescue Exception
-        p $!
-      end
-    }
-    @logfile.start_section 'end'
-    careful_link @current_txt, "#{@public}/last.txt" if File.file? @current_txt
-    title = make_title
-    Marshal.dump([@title, @title_order], @parent_pipe)
-    @parent_pipe.close
-    update_summary(name, @public, @start_time, title)
-    compress_file(@log_filename, "#{@public_log}/#{@start_time}.txt.gz")
-    make_diff
-    make_html_log(@log_filename, title, "#{@public}/last.html")
-    compress_file("#{@public}/last.html", "#{@public}/last.html.gz")
-    Build.run_upload_hooks
-  end
-
   def make_diff_content(time)
     tmp = Tempfile.open("#{time}.")
     pat = /#{time}/
@@ -342,25 +367,6 @@ End
       z.puts "+++ #{time2}"
       UDiff.diff(tmp1.path, tmp2.path, z)
     }
-  end
-
-  def build_wrapper(parent_pipe, opts, start_time_obj, simple_name, name, dep_versions, *args, &block)
-    LOCK.puts name
-    @parent_pipe = parent_pipe
-    @title = {}
-    @finish_hook = []
-    @title[:version] = simple_name
-    @title[:dep_versions] = dep_versions
-    @title[:hostname] = "(#{Socket.gethostname})"
-    @title_order = [:status, :warn, :mark, :version, :dep_versions, :hostname]
-    add_finish_hook { count_warns }
-    success = false
-    begin
-      build_target(opts, start_time_obj, name, *args, &block)
-      success = true
-    rescue CommandError
-    end
-    success
   end
 
   class Depend
