@@ -81,7 +81,7 @@ class Build
         w.close_on_exec = true
         pid = fork {
           r.close
-          if build_wrapper(w, @opts, start_time_obj, simple_name, name, dep_versions, *(branch_info + dep_dirs), &@build_proc)
+          if build_wrapper(w, start_time_obj, simple_name, name, dep_versions, *(branch_info + dep_dirs), &@build_proc)
 	    exit 0
 	  else
 	    exit 1
@@ -107,7 +107,7 @@ class Build
     succeed
   end
 
-  def build_wrapper(parent_pipe, opts, start_time_obj, simple_name, name, dep_versions, *args, &block)
+  def build_wrapper(parent_pipe, start_time_obj, simple_name, name, dep_versions, *args, &block)
     LOCK.puts name
     @parent_pipe = parent_pipe
     @title = {}
@@ -119,14 +119,15 @@ class Build
     add_finish_hook { count_warns }
     success = false
     begin
-      build_target(opts, start_time_obj, name, *args, &block)
+      build_target(start_time_obj, name, *args, &block)
       success = true
     rescue CommandError
     end
     success
   end
 
-  def build_target(opts, start_time_obj, name, *args)
+  def build_target(start_time_obj, name, *args)
+    opts = @opts
     @start_time = start_time_obj.strftime("%Y%m%dT%H%M%S")
     @target_dir = "#{Build.build_dir}/#{name}"
     @dir = "#{@target_dir}/#{@start_time}"
