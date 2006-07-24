@@ -36,8 +36,17 @@ class Build
     @title_hook = []
   end
 
-  def add_title_hook(&block) @title_hook << block end
-  def run_title_hooks() @title_hook.each {|block| block.call } end
+  def add_title_hook(secname, &block) @title_hook << [secname, block] end
+  def run_title_hooks()
+    @title_hook.each {|secname, block|
+      if log = @logfile.get_section(secname)
+        class << log; self end.funcall(:define_method, :modify_log) {|str|
+          @logfile.modify_section(secname, str)
+        }
+        block.call log
+      end
+    }
+  end
 
   def def_target(target_name, *args, &block)
     @target_name = target_name
@@ -166,6 +175,7 @@ class Build
     }
     @logfile.start_section 'end'
     careful_link @current_txt, "#{@public}/last.txt" if File.file? @current_txt
+    run_title_hooks
     title = make_title
     Marshal.dump([@title, @title_order], @parent_pipe)
     @parent_pipe.close
@@ -405,15 +415,16 @@ End
     attr_accessor :reason
   end
   def Build.run(*args, &b) $Build.run(*args, &b) end
-  def run(command, *args)
+  def run(command, *args, &block)
     opts = {}
     opts = args.pop if Hash === args.last
 
     if opts.include?(:section)
-      Thread.current[:logfile].start_section(opts[:section]) if opts[:section]
+      secname = opts[:section]
     else
-      Thread.current[:logfile].start_section(opts[:reason] || File.basename(command))
+      secname = opts[:reason] || File.basename(command)
     end
+    Thread.current[:logfile].start_section(secname) if secname
 
     puts "+ #{[command, *args].map {|s| Escape.shell_escape s }.join(' ')}"
     pos = STDOUT.pos
@@ -458,15 +469,8 @@ End
         raise CommandError.new($?, opts.fetch(:reason, command))
       end
     ensure
-      if block_given?
-        log = File.read(@log_filename, nil, pos)
-        log_filename = @log_filename
-        class << log; self end.funcall(:define_method, :modify_log) {|str|
-          STDOUT.seek(pos)
-          File.truncate(log_filename, pos)
-          STDOUT.print str
-        }
-        yield log
+      if block && secname
+        add_title_hook(secname, &block)
       end
     end
   end
