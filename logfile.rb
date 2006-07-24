@@ -73,6 +73,7 @@ class LogFile
     STDERR.sync = true
   end
 
+  # start_section returns the (unique) section name.
   def start_section(secname)
     @io.flush
     if 0 < @io.stat.size
