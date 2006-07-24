@@ -165,8 +165,13 @@ class Build
     @logfile.start_section 'start'
     @build_proc.call(@dir, *args)
     @logfile.start_section 'success'
-    @title[:status] ||= 'success'
+    add_title_hook('success') {|log|
+      Build.update_title(:status) {|val|
+        'success' if !val
+      }
+    }
   ensure
+    run_title_hooks
     @finish_hook.reverse_each {|block|
       begin
         block.call
@@ -176,7 +181,6 @@ class Build
     }
     @logfile.start_section 'end'
     careful_link @current_txt, "#{@public}/last.txt" if File.file? @current_txt
-    run_title_hooks
     title = make_title
     Marshal.dump([@title, @title_order], @parent_pipe)
     @parent_pipe.close
