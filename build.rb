@@ -40,8 +40,9 @@ class Build
   def run_title_hooks()
     @title_hook.each {|secname, block|
       if log = @logfile.get_section(secname)
+        logfile = @logfile
         class << log; self end.funcall(:define_method, :modify_log) {|str|
-          @logfile.modify_section(secname, str)
+          logfile.modify_section(secname, str)
         }
         block.call log
       end
