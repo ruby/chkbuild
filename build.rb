@@ -84,14 +84,11 @@ class Build
           dep_dirs << dep_dir
           dep_versions.concat dep_ver
         }
-
         title = {}
         title[:version] = simple_name
         title[:dep_versions] = dep_versions
         title[:hostname] = "(#{Socket.gethostname})"
-
         status, dir, version_list = build_in_child(name, title, branch_info+dep_dirs)
-
 	if status.to_i == 0
 	  succeed.add [@target_name, branch_name, dir, version_list] if status.to_i == 0
 	end
