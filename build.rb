@@ -84,31 +84,14 @@ class Build
           dep_dirs << dep_dir
           dep_versions.concat dep_ver
         }
-        start_time_obj = Time.now
-        dir = "#{Build.build_dir}/#{name}/#{start_time_obj.strftime("%Y%m%dT%H%M%S")}"
-        r, w = IO.pipe
-        r.close_on_exec = true
-        w.close_on_exec = true
-        pid = fork {
-          r.close
-          if child_build_wrapper(w, start_time_obj, simple_name, name, dep_versions, *(branch_info + dep_dirs))
-	    exit 0
-	  else
-	    exit 1
-	  end
-        }
-        w.close
-        str = r.read
-        r.close
-        Process.wait(pid)
-        status = $?
-        begin
-          title, title_order = Marshal.load(str)
-          version = title[:version]
-          version_list = ["(#{version})", *title[:dep_versions]]
-        rescue ArgumentError
-          version_list = []
-        end
+
+        title = {}
+        title[:version] = simple_name
+        title[:dep_versions] = dep_versions
+        title[:hostname] = "(#{Socket.gethostname})"
+
+        status, dir, version_list = build_in_child(name, title, branch_info+dep_dirs)
+
 	if status.to_i == 0
 	  succeed.add [@target_name, branch_name, dir, version_list] if status.to_i == 0
 	end
@@ -117,14 +100,40 @@ class Build
     succeed
   end
 
-  def child_build_wrapper(parent_pipe, start_time_obj, simple_name, name, dep_versions, *args)
+  def build_in_child(name, title, branch_info)
+    start_time_obj = Time.now
+    dir = "#{Build.build_dir}/#{name}/#{start_time_obj.strftime("%Y%m%dT%H%M%S")}"
+    r, w = IO.pipe
+    r.close_on_exec = true
+    w.close_on_exec = true
+    pid = fork {
+      r.close
+      if child_build_wrapper(w, start_time_obj, name, title, *branch_info)
+        exit 0
+      else
+        exit 1
+      end
+    }
+    w.close
+    str = r.read
+    r.close
+    Process.wait(pid)
+    status = $?
+    begin
+      title, title_order = Marshal.load(str)
+      version = title[:version]
+      version_list = ["(#{version})", *title[:dep_versions]]
+    rescue ArgumentError
+      version_list = []
+    end
+    return status, dir, version_list
+  end
+
+  def child_build_wrapper(parent_pipe, start_time_obj, name, title, *args)
     LOCK.puts name
     @parent_pipe = parent_pipe
-    @title = {}
+    @title = title.dup
     @finish_hook = []
-    @title[:version] = simple_name
-    @title[:dep_versions] = dep_versions
-    @title[:hostname] = "(#{Socket.gethostname})"
     @title_order = [:status, :warn, :mark, :version, :dep_versions, :hostname]
     add_finish_hook { count_warns }
     success = false
