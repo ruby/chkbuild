@@ -38,6 +38,29 @@ class IO
 end
 
 class Build
+  def Build.permutation(*args)
+    if block_given?
+      Build.permutation_each(*args) {|vs| yield vs }
+    else
+      r = []
+      Build.permutation_each(*args) {|vs| r << vs }
+      r
+    end
+  end
+
+  def Build.permutation_each(*args)
+    if args.empty?
+      yield []
+    else
+      arg, *rest = args
+      arg.each {|v|
+        Build.permutation_each(*rest) {|vs|
+          yield [v, *vs]
+        }
+      }
+    end
+  end
+
   def Build.mkcd(*args, &b) $Build.mkcd(*args, &b) end
   def mkcd(dir)
     FileUtils.mkpath dir

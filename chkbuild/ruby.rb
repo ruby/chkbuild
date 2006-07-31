@@ -1,8 +1,21 @@
 require 'build'
 
 def build_ruby(*args)
-  Build.target("ruby", *args) {
-      |ruby_curr_dir, ruby_version, configure_flags, cflags, ruby_branch|
+  Build.perm_target("ruby", *args) {
+      |ruby_curr_dir, concatenated_suffix, *suffixes|
+
+    ruby_branch = nil
+    configure_flags = []
+    cflags = ''
+    suffixes.each {|s|
+      case s
+      when "trunk" then ruby_branch = nil
+      when "1.8" then ruby_branch = 'ruby_1_8'
+      when "pth" then configure_flags = %w{--enable-pthread}
+      else raise "unexpected suffix: #{s.inspect}"
+      end
+    }
+
     Build.cvs(
       ":pserver:anonymous@cvs.ruby-lang.org:/src", "ruby", ruby_branch,
       :cvsweb => "http://www.ruby-lang.org/cgi-bin/cvsweb.cgi"
@@ -11,7 +24,7 @@ def build_ruby(*args)
     Build.run("autoconf")
     Build.run("./configure", "--prefix=#{ruby_curr_dir}", "CFLAGS=-Wall -Wformat=2 -Wno-parentheses -g -O2 -DRUBY_GC_STRESS #{cflags}", *configure_flags) {|log|
       if /^checking target system type\.\.\. (\S+)$/ =~ log
-        Build.update_title(:version, "ruby-#{ruby_version} #{$1}")
+        Build.update_title(:version, "#{['ruby', *suffixes].join('-')} #{$1}")
       end
     }
     Build.add_finish_hook {
@@ -24,13 +37,13 @@ def build_ruby(*args)
       Build.update_title(:mark, mark)
     }
     Build.make
-    Build.run("./ruby", "-v") {|log|
+    Build.run("./ruby", "-v", :section=>"version") {|log|
       if /^ruby [0-9.]+ \([0-9\-]+\) \[\S+\]$/ =~ log
         Build.update_title(:version, $&)
       end
     }
     Build.make("install")
-    Build.run("./ruby", "sample/test.rb", :reason=>"test.rb") {|log|
+    Build.run("./ruby", "sample/test.rb", :section=>"test.rb") {|log|
       Build.update_title(:status) {|val|
         if !val
           if /^end of test/ !~ log
@@ -43,7 +56,7 @@ def build_ruby(*args)
         end
       }
     }
-    Build.run("./ruby", "test/runner.rb", "-v", :reason=>"test-all") {|log|
+    Build.run("./ruby", "test/runner.rb", "-v", :section=>"test-all") {|log|
       Build.update_title(:status) {|val|
         if !val
           if /^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors$/ =~ log

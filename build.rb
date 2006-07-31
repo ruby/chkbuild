@@ -23,6 +23,15 @@ File.umask(002)
 STDIN.reopen("/dev/null", "r")
 
 class Build
+  def Build.perm_target(target_name, *args, &block)
+    b = Build.new
+    $Build = b
+    result = b.def_perm_target(target_name, *args, &block)
+    result = b.start
+    $Build = nil
+    result
+  end
+
   def Build.target(target_name, *args, &block)
     b = Build.new
     $Build = b
@@ -45,6 +54,33 @@ class Build
           logfile.modify_section(secname, str)
         }
         block.call log
+      end
+    }
+  end
+
+  def def_perm_target(target_name, *args, &block)
+    @target_name = target_name
+    @build_proc = block
+    @opts = {}
+    @opts = args.pop if Hash === args.last
+    @dep_targets = []
+
+    suffixes_ary = []
+    args.each {|arg|
+      if Depend === arg
+        @dep_targets << arg
+      else
+        suffixes_ary << arg
+      end
+    }
+
+    @branches = []
+    Build.permutation(*suffixes_ary) {|suffixes|
+      suffixes.compact!
+      if suffixes.empty?
+        @branches << [nil, *suffixes]
+      else
+        @branches << [suffixes.join('-'), *suffixes]
       end
     }
   end
