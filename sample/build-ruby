@@ -10,11 +10,3 @@ Build.limit(:data=>1024*1024*300, :as=>1024*1024*300)
 build_ruby(
   ["trunk", "1.8"],
   [nil, "pth"])
-
-
-=begin
-  ["trunk", [], "", nil],
-  ["1.8", [], "", "ruby_1_8"],
-  ["trunk-pth", %w{--enable-pthread}, "", nil],
-  ["1.8-pth", %w{--enable-pthread}, "", "ruby_1_8"])
-=end
