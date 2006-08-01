@@ -24,7 +24,7 @@ Autoconf = Build.target("autoconf") {|dir|
   }
   Build.make
   Build.make("install")
-  Build.run("#{dir}/bin/autoconf", '--version') {|log|
+  Build.run("#{dir}/bin/autoconf", '--version', :section=>'version') {|log|
     case log
     when /^Autoconf version (.*)$/
       Build.update_title(:version, "autoconf #{$1}")
