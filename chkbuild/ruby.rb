@@ -11,8 +11,8 @@ end
 
 def build_ruby_internal(separated_dir, *args)
   Build.perm_target("ruby", *args) {
-      |ruby_curr_dir, concatenated_suffix, *suffixes|
-    ruby_curr_dir = Pathname.new(ruby_curr_dir)
+      |ruby_work_dir, concatenated_suffix, *suffixes|
+    ruby_work_dir = Pathname.new(ruby_work_dir)
 
     ruby_branch = nil
     configure_flags = []
@@ -37,11 +37,11 @@ def build_ruby_internal(separated_dir, *args)
       end
     }
 
-    objdir = ruby_curr_dir+'ruby'
+    objdir = ruby_work_dir+'ruby'
     if separated_dir
-      checkout_dir = ruby_curr_dir.dirname
+      checkout_dir = ruby_work_dir.dirname
     else
-      checkout_dir = ruby_curr_dir
+      checkout_dir = ruby_work_dir
     end
     srcdir = (checkout_dir+'ruby').relative_path_from(objdir)
 
@@ -53,9 +53,9 @@ def build_ruby_internal(separated_dir, *args)
     Dir.chdir("ruby")
     Build.run(autoconf_command)
 
-    Dir.chdir(ruby_curr_dir)
+    Dir.chdir(ruby_work_dir)
     Build.mkcd("ruby")
-    Build.run("#{srcdir}/configure", "--prefix=#{ruby_curr_dir}", "CFLAGS=#{cflags.join(' ')}", *configure_flags) {|log|
+    Build.run("#{srcdir}/configure", "--prefix=#{ruby_work_dir}", "CFLAGS=#{cflags.join(' ')}", *configure_flags) {|log|
       if /^checking target system type\.\.\. (\S+)$/ =~ log
         Build.update_title(:version, "#{['ruby', *suffixes].join('-')} #{$1}")
       end
