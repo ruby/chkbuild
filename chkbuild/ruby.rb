@@ -16,12 +16,20 @@ def build_ruby_internal(separated_dir, *args)
 
     ruby_branch = nil
     configure_flags = []
-    cflags = ''
+    cflags = %w{-Wall -Wformat=2 -Wno-parentheses -g -O2 -DRUBY_GC_STRESS}
+    gcc_dir = nil
+    autoconf_command = 'autoconf'
+    make_options = {}
     suffixes.each {|s|
       case s
       when "trunk" then ruby_branch = nil
       when "1.8" then ruby_branch = 'ruby_1_8'
-      when "pth" then configure_flags = %w{--enable-pthread}
+      when "pth" then configure_flags << '--enable-pthread'
+      when /\Agcc=/
+        configure_flags << "CC=#{$'}/bin/gcc"
+        make_options["ENV:LD_RUN_PATH"] = "#{$'}/lib"
+      when /\Aautoconf=/
+        autoconf_command = "#{$'}/bin/autoconf"
       else raise "unexpected suffix: #{s.inspect}"
       end
     }
@@ -40,11 +48,11 @@ def build_ruby_internal(separated_dir, *args)
       :cvsweb => "http://www.ruby-lang.org/cgi-bin/cvsweb.cgi"
       )
     Dir.chdir("ruby")
-    Build.run("autoconf")
+    Build.run(autoconf_command)
 
     Dir.chdir(ruby_curr_dir)
     Build.mkcd("ruby")
-    Build.run("#{srcdir}/configure", "--prefix=#{ruby_curr_dir}", "CFLAGS=-Wall -Wformat=2 -Wno-parentheses -g -O2 -DRUBY_GC_STRESS #{cflags}", *configure_flags) {|log|
+    Build.run("#{srcdir}/configure", "--prefix=#{ruby_curr_dir}", "CFLAGS=#{cflags.join(' ')}", *configure_flags) {|log|
       if /^checking target system type\.\.\. (\S+)$/ =~ log
         Build.update_title(:version, "#{['ruby', *suffixes].join('-')} #{$1}")
       end
@@ -58,7 +66,7 @@ def build_ruby_internal(separated_dir, *args)
       mark << "[FATAL]" if /\[FATAL\]/i =~ log
       Build.update_title(:mark, mark)
     }
-    Build.make
+    Build.make(make_options)
     Build.run("./ruby", "-v", :section=>"version") {|log|
       if /^ruby [0-9.]+ \([0-9\-]+\) \[\S+\]$/ =~ log
         Build.update_title(:version, $&)

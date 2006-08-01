@@ -27,7 +27,7 @@ class Build
     b = Build.new
     $Build = b
     result = b.def_perm_target(target_name, *args, &block)
-    result = b.start
+    result = b.start_perm
     $Build = nil
     result
   end
@@ -102,6 +102,35 @@ class Build
     if @branches.empty?
       @branches << []
     end
+  end
+
+  def start_perm
+    succeed = Depend.new
+    @branches.each {|branch_info|
+      branch_name = branch_info[0]
+      Depend.perm(@dep_targets) {|dependencies|
+        name = @target_name.dup
+        name << "-#{branch_name}" if branch_name
+        simple_name = name.dup
+        dep_dirs = []
+        dep_versions = []
+        dependencies.each {|dep_target_name, dep_branch_name, dep_dir, dep_ver|
+          name << "_#{dep_target_name}"
+          name << "-#{dep_branch_name}" if dep_branch_name
+          dep_dirs << "#{dep_target_name}=#{dep_dir}"
+          dep_versions.concat dep_ver
+        }
+        title = {}
+        title[:version] = simple_name
+        title[:dep_versions] = dep_versions
+        title[:hostname] = "(#{Socket.gethostname})"
+        status, dir, version_list = build_in_child(name, title, branch_info+dep_dirs)
+	if status.to_i == 0
+	  succeed.add [@target_name, branch_name, dir, version_list] if status.to_i == 0
+	end
+      }
+    }
+    succeed
   end
 
   def start
