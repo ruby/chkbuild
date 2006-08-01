@@ -87,7 +87,7 @@ class Build
 
   def def_target(target_name, *args, &block)
     @target_name = target_name
-    @build_proc = block
+    @build_proc = lambda {|b, dir, *args| block.call(dir, *args) }
     @opts = {}
     @opts = args.pop if Hash === args.last
     @branches = []
@@ -233,7 +233,7 @@ class Build
     careful_link "log", @current_txt
     remove_old_build(@start_time, opts.fetch(:old, Build.num_oldbuilds))
     @logfile.start_section 'start'
-    @build_proc.call(@dir, *args)
+    @build_proc.call(self, @dir, *args)
     @logfile.start_section 'success'
     add_title_hook('success') {|log|
       Build.update_title(:status) {|val|

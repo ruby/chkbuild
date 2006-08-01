@@ -11,7 +11,7 @@ end
 
 def build_ruby_internal(separated_dir, *args)
   Build.perm_target("ruby", *args) {
-      |ruby_work_dir, *suffixes|
+      |b, ruby_work_dir, *suffixes|
     ruby_work_dir = Pathname.new(ruby_work_dir)
     long_name = ['ruby', *suffixes].join('-')
 
@@ -51,38 +51,38 @@ def build_ruby_internal(separated_dir, *args)
     srcdir = (checkout_dir+'ruby').relative_path_from(objdir)
 
     Dir.chdir(checkout_dir)
-    Build.cvs(
+    b.cvs(
       ":pserver:anonymous@cvs.ruby-lang.org:/src", "ruby", ruby_branch,
       :cvsweb => "http://www.ruby-lang.org/cgi-bin/cvsweb.cgi"
       )
     Dir.chdir("ruby")
-    Build.run(autoconf_command)
+    b.run(autoconf_command)
 
     Dir.chdir(ruby_work_dir)
-    Build.mkcd("ruby")
-    Build.run("#{srcdir}/configure", "--prefix=#{ruby_work_dir}", "CFLAGS=#{cflags.join(' ')}", *configure_flags) {|log|
+    b.mkcd("ruby")
+    b.run("#{srcdir}/configure", "--prefix=#{ruby_work_dir}", "CFLAGS=#{cflags.join(' ')}", *configure_flags) {|log|
       if /^checking target system type\.\.\. (\S+)$/ =~ log
-        Build.update_title(:version, "#{long_name} #{$1}")
+        b.update_title(:version, "#{long_name} #{$1}")
       end
     }
-    Build.add_finish_hook {
-      log = Build.all_log
+    b.add_finish_hook {
+      log = b.all_log
       mark = ''
       mark << "[BUG]" if /\[BUG\]/i =~ log
       mark << "[SEGV]" if /segmentation fault|signal segv/i =~
         log.sub(/combination may cause frequent hang or segmentation fault/, '') # skip tk message.
       mark << "[FATAL]" if /\[FATAL\]/i =~ log
-      Build.update_title(:mark, mark)
+      b.update_title(:mark, mark)
     }
-    Build.make(make_options)
-    Build.run("./ruby", "-v", :section=>"version") {|log|
+    b.make(make_options)
+    b.run("./ruby", "-v", :section=>"version") {|log|
       if /^ruby [0-9.]+ \([0-9\-]+\) \[\S+\]$/ =~ log
-        Build.update_title(:version, $&)
+        b.update_title(:version, $&)
       end
     }
-    Build.make("install")
-    Build.run("./ruby", "#{srcdir+'sample/test.rb'}", :section=>"test.rb") {|log|
-      Build.update_title(:status) {|val|
+    b.make("install")
+    b.run("./ruby", "#{srcdir+'sample/test.rb'}", :section=>"test.rb") {|log|
+      b.update_title(:status) {|val|
         if !val
           if /^end of test/ !~ log
             if /^test: \d+ failed (\d+)/ =~ log
@@ -94,8 +94,8 @@ def build_ruby_internal(separated_dir, *args)
         end
       }
     }
-    Build.run("./ruby", "#{srcdir+'test/runner.rb'}", "-v", :section=>"test-all") {|log|
-      Build.update_title(:status) {|val|
+    b.run("./ruby", "#{srcdir+'test/runner.rb'}", "-v", :section=>"test-all") {|log|
+      b.update_title(:status) {|val|
         if !val
           if /^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors$/ =~ log
             failures = $1.to_i
