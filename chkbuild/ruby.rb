@@ -11,8 +11,9 @@ end
 
 def build_ruby_internal(separated_dir, *args)
   Build.perm_target("ruby", *args) {
-      |ruby_work_dir, concatenated_suffix, *suffixes|
+      |ruby_work_dir, *suffixes|
     ruby_work_dir = Pathname.new(ruby_work_dir)
+    long_name = ['ruby', *suffixes].join('-')
 
     ruby_branch = nil
     configure_flags = []
@@ -57,7 +58,7 @@ def build_ruby_internal(separated_dir, *args)
     Build.mkcd("ruby")
     Build.run("#{srcdir}/configure", "--prefix=#{ruby_work_dir}", "CFLAGS=#{cflags.join(' ')}", *configure_flags) {|log|
       if /^checking target system type\.\.\. (\S+)$/ =~ log
-        Build.update_title(:version, "#{['ruby', *suffixes].join('-')} #{$1}")
+        Build.update_title(:version, "#{long_name} #{$1}")
       end
     }
     Build.add_finish_hook {

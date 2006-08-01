@@ -106,17 +106,16 @@ class Build
 
   def start_perm
     succeed = Depend.new
-    @branches.each {|branch_info|
-      branch_name = branch_info[0]
+    @branches.each {|branch_suffix, *branch_info|
       Depend.perm(@dep_targets) {|dependencies|
         name = @target_name.dup
-        name << "-#{branch_name}" if branch_name
+        name << "-#{branch_suffix}" if branch_suffix
         simple_name = name.dup
         dep_dirs = []
         dep_versions = []
-        dependencies.each {|dep_target_name, dep_branch_name, dep_dir, dep_ver|
+        dependencies.each {|dep_target_name, dep_branch_suffix, dep_dir, dep_ver|
           name << "_#{dep_target_name}"
-          name << "-#{dep_branch_name}" if dep_branch_name
+          name << "-#{dep_branch_suffix}" if dep_branch_suffix
           dep_dirs << "#{dep_target_name}=#{dep_dir}"
           dep_versions.concat dep_ver
         }
@@ -126,7 +125,7 @@ class Build
         title[:hostname] = "(#{Socket.gethostname})"
         status, dir, version_list = build_in_child(name, title, branch_info+dep_dirs)
 	if status.to_i == 0
-	  succeed.add [@target_name, branch_name, dir, version_list] if status.to_i == 0
+	  succeed.add [@target_name, branch_suffix, dir, version_list] if status.to_i == 0
 	end
       }
     }
