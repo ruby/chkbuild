@@ -25,8 +25,11 @@ def build_ruby_internal(separated_dir, *args)
       case s
       when "trunk" then ruby_branch = nil
       when "1.8" then ruby_branch = 'ruby_1_8'
+      when "o0"
+        cflags.delete_if {|arg| /\A-O\d\z/ =~ arg }
+        cflags << '-O0'
       when "o3"
-        cflags.delete('-O2')
+        cflags.delete_if {|arg| /\A-O\d\z/ =~ arg }
         cflags << '-O3'
       when "pth" then configure_flags << '--enable-pthread'
       when /\Agcc=/
@@ -34,7 +37,8 @@ def build_ruby_internal(separated_dir, *args)
         make_options["ENV:LD_RUN_PATH"] = "#{$'}/lib"
       when /\Aautoconf=/
         autoconf_command = "#{$'}/bin/autoconf"
-      else raise "unexpected suffix: #{s.inspect}"
+      else
+        raise "unexpected suffix: #{s.inspect}"
       end
     }
 
