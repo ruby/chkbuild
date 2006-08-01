@@ -93,10 +93,4 @@ class Build
       puts "#{f}\t#{r2}\t#{digest}"
     }
   end
-
-  def identical_file?(f1, f2)
-    s1 = File.stat(f1)
-    s2 = File.stat(f2)
-    s1.dev == s2.dev && s1.ino == s2.ino
-  end
 end
