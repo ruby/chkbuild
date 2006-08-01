@@ -24,6 +24,9 @@ def build_ruby_internal(separated_dir, *args)
       case s
       when "trunk" then ruby_branch = nil
       when "1.8" then ruby_branch = 'ruby_1_8'
+      when "o3"
+        cflags.delete('-O2')
+        cflags << '-O3'
       when "pth" then configure_flags << '--enable-pthread'
       when /\Agcc=/
         configure_flags << "CC=#{$'}/bin/gcc"

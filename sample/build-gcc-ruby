@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'build'
+require 'chkbuild/ruby'
 
 Build.limit(:data=>1024*1024*600, :as=>1024*1024*600)
 
@@ -23,75 +24,9 @@ GCC = Build.target("gcc",
   }
 }
 
-Build.target("ruby",
-  ["trunk", [], "-O2", nil],
-  ["1.8", [], "-O2", "ruby_1_8"],
-  ["trunk-o3", [], "-O3", nil],
-  ["1.8-o3", [], "-O3", "ruby_1_8"],
-  ["trunk-pth", ['--enable-pthread'], "-O2", nil],
-  ["1.8-pth", ['--enable-pthread'], "-O2", "ruby_1_8"],
-  ["trunk-o3-pth", ['--enable-pthread'], "-O3", nil],
-  ["1.8-o3-pth", ['--enable-pthread'], "-O3", "ruby_1_8"],
+build_ruby2(
+  ["trunk", "1.8"],
+  [nil, "o3"],
+  [nil, "pth"],
   GCC,
-  :old => 1) {
-    |ruby_curr_dir, ruby_version, configure_flags, cflags, ruby_branch, gcc_dir|
-  gcc = "#{gcc_dir}/bin/gcc"
-  Dir.chdir("..") {
-    Build.cvs(
-      ":pserver:anonymous@cvs.ruby-lang.org:/src", "ruby", ruby_branch,
-      :cvsweb => "http://www.ruby-lang.org/cgi-bin/cvsweb.cgi")
-    Dir.chdir("ruby") {
-      Build.run("autoconf")
-    }
-  }
-  Build.mkcd("ruby")
-  Build.run("../../ruby/configure", "--prefix=#{ruby_curr_dir}", "CFLAGS=-Wall -Wno-parentheses -g #{cflags} -DRUBY_GC_STRESS", "CC=#{gcc}", *configure_flags) {|log|
-    if /^checking target system type\.\.\. (\S+)$/ =~ log
-      Build.update_title(:version, "ruby-#{ruby_version} #{$1}")
-    end
-  }
-  Build.add_finish_hook {
-    log = Build.all_log
-    mark = ''
-    mark << "[BUG]" if /\[BUG\]/i =~ log
-    mark << "[SEGV]" if /segmentation fault|signal segv/i =~
-      log.sub(/combination may cause frequent hang or segmentation fault/, '') # skip tk message.
-    mark << "[FATAL]" if /\[FATAL\]/i =~ log
-    Build.update_title(:mark, mark)
-  }
-  Build.make("ENV:LD_RUN_PATH" => "#{gcc_dir}/lib")
-  Build.run("./ruby", "-v") {|log|
-    if /^ruby [0-9.]+ \([0-9\-]+\) \[\S+\]$/ =~ log
-      Build.update_title(:version, $&)
-    end
-  }
-  Build.make("install")
-  Build.run("./ruby", "../../ruby/sample/test.rb", :reason=>"test.rb") {|log|
-    Build.update_title(:status) {|val|
-      if !val
-        if /^end of test/ !~ log
-          if /^test: \d+ failed (\d+)/ =~ log
-            "#{$1}NotOK"
-          else
-            "SomethingFail"
-          end
-        end
-      end
-    }
-  }
-  Build.run("./ruby", "../../ruby/test/runner.rb", "-v", :reason=>"test-all") {|log|
-    Build.update_title(:status) {|val|
-      if !val
-        if /^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors$/ =~ log
-          failures = $1.to_i
-          errors = $2.to_i
-          if failures != 0 || errors != 0
-            "#{failures}F#{errors}E"
-          end
-        else
-          "SomethingFail"
-        end
-      end
-    }
-  }
-}
+  :old => 1)
