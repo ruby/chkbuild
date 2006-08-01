@@ -26,18 +26,14 @@ class Build
   def Build.perm_target(target_name, *args, &block)
     b = Build.new
     b.def_perm_target(target_name, *args, &block)
-    $Build = b
     b.start_perm
-    $Build = nil
     b
   end
 
   def Build.target(target_name, *args, &block)
     b = Build.new
     b.def_target(target_name, *args, &block)
-    $Build = b
     b.start
-    $Build = nil
     b
   end
 
@@ -240,6 +236,7 @@ class Build
     careful_link "log", @current_txt
     remove_old_build(@start_time, opts.fetch(:old, Build.num_oldbuilds))
     @logfile.start_section 'start'
+    $Build = self
     @build_proc.call(self, @dir, *args)
     @logfile.start_section 'success'
     add_title_hook('success') {|log|
