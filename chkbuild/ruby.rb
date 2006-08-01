@@ -1,5 +1,4 @@
 require 'build'
-require 'pathname'
 
 def build_ruby(*args)
   build_ruby_internal(false, *args)
@@ -11,8 +10,8 @@ end
 
 def build_ruby_internal(separated_dir, *args)
   Build.perm_target("ruby", *args) {
-      |b, ruby_work_dir, *suffixes|
-    ruby_work_dir = Pathname.new(ruby_work_dir)
+      |b, *suffixes|
+    ruby_work_dir = b.work_dir
     long_name = ['ruby', *suffixes].join('-')
 
     ruby_branch = nil

@@ -6,6 +6,7 @@ require "erb"
 include ERB::Util
 require "uri"
 require "tempfile"
+require "pathname"
 
 require 'escape'
 require 'timeoutcom'
@@ -25,14 +26,14 @@ STDIN.reopen("/dev/null", "r")
 class Build
   def Build.perm_target(target_name, *args, &block)
     b = Build.new
-    b.def_perm_target(target_name, *args, &block)
+    b.init_perm_target(target_name, *args, &block)
     b.start_perm
     b
   end
 
   def Build.target(target_name, *args, &block)
     b = Build.new
-    b.def_target(target_name, *args, &block)
+    b.init_target(target_name, *args, &block)
     b.start
     b
   end
@@ -54,7 +55,7 @@ class Build
     }
   end
 
-  def def_perm_target(target_name, *args, &block)
+  def init_perm_target(target_name, *args, &block)
     @target_name = target_name
     @build_proc = block
     @opts = {}
@@ -79,9 +80,9 @@ class Build
     }
   end
 
-  def def_target(target_name, *args, &block)
+  def init_target(target_name, *args, &block)
     @target_name = target_name
-    @build_proc = lambda {|b, dir, *args| block.call(dir, *args) }
+    @build_proc = lambda {|b, *args| block.call(b.work_dir.to_s, *args) }
     @opts = {}
     @opts = args.pop if Hash === args.last
     @branches = []
@@ -237,7 +238,7 @@ class Build
     remove_old_build(@start_time, opts.fetch(:old, Build.num_oldbuilds))
     @logfile.start_section 'start'
     $Build = self
-    @build_proc.call(self, @dir, *args)
+    @build_proc.call(self, *args)
     @logfile.start_section 'success'
     add_title_hook('success') {|log|
       Build.update_title(:status) {|val|
@@ -265,6 +266,8 @@ class Build
     compress_file("#{@public}/last.html", "#{@public}/last.html.gz")
     Build.run_upload_hooks
   end
+
+  def work_dir() Pathname.new(@dir) end
 
   def self.build_dir() "#{TOP_DIRECTORY}/tmp/build" end
   def self.public_dir() "#{TOP_DIRECTORY}/tmp/public_html" end
