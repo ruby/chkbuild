@@ -2,7 +2,7 @@
 
 require 'build'
 
-Build.target("warn") {|curr_dir|
+Build.perm_target("warn") {|b|
   Build.run("echo", "warn") {|log|
     Build.update_title(:version, "foo") 
   }

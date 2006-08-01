@@ -9,8 +9,7 @@ def build_ruby2(*args)
 end
 
 def build_ruby_internal(separated_dir, *args)
-  Build.perm_target("ruby", *args) {
-      |b, *suffixes|
+  Build.perm_target("ruby", *args) {|b, *suffixes|
     ruby_work_dir = b.work_dir
     long_name = ['ruby', *suffixes].join('-')
 

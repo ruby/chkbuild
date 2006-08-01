@@ -4,8 +4,8 @@ require 'build'
 
 Build.limit(:data=>1024*1024*300, :as=>1024*1024*300)
 
-Build.target("yarv") {
-    |ruby_curr_dir|
+Build.perm_target("yarv") {|b|
+  ruby_curr_dir = b.work_dir
   Dir.chdir("..") {
     Build.svn("http://www.atdot.net/svn/yarv/trunk", 'yarv')
     Dir.chdir("yarv") {

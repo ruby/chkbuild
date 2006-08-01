@@ -2,6 +2,6 @@
 
 require 'build'
 
-Build.target("sleep") {|curr_dir|
+Build.perm_target("sleep") {|b|
   Build.run("sleep", "60")
 }

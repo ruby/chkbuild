@@ -2,7 +2,7 @@
 
 require 'build'
 
-Build.target("modlog") {|curr_dir|
+Build.perm_target("modlog") {|b|
   Build.run("echo", "aaa") {|log|
     log.modify_log "zzz\n"
   }

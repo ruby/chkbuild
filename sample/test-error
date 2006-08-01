@@ -2,6 +2,6 @@
 
 require 'build'
 
-Build.target("error") {|curr_dir|
+Build.perm_target("error") {|b|
   x
 }

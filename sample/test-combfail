@@ -2,15 +2,21 @@
 
 require 'build'
 
-COMBFAIL1 = Build.target("combfail1",
-  ["succ", "true"],
-  ["fail", "false"]) {|curr_dir, name, command|
+COMBFAIL1 = Build.perm_target("combfail1",
+  ["succ", "fail"]) {|b, suffix|
+  case suffix
+  when "succ" then command = "true"
+  when "fail" then command = "false"
+  end
   Build.run(command)
 }
 
-Build.target("combfail2", COMBFAIL1) {
-    |combfail2_dir, combfail2_dir|
-  Build.run(*%W(echo #{combfail2_dir}))
+Build.perm_target("combfail2", COMBFAIL1) {
+    |b, cf1|
+  combfail2_dir = b.work_dir
+  /\Acombfail1=/ =~ cf1
+  combfail1_dir = $'
+  Build.run(*%W(echo #{combfail1_dir} #{combfail2_dir}))
 }
 
 

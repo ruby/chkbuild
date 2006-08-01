@@ -12,7 +12,8 @@ def modify_file(filename)
   }
 end
 
-Autoconf = Build.target("autoconf") {|dir|
+Autoconf = Build.perm_target("autoconf") {|b|
+  dir = b.work_dir
   Dir.chdir("..") {
     Build.gnu_savannah_cvs('autoconf', 'autoconf', nil)
   }

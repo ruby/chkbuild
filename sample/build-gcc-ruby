@@ -5,12 +5,15 @@ require 'chkbuild/ruby'
 
 Build.limit(:data=>1024*1024*600, :as=>1024*1024*600)
 
-GCC = Build.target("gcc",
-  ["trunk", "trunk"],
-  ["4.1", "branches/gcc-4_1-branch"],
-  ["4.0", "branches/gcc-4_0-branch"],
-  :old => 1) {
-    |gcc_dir, gcc_version, gcc_branch|
+GCC = Build.perm_target("gcc",
+  ["trunk", "4.1", "4.0"],
+  :old => 1) {|b, suffix|
+  gcc_dir = b.work_dir
+  gcc_branch = {
+    "trunk"=>"trunk",
+    "4.1"=>"branches/gcc-4_1-branch",
+    "4.0"=>"branches/gcc-4_0-branch"
+  }[suffix]
   Dir.chdir("..") {
     Build.svn("svn://gcc.gnu.org/svn/gcc/#{gcc_branch}", 'gcc')
   }

@@ -2,7 +2,7 @@
 
 require 'build'
 
-Build.target("gcc-v") {|curr_dir|
+Build.perm_target("gcc-v") {|b|
   Build.run("gcc", '-v') {|log|
     if /^gcc version (.*)$/ =~ log
       Build.update_title(:gcc_version, "(gcc #{$1})")

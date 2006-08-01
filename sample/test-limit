@@ -2,6 +2,6 @@
 
 require 'build'
 
-Build.target("limit") {|curr_dir|
+Build.perm_target("limit") {|b|
   Build.run("sh", "-c", "ulimit -a", :rlimit_data => 800*1024)
 }

@@ -2,7 +2,7 @@
 
 require 'build'
 
-Build.target("failure") {|curr_dir|
+Build.perm_target("failure") {|b|
   Build.add_finish_hook {
     log = Build.all_log
     mark = ''

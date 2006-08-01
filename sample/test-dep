@@ -2,17 +2,14 @@
 
 require 'build'
 
-Dep1 = Build.target("dep1",
-  ["dev", nil],
-  ["stable", "stable-branch"]) {
-    |dir, version, branch|
+Dep1 = Build.perm_target("dep1",
+  ["dev", "stable"]) {|b, suffix|
 }
 
-Build.target("dep2",
-  ["dev", nil],
-  ["stable", "stable-branch"],
+Build.perm_target("dep2",
+  ["dev", "stable"],
   Dep1) {
-    |dir, version, branch, dep1_dir|
+    |b, suffix, dep1|
 }
 
 
