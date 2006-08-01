@@ -26,19 +26,19 @@ class Build
   def Build.perm_target(target_name, *args, &block)
     b = Build.new
     $Build = b
-    result = b.def_perm_target(target_name, *args, &block)
+    b.def_perm_target(target_name, *args, &block)
     result = b.start_perm
     $Build = nil
-    result
+    b
   end
 
   def Build.target(target_name, *args, &block)
     b = Build.new
     $Build = b
     result = b.def_target(target_name, *args, &block)
-    result = b.start
+    b.start
     $Build = nil
-    result
+    b
   end
 
   def initialize
@@ -64,16 +64,14 @@ class Build
     @opts = {}
     @opts = args.pop if Hash === args.last
     @dep_targets = []
-
     suffixes_ary = []
     args.each {|arg|
-      if Depend === arg
+      if Depend === arg || Build === arg
         @dep_targets << arg
       else
         suffixes_ary << arg
       end
     }
-
     @branches = []
     Build.permutation(*suffixes_ary) {|suffixes|
       suffixes.compact!
@@ -93,7 +91,7 @@ class Build
     @branches = []
     @dep_targets = []
     args.each {|arg|
-      if Depend === arg
+      if Depend === arg || Build === arg
         @dep_targets << arg
       else
         @branches << arg
@@ -107,6 +105,7 @@ class Build
   def start_perm
     succeed = Depend.new
     @branches.each {|branch_suffix, *branch_info|
+      @dep_targets.map! {|dep_or_build| Build === dep_or_build ? dep_or_build.result : dep_or_build }
       Depend.perm(@dep_targets) {|dependencies|
         name = @target_name.dup
         name << "-#{branch_suffix}" if branch_suffix
@@ -129,6 +128,7 @@ class Build
 	end
       }
     }
+    @result = succeed
     succeed
   end
 
@@ -136,6 +136,7 @@ class Build
     succeed = Depend.new
     @branches.each {|branch_info|
       branch_name = branch_info[0]
+      @dep_targets.map! {|dep_or_build| Build === dep_or_build ? dep_or_build.result : dep_or_build }
       Depend.perm(@dep_targets) {|dependencies|
         name = @target_name.dup
         name << "-#{branch_name}" if branch_name
@@ -158,7 +159,13 @@ class Build
 	end
       }
     }
+    @result = succeed
     succeed
+  end
+
+  def result
+    return @result if defined? @result
+    raise "no result yet"
   end
 
   def build_in_child(name, title, branch_info)
