@@ -25,17 +25,17 @@ STDIN.reopen("/dev/null", "r")
 class Build
   def Build.perm_target(target_name, *args, &block)
     b = Build.new
-    $Build = b
     b.def_perm_target(target_name, *args, &block)
-    result = b.start_perm
+    $Build = b
+    b.start_perm
     $Build = nil
     b
   end
 
   def Build.target(target_name, *args, &block)
     b = Build.new
+    b.def_target(target_name, *args, &block)
     $Build = b
-    result = b.def_target(target_name, *args, &block)
     b.start
     $Build = nil
     b
