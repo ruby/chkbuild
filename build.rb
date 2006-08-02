@@ -40,6 +40,7 @@ class Build
 
   def initialize
     @title_hook = []
+    @finish_hook = []
   end
 
   def add_title_hook(secname, &block) @title_hook << [secname, block] end
@@ -147,9 +148,9 @@ class Build
 
   def child_build_wrapper(parent_pipe, start_time_obj, name, title, *args)
     LOCK.puts name
+    @suffixes = args
     @parent_pipe = parent_pipe
     @title = title.dup
-    @finish_hook = []
     @title_order = [:status, :warn, :mark, :version, :dep_versions, :hostname]
     add_finish_hook { count_warns }
     success = false
@@ -159,6 +160,10 @@ class Build
     rescue CommandError
     end
     success
+  end
+
+  def long_name
+    [@target_name, *@suffixes].join('-')
   end
 
   def child_build_target(start_time_obj, name, *args)
@@ -215,7 +220,7 @@ class Build
     make_diff
     make_html_log(@log_filename, title, "#{@public}/last.html")
     compress_file("#{@public}/last.html", "#{@public}/last.html.gz")
-    Build.run_upload_hooks
+    Build.run_upload_hooks(self.long_name)
   end
 
   def work_dir() Pathname.new(@dir) end
@@ -526,10 +531,10 @@ End
   def self.add_upload_hook(&block)
     @upload_hook << block
   end
-  def self.run_upload_hooks
+  def self.run_upload_hooks(long_name)
     @upload_hook.reverse_each {|block|
       begin
-        block.call name
+        block.call long_name
       rescue Exception
         p $!
       end

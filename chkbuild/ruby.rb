@@ -17,9 +17,8 @@ def def_build_ruby2(*args)
 end
 
 def def_build_ruby_internal(separated_dir, *args)
-  Build.def_perm_target("ruby", *args) {|b, *suffixes|
+  b = Build.def_perm_target("ruby", *args) {|b, *suffixes|
     ruby_work_dir = b.work_dir
-    long_name = ['ruby', *suffixes].join('-')
 
     ruby_branch = nil
     configure_flags = []
@@ -66,50 +65,61 @@ def def_build_ruby_internal(separated_dir, *args)
 
     Dir.chdir(ruby_work_dir)
     b.mkcd("ruby")
-    b.run("#{srcdir}/configure", "--prefix=#{ruby_work_dir}", "CFLAGS=#{cflags.join(' ')}", *configure_flags) {|log|
-      if /^checking target system type\.\.\. (\S+)$/ =~ log
-        b.update_title(:version, "#{long_name} #{$1}")
-      end
-    }
-    b.add_finish_hook {
-      log = b.all_log
-      mark = ''
-      mark << "[BUG]" if /\[BUG\]/i =~ log
-      mark << "[SEGV]" if /segmentation fault|signal segv/i =~
-        log.sub(/combination may cause frequent hang or segmentation fault/, '') # skip tk message.
-      mark << "[FATAL]" if /\[FATAL\]/i =~ log
-      b.update_title(:mark, mark)
-    }
+    b.run("#{srcdir}/configure", "--prefix=#{ruby_work_dir}", "CFLAGS=#{cflags.join(' ')}", *configure_flags)
     b.make(make_options)
-    b.run("./ruby", "-v", :section=>"version") {|log|
-      if /^ruby [0-9.]+ \([0-9\-]+\) \[\S+\]$/ =~ log
-        b.update_title(:version, $&)
-      end
-    }
+    b.run("./ruby", "-v", :section=>"version")
     b.make("install")
-    b.run("./ruby", "#{srcdir+'sample/test.rb'}", :section=>"test.rb") {|log|
-      b.update_title(:status) {|val|
-        if !val
-          if /^end of test/ !~ log
-            if /^test: \d+ failed (\d+)/ =~ log
-              "#{$1}NotOK"
-            end
+    b.run("./ruby", "#{srcdir+'sample/test.rb'}", :section=>"test.rb")
+    b.run("./ruby", "#{srcdir+'test/runner.rb'}", "-v", :section=>"test-all")
+  }
+
+  b.add_title_hook("configure") {|log|
+    if /^checking target system type\.\.\. (\S+)$/ =~ log
+      b.update_title(:version, "#{b.long_name} #{$1}")
+    end
+  }
+
+  b.add_title_hook("version") {|log|
+    if /^ruby [0-9.]+ \([0-9\-]+\) \[\S+\]$/ =~ log
+      b.update_title(:version, $&)
+    end
+  }
+    
+  b.add_title_hook("test.rb") {|log|
+    b.update_title(:status) {|val|
+      if !val
+        if /^end of test/ !~ log
+          if /^test: \d+ failed (\d+)/ =~ log
+            "#{$1}NotOK"
           end
         end
-      }
-    }
-    b.run("./ruby", "#{srcdir+'test/runner.rb'}", "-v", :section=>"test-all") {|log|
-      b.update_title(:status) {|val|
-        if !val
-          if /^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors$/ =~ log
-            failures = $1.to_i
-            errors = $2.to_i
-            if failures != 0 || errors != 0
-              "#{failures}F#{errors}E"
-            end
-          end
-        end
-      }
+      end
     }
   }
+
+  b.add_title_hook("test-all") {|log|
+    b.update_title(:status) {|val|
+      if !val
+        if /^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors$/ =~ log
+          failures = $1.to_i
+          errors = $2.to_i
+          if failures != 0 || errors != 0
+            "#{failures}F#{errors}E"
+          end
+        end
+      end
+    }
+  }
+
+  b.add_title_hook("end") {
+    log = b.all_log
+    mark = ''
+    mark << "[BUG]" if /\[BUG\]/i =~ log
+    mark << "[SEGV]" if /segmentation fault|signal segv/i =~
+      log.sub(/combination may cause frequent hang or segmentation fault/, '') # skip tk message.
+    mark << "[FATAL]" if /\[FATAL\]/i =~ log
+    b.update_title(:mark, mark)
+  }
+
+  b
 end
