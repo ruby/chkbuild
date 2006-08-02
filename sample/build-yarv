@@ -15,7 +15,7 @@ Build.def_perm_target("yarv") {|b|
   Build.mkcd("yarv")
   Build.run("../../yarv/configure", "--prefix=#{ruby_curr_dir}") {|log|
     if /^checking target system type\.\.\. (\S+)$/ =~ log
-      Build.update_title(:version, "yarv #{$1}")
+      b.update_title(:version, "yarv #{$1}")
     end
   }
   Build.add_finish_hook {
@@ -25,12 +25,12 @@ Build.def_perm_target("yarv") {|b|
     mark << "[SEGV]" if /segmentation fault|signal segv/i =~
       log.sub(/combination may cause frequent hang or segmentation fault/, '') # skip tk message.
     mark << "[FATAL]" if /\[FATAL\]/i =~ log
-    Build.update_title(:mark, mark)
+    b.update_title(:mark, mark)
   }
   Build.make(:rlimit_data=>1024*1024*200, :rlimit_as=>1024*1024*200)
   Build.run("./ruby", "-v") {|log|
     if /^ruby [0-9.]+ \([0-9\-]+\) \[\S+\]$/ =~ log
-      Build.update_title(:version, $&)
+      b.update_title(:version, $&)
     end
   }
   Build.make("install-nodoc")
@@ -40,7 +40,7 @@ Build.def_perm_target("yarv") {|b|
       failures = $1.to_i
       errors = $2.to_i
       if failures != 0 || errors != 0
-        Build.update_title(:status, "#{failures}F#{errors}E")
+        b.update_title(:status, "#{failures}F#{errors}E")
       end
     end
   }

@@ -28,9 +28,9 @@ Autoconf = Build.def_perm_target("autoconf") {|b|
   Build.run("#{dir}/bin/autoconf", '--version', :section=>'version') {|log|
     case log
     when /^Autoconf version (.*)$/
-      Build.update_title(:version, "autoconf #{$1}")
+      b.update_title(:version, "autoconf #{$1}")
     when /^autoconf \(GNU Autoconf\) (.*)$/
-      Build.update_title(:version, "autoconf #{$1}")
+      b.update_title(:version, "autoconf #{$1}")
     end
   }
 }

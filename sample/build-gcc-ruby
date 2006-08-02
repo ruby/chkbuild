@@ -22,7 +22,7 @@ GCC = Build.def_perm_target("gcc",
   Build.make("bootstrap", "install", :timeout=>'5h')
   Build.run("#{gcc_dir}/bin/gcc", '-v') {|log|
     if /^gcc version (.*)$/ =~ log
-      Build.update_title(:version, "gcc #{$1}")
+      b.update_title(:version, "gcc #{$1}")
     end
   }
 }

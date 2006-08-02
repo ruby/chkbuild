@@ -296,7 +296,6 @@ class Build
     File.rename tmp, filename
   end
 
-  def Build.update_title(*args, &b) $Build.update_title(*args, &b) end
   def update_title(key, val=nil)
     if val == nil && block_given?
       val = yield @title[key]

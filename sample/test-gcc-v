@@ -5,7 +5,7 @@ require 'build'
 Build.def_perm_target("gcc-v") {|b|
   Build.run("gcc", '-v') {|log|
     if /^gcc version (.*)$/ =~ log
-      Build.update_title(:gcc_version, "(gcc #{$1})")
+      b.update_title(:gcc_version, "(gcc #{$1})")
     end
   }
 }

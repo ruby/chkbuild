@@ -9,7 +9,7 @@ Build.def_perm_target("failure") {|b|
     mark << "[BUG]" if /\[BUG\]/i =~ log
     mark << "[SEGV]" if /Segmentation fault/i =~ log
     mark << "[FATAL]" if /\[FATAL\]/i =~ log
-    Build.update_title(:mark, mark)
+    b.update_title(:mark, mark)
   }
   Build.run("echo", "[bug]")
   Build.run("false")
