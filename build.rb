@@ -53,6 +53,10 @@ class Build
         end
       }
     }
+    add_finish_hook {
+      num_warns = all_log.scan(/warn/i).length
+      update_title(:warn) {|val| "#{num_warns}W" } if 0 < num_warns
+    }
   end
 
   def add_title_hook(secname, &block) @title_hook << [secname, block] end
@@ -164,7 +168,6 @@ class Build
     @parent_pipe = parent_pipe
     @title = title.dup
     @title_order = [:status, :warn, :mark, :version, :dep_versions, :hostname]
-    add_finish_hook { count_warns }
     success = false
     begin
       child_build_target(start_time_obj, name, *args)
@@ -306,11 +309,6 @@ class Build
 
   def all_log
     File.read(@log_filename)
-  end
-
-  def count_warns
-    num_warns = all_log.scan(/warn/i).length
-    @title[:warn] = "#{num_warns}W" if 0 < num_warns
   end
 
   def make_title(err=$!)
