@@ -1,15 +1,23 @@
 require 'build'
 
 def build_ruby(*args)
-  build_ruby_internal(false, *args)
+  def_build_ruby(*args).start_perm
 end
 
 def build_ruby2(*args)
-  build_ruby_internal(true, *args)
+  def_build_ruby2(*args).start_perm
 end
 
-def build_ruby_internal(separated_dir, *args)
-  Build.perm_target("ruby", *args) {|b, *suffixes|
+def def_build_ruby(*args)
+  def_build_ruby_internal(false, *args)
+end
+
+def def_build_ruby2(*args)
+  def_build_ruby_internal(false, *args)
+end
+
+def def_build_ruby_internal(separated_dir, *args)
+  Build.def_perm_target("ruby", *args) {|b, *suffixes|
     ruby_work_dir = b.work_dir
     long_name = ['ruby', *suffixes].join('-')
 

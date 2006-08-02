@@ -2,7 +2,7 @@
 
 require 'build'
 
-Build.perm_target("failure") {|b|
+Build.def_perm_target("failure") {|b|
   Build.add_finish_hook {
     log = Build.all_log
     mark = ''
@@ -14,3 +14,5 @@ Build.perm_target("failure") {|b|
   Build.run("echo", "[bug]")
   Build.run("false")
 }
+
+Build.main

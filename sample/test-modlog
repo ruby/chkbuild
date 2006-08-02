@@ -2,8 +2,10 @@
 
 require 'build'
 
-Build.perm_target("modlog") {|b|
+Build.def_perm_target("modlog") {|b|
   Build.run("echo", "aaa") {|log|
     log.modify_log "zzz\n"
   }
 }
+
+Build.main

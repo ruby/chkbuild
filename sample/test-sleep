@@ -2,6 +2,8 @@
 
 require 'build'
 
-Build.perm_target("sleep") {|b|
+Build.def_perm_target("sleep") {|b|
   Build.run("sleep", "60")
 }
+
+Build.main

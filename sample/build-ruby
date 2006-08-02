@@ -7,6 +7,8 @@ require 'chkbuild/ruby'
 
 Build.limit(:data=>1024*1024*300, :as=>1024*1024*300)
 
-build_ruby(
+def_build_ruby(
   ["trunk", "1.8"],
   [nil, "pth"])
+
+Build.main

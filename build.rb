@@ -24,6 +24,20 @@ File.umask(002)
 STDIN.reopen("/dev/null", "r")
 
 class Build
+  @build_list = []
+  def Build.main
+    @build_list.each {|b|
+      b.start_perm
+    }
+  end
+
+  def Build.def_perm_target(target_name, *args, &block)
+    b = Build.new
+    b.init_perm_target(target_name, *args, &block)
+    @build_list << b
+    b
+  end
+
   def Build.perm_target(target_name, *args, &block)
     b = Build.new
     b.init_perm_target(target_name, *args, &block)
@@ -74,6 +88,7 @@ class Build
   end
 
   def start_perm
+    return @result if defined? @result
     succeed = Depend.new
     @branches.each {|branch_suffix, *branch_info|
       @dep_targets.map! {|dep_or_build| Build === dep_or_build ? dep_or_build.result : dep_or_build }
@@ -105,7 +120,7 @@ class Build
 
   def result
     return @result if defined? @result
-    raise "no result yet"
+    raise "#{@target_name}: no result yet"
   end
 
   def build_in_child(name, title, branch_info)

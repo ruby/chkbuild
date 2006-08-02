@@ -2,7 +2,7 @@
 
 require 'build'
 
-COMBFAIL1 = Build.perm_target("combfail1",
+COMBFAIL1 = Build.def_perm_target("combfail1",
   ["succ", "fail"]) {|b, suffix|
   case suffix
   when "succ" then command = "true"
@@ -11,7 +11,7 @@ COMBFAIL1 = Build.perm_target("combfail1",
   Build.run(command)
 }
 
-Build.perm_target("combfail2", COMBFAIL1) {
+Build.def_perm_target("combfail2", COMBFAIL1) {
     |b, cf1|
   combfail2_dir = b.work_dir
   /\Acombfail1=/ =~ cf1
@@ -19,4 +19,4 @@ Build.perm_target("combfail2", COMBFAIL1) {
   Build.run(*%W(echo #{combfail1_dir} #{combfail2_dir}))
 }
 
-
+Build.main

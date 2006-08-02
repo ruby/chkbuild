@@ -12,7 +12,7 @@ def modify_file(filename)
   }
 end
 
-Autoconf = Build.perm_target("autoconf") {|b|
+Autoconf = Build.def_perm_target("autoconf") {|b|
   dir = b.work_dir
   Dir.chdir("..") {
     Build.gnu_savannah_cvs('autoconf', 'autoconf', nil)
@@ -35,6 +35,8 @@ Autoconf = Build.perm_target("autoconf") {|b|
   }
 }
 
-build_ruby2(
+def_build_ruby2(
   ["trunk", "1.8"],
   Autoconf)
+
+Build.main

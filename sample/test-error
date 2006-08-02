@@ -2,6 +2,8 @@
 
 require 'build'
 
-Build.perm_target("error") {|b|
+Build.def_perm_target("error") {|b|
   x
 }
+
+Build.main
