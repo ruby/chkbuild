@@ -38,8 +38,8 @@ class IO
   end
 end
 
-class Build
-  def Build.permutation(*args)
+module Util
+  def permutation(*args)
     if block_given?
       Build.permutation_each(*args) {|vs| yield vs }
     else
@@ -49,7 +49,7 @@ class Build
     end
   end
 
-  def Build.permutation_each(*args)
+  def permutation_each(*args)
     if args.empty?
       yield []
     else
@@ -111,6 +111,18 @@ class Build
     "sha256:#{d.hexdigest}"
   end
 
+  def with_tempfile(content) # :yield: tempfile
+    t = Tempfile.new("chkbuild")
+    t << content
+    t.sync
+    yield t
+  end
+end
+
+class Build
+  include Util
+  extend Util
+
   def svn(url, working_dir, opts={})
     opts = opts.dup
     opts[:section] ||= 'svn'
@@ -126,13 +138,6 @@ class Build
       end
       self.run "svn", "checkout", url, working_dir, opts
     end
-  end
-
-  def with_tempfile(content) # :yield: tempfile
-    t = Tempfile.new("chkbuild")
-    t << content
-    t.sync
-    yield t
   end
 
   def gnu_savannah_cvs(proj, mod, branch, opts={})
