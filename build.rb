@@ -117,7 +117,7 @@ class Build
         title = {}
         title[:version] = simple_name
         title[:dep_versions] = dep_versions
-        title[:hostname] = "(#{Socket.gethostname})"
+        title[:hostname] = "(#{Socket.gethostname.sub(/\..*/, '')})"
         status, dir, version_list = build_in_child(name, title, branch_info+dep_dirs)
 	if status.to_i == 0
 	  succeed.add [@target_name, branch_suffix, dir, version_list] if status.to_i == 0
