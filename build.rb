@@ -211,13 +211,7 @@ class Build
   ensure
     output_status_section(success, $!)
     run_title_hooks
-    @finish_hook.reverse_each {|block|
-      begin
-        block.call
-      rescue Exception
-        p $!
-      end
-    }
+    run_finish_hooks
     @logfile.start_section 'end'
     careful_link @current_txt, "#{@public}/last.txt" if File.file? @current_txt
     title = make_title
@@ -326,6 +320,16 @@ class Build
 
   def add_finish_hook(&block)
     @finish_hook << block
+  end
+
+  def run_finish_hooks
+    @finish_hook.reverse_each {|block|
+      begin
+        block.call
+      rescue Exception
+        p $!
+      end
+    }
   end
 
   def update_summary(name, public, start_time, title)
