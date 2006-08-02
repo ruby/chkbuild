@@ -53,7 +53,7 @@ class Build
         end
       }
     }
-    add_finish_hook {
+    add_title_hook("end") {
       num_warns = all_log.scan(/warn/i).length
       update_title(:warn) {|val| "#{num_warns}W" } if 0 < num_warns
     }
@@ -213,9 +213,9 @@ class Build
     success = true
   ensure
     output_status_section(success, $!)
+    @logfile.start_section 'end'
     run_title_hooks
     run_finish_hooks
-    @logfile.start_section 'end'
     careful_link @current_txt, "#{@public}/last.txt" if File.file? @current_txt
     title = make_title
     Marshal.dump([@title, @title_order], @parent_pipe)
