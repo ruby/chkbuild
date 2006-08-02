@@ -1,0 +1,13 @@
+#!/usr/bin/env ruby
+
+require 'build'
+
+Build.add_upload_hook {|name|
+  p "#{Build.public_dir}/#{name}"
+}
+
+Build.def_perm_target("uptest", ["dev", "stable"]) {|b|
+  Build.run("echo", "uptest")
+}
+
+Build.main
