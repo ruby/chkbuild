@@ -209,21 +209,7 @@ class Build
     @build_proc.call(self, *args)
     success = true
   ensure
-    if success
-      @logfile.start_section 'success'
-    else
-      @logfile.start_section 'failure'
-      if $!
-        if CommandError === $!
-          puts "failed(#{$!.reason})"
-        else
-          puts "failed(#{$!.class}:#{$!.message})"
-          show_backtrace
-        end
-      else
-        puts "failed"
-      end
-    end
+    output_status_section(success, $!)
     run_title_hooks
     @finish_hook.reverse_each {|block|
       begin
@@ -243,6 +229,24 @@ class Build
     make_html_log(@log_filename, title, "#{@public}/last.html")
     compress_file("#{@public}/last.html", "#{@public}/last.html.gz")
     Build.run_upload_hooks(self.long_name)
+  end
+
+  def output_status_section(success, err)
+    if success
+      @logfile.start_section 'success'
+    else
+      @logfile.start_section 'failure'
+      if err
+        if CommandError === err
+          puts "failed(#{err.reason})"
+        else
+          puts "failed(#{err.class}:#{err.message})"
+          show_backtrace
+        end
+      else
+        puts "failed"
+      end
+    end
   end
 
   def work_dir() Pathname.new(@dir) end
