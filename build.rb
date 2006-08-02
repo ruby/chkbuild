@@ -31,13 +31,6 @@ class Build
     b
   end
 
-  def Build.target(target_name, *args, &block)
-    b = Build.new
-    b.init_target(target_name, *args, &block)
-    b.start
-    b
-  end
-
   def initialize
     @title_hook = []
   end
@@ -80,25 +73,6 @@ class Build
     }
   end
 
-  def init_target(target_name, *args, &block)
-    @target_name = target_name
-    @build_proc = lambda {|b, *args| block.call(b.work_dir.to_s, *args) }
-    @opts = {}
-    @opts = args.pop if Hash === args.last
-    @branches = []
-    @dep_targets = []
-    args.each {|arg|
-      if Depend === arg || Build === arg
-        @dep_targets << arg
-      else
-        @branches << arg
-      end
-    }
-    if @branches.empty?
-      @branches << []
-    end
-  end
-
   def start_perm
     succeed = Depend.new
     @branches.each {|branch_suffix, *branch_info|
@@ -122,37 +96,6 @@ class Build
         status, dir, version_list = build_in_child(name, title, branch_info+dep_dirs)
 	if status.to_i == 0
 	  succeed.add [@target_name, branch_suffix, dir, version_list] if status.to_i == 0
-	end
-      }
-    }
-    @result = succeed
-    succeed
-  end
-
-  def start
-    succeed = Depend.new
-    @branches.each {|branch_info|
-      branch_name = branch_info[0]
-      @dep_targets.map! {|dep_or_build| Build === dep_or_build ? dep_or_build.result : dep_or_build }
-      Depend.perm(@dep_targets) {|dependencies|
-        name = @target_name.dup
-        name << "-#{branch_name}" if branch_name
-        simple_name = name.dup
-        dep_dirs = []
-        dep_versions = []
-        dependencies.each {|dep_target_name, dep_branch_name, dep_dir, dep_ver|
-          name << "_#{dep_target_name}"
-          name << "-#{dep_branch_name}" if dep_branch_name
-          dep_dirs << dep_dir
-          dep_versions.concat dep_ver
-        }
-        title = {}
-        title[:version] = simple_name
-        title[:dep_versions] = dep_versions
-        title[:hostname] = "(#{Socket.gethostname})"
-        status, dir, version_list = build_in_child(name, title, branch_info+dep_dirs)
-	if status.to_i == 0
-	  succeed.add [@target_name, branch_name, dir, version_list] if status.to_i == 0
 	end
       }
     }
