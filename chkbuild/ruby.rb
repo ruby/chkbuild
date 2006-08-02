@@ -85,8 +85,6 @@ def build_ruby_internal(separated_dir, *args)
           if /^end of test/ !~ log
             if /^test: \d+ failed (\d+)/ =~ log
               "#{$1}NotOK"
-            else
-              "SomethingFail"
             end
           end
         end
@@ -101,8 +99,6 @@ def build_ruby_internal(separated_dir, *args)
             if failures != 0 || errors != 0
               "#{failures}F#{errors}E"
             end
-          else
-            "SomethingFail"
           end
         end
       }
