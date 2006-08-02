@@ -21,14 +21,32 @@ chkbuild は、定期的にソフトウェアをビルドし、
 
 * 過去の記録は自動的に gzip 圧縮されます
 
+== 短気なユーザのための設置および試しに ruby の最新版をビルドしてみる方法
+
+  % cd $HOME
+  % cvs -d :pserver:anonymous@cvs.m17n.org:/cvs/ruby co chkbuild
+  % cd chkbuild
+  % ruby start-build
+
+  % w3m tmp/public_html/ruby-trunk/summary.html 
+  % w3m tmp/public_html/ruby-trunk-pth/summary.html 
+  % w3m tmp/public_html/ruby-1.8/summary.html 
+  % w3m tmp/public_html/ruby-1.8-pth/summary.html 
+
+  % rm -rf tmp
+
+  この方法はあくまでも試しに動かすものであって、
+  これを cron で定期的に実行することはしないでください。
+
 == 設置
 
-以下の例では、/home/you/chkbuild に chkbuild を設置することことを仮定します。
+以下の例では、あなたのユーザ名が foo で、
+/home/foo/chkbuild に chkbuild を設置することを仮定します。
 他のディレクトリに設置する場合は適当に変更してください。
 
 (1) chkbuild のダウンロード・展開
 
-      % cd /home/you
+      % cd /home/foo
       % cvs -d :pserver:anonymous@cvs.m17n.org:/cvs/ruby co chkbuild
 
 (2) chkbuild の設定
@@ -44,28 +62,35 @@ chkbuild は、定期的にソフトウェアをビルドし、
     設定内容について詳しくは次節で述べます。
 
     なお、設定の内容を変更せず、ruby start-build として実行した場合は、
-    Ruby の main trunk と ruby_1_8 branch を /home/you/chkbuild/tmp 以下でビルドします。
+    Ruby の main trunk と ruby_1_8 branch を
+    それぞれ --enable-pthread 無しと有りの設定として
+    計4種類を /home/foo/chkbuild/tmp 以下でビルドします。
+
+    foo ユーザでビルドした場合、次の chkbuild ユーザでのビルドの邪魔になりますので、
+    ビルド結果を削除しておきます。
+
+      % rm -rf tmp
 
 (3) chkbuild ユーザの作成
 
     chkbuild の動作専用のユーザ・グループを作ります。
-    セキュリティ上の理由もあり、必ず専用ユーザを作ることを勧めます。
-    また、chkbuild グループに you を加えた上で
+    セキュリティ上の理由もあり、必ず専用ユーザ・グループを作ってください。
+    また、chkbuild グループに foo を加えた上で
     また、以下のようなオーナ・グループ・モードでディレクトリを作り、
     chkbuild ユーザ自身は build, public_html 以下にしか書き込めないようにします。
 
-      /home/chkbuild              user=you group=chkbuild mode=2750
-      /home/chkbuild/build        user=you group=chkbuild mode=2775
-      /home/chkbuild/public_html  user=you group=chkbuild mode=2775
+      /home/chkbuild              user=foo group=chkbuild mode=2750
+      /home/chkbuild/build        user=foo group=chkbuild mode=2775
+      /home/chkbuild/public_html  user=foo group=chkbuild mode=2775
 
       % su
-      # adduser --disabled-login --no-create-home --shell /home/you/chkbuild/start-build chkbuild
-      # usermod -G ...,chkbuild you
+      # adduser --disabled-login --no-create-home --shell /home/foo/chkbuild/start-build chkbuild
+      # usermod -G ...,chkbuild foo
       # cd /home
       # mkdir chkbuild
-      # chown you:chkbuild chkbuild
+      # chown foo:chkbuild chkbuild
       # chmod 2750 chkbuild
-      # su you
+      # su foo
       % cd chkbuild
       % mkdir build public_html
       % chgrp chkbuild build public_html
@@ -86,10 +111,10 @@ chkbuild は、定期的にソフトウェアをビルドし、
 
     たとえば、毎日午前 3時33分に実行するには /etc/crontab に以下の行を挿入します。
 
-      33 3 * * * root cd /home/you/chkbuild; su chkbuild
+      33 3 * * * root cd /home/foo/chkbuild; su chkbuild
 
     su chkbuild により、chkbuild ユーザに設定したシェルとして設定した
-    /home/you/chkbuild/build が起動します。
+    /home/foo/chkbuild/start-build が起動します。
 
 (7) 公開・アナウンス
 
@@ -105,14 +130,14 @@ build.rb を利用するスクリプトを記述することが設定となります。
 
 == セキュリティ
 
-chkbuild により、CVS から入手できる最新版をコンパイルすることは、
-CVS に書き込める開発者と CVS に入っているコードを信用することになります。
+chkbuild により、CVS サーバから入手できる最新版をコンパイルすることは、
+CVS サーバに書き込める開発者と CVS サーバに入っているコードを信用することになります。
 
 開発者を信用することは通常問題ありません。
 もし開発者を信用しないのならば、そもそもあなたはそのプログラムを使わないでしょう。
 
-しかし、CVS に入っているコードを信用するのは微妙な問題をはらんでいます。
-CVS がクラックされ、悪意のある人物が危険なコードを挿入する可能性があります。
+しかし、CVS サーバに入っているコードを信用するのは微妙な問題をはらんでいます。
+CVS サーバがクラックされ、悪意のある人物が危険なコードを挿入する可能性があります。
 たとえば、あなたの権限で実行していたら、あなたのホームディレクトリが削除されてしまうかも知れませんし、
 あなたの秘密鍵が盗まれてしまうかも知れません。
 
