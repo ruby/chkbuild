@@ -38,13 +38,6 @@ class Build
     b
   end
 
-  def Build.perm_target(target_name, *args, &block)
-    b = Build.new
-    b.init_perm_target(target_name, *args, &block)
-    b.start_perm
-    b
-  end
-
   def initialize
     @title_hook = []
   end
