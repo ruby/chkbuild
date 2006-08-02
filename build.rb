@@ -41,6 +41,18 @@ class Build
   def initialize
     @title_hook = []
     @finish_hook = []
+    add_title_hook('success') {|log|
+      update_title(:status) {|val| 'success' if !val }
+    }
+    add_title_hook('failure') {|log|
+      update_title(:status) {|val|
+        if !val
+          line = /\n/ =~ log ? $` : log
+          line = line.strip
+          line if !line.empty?
+        end
+      }
+    }
   end
 
   def add_title_hook(secname, &block) @title_hook << [secname, block] end
@@ -184,6 +196,7 @@ class Build
     Thread.current[:logfile] = @logfile
     @logfile.change_default_output
 
+    success = false
     add_finish_hook { GDB.check_core(@dir) }
     @logfile.start_section name
     puts "args: #{args.inspect}"
@@ -195,13 +208,23 @@ class Build
     @logfile.start_section 'start'
     $Build = self
     @build_proc.call(self, *args)
-    @logfile.start_section 'success'
-    add_title_hook('success') {|log|
-      Build.update_title(:status) {|val|
-        'success' if !val
-      }
-    }
+    success = true
   ensure
+    if success
+      @logfile.start_section 'success'
+    else
+      @logfile.start_section 'failure'
+      if $!
+        if CommandError === $!
+          puts "failed(#{$!.reason})"
+        else
+          puts "failed(#{$!.class}:#{$!.message})"
+          show_backtrace
+        end
+      else
+        puts "failed"
+      end
+    end
     run_title_hooks
     @finish_hook.reverse_each {|block|
       begin
@@ -296,18 +319,6 @@ class Build
   end
 
   def make_title(err=$!)
-    if !@title[:status]
-      if err
-        if CommandError === err
-          update_title(:status, "failed(#{err.reason})")
-        else
-          show_backtrace
-          update_title(:status, "failed(#{err.class}:#{err.message})")
-        end
-      else
-        update_title(:status, "failed")
-      end
-    end
     title_hash = @title
     @title_order.map {|key| title_hash[key] }.flatten.join(' ').gsub(/\s+/, ' ').strip
   end
@@ -504,7 +515,7 @@ End
         else
           p $?
         end
-        raise CommandError.new($?, opts.fetch(:reason, command))
+        raise CommandError.new($?, opts.fetch(:section, command))
       end
     ensure
       if block && secname

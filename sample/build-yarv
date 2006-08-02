@@ -34,8 +34,8 @@ Build.def_perm_target("yarv") {|b|
     end
   }
   Build.make("install-nodoc")
-  Build.run("./ruby", "../../yarv/sample/test.rb", :reason=>"test.rb")
-  Build.run("./ruby", "../../yarv/test/runner.rb", "-v", :reason=>"test-all") {|log|
+  Build.run("./ruby", "../../yarv/sample/test.rb", :section=>"test.rb")
+  Build.run("./ruby", "../../yarv/test/runner.rb", "-v", :section=>"test-all") {|log|
     if /^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors$/ =~ log
       failures = $1.to_i
       errors = $2.to_i

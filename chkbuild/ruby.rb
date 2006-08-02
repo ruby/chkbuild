@@ -87,11 +87,9 @@ def def_build_ruby_internal(separated_dir, *args)
     
   b.add_title_hook("test.rb") {|log|
     b.update_title(:status) {|val|
-      if !val
-        if /^end of test/ !~ log
-          if /^test: \d+ failed (\d+)/ =~ log
-            "#{$1}NotOK"
-          end
+      if /^end of test/ !~ log
+        if /^test: \d+ failed (\d+)/ =~ log
+          "#{$1}NotOK"
         end
       end
     }
@@ -99,13 +97,11 @@ def def_build_ruby_internal(separated_dir, *args)
 
   b.add_title_hook("test-all") {|log|
     b.update_title(:status) {|val|
-      if !val
-        if /^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors$/ =~ log
-          failures = $1.to_i
-          errors = $2.to_i
-          if failures != 0 || errors != 0
-            "#{failures}F#{errors}E"
-          end
+      if /^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors$/ =~ log
+        failures = $1.to_i
+        errors = $2.to_i
+        if failures != 0 || errors != 0
+          "#{failures}F#{errors}E"
         end
       end
     }
