@@ -7,7 +7,7 @@ Build.add_upload_hook {|name|
 }
 
 Build.def_perm_target("uptest", ["dev", "stable"]) {|b|
-  Build.run("echo", "uptest")
+  b.run("echo", "uptest")
 }
 
 Build.main

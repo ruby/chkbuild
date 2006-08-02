@@ -15,17 +15,17 @@ end
 Autoconf = Build.def_perm_target("autoconf") {|b|
   dir = b.work_dir
   Dir.chdir("..") {
-    Build.gnu_savannah_cvs('autoconf', 'autoconf', nil)
+    b.gnu_savannah_cvs('autoconf', 'autoconf', nil)
   }
-  Build.mkcd("objdir")
-  Build.run("../../autoconf/configure", "--prefix=#{dir}")
+  b.mkcd("objdir")
+  b.run("../../autoconf/configure", "--prefix=#{dir}")
   # modify Makefile to not use help2man.
   modify_file("Makefile") {|content|
     content.sub(/^SUBDIRS\s*=.*$/) { $&.sub(/ man /, ' ') }
   }
-  Build.make
-  Build.make("install")
-  Build.run("#{dir}/bin/autoconf", '--version', :section=>'version') {|log|
+  b.make
+  b.make("install")
+  b.run("#{dir}/bin/autoconf", '--version', :section=>'version') {|log|
     case log
     when /^Autoconf version (.*)$/
       b.update_title(:version, "autoconf #{$1}")

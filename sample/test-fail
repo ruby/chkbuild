@@ -3,16 +3,16 @@
 require 'build'
 
 Build.def_perm_target("failure") {|b|
-  Build.add_finish_hook {
-    log = Build.all_log
+  b.add_finish_hook {
+    log = b.all_log
     mark = ''
     mark << "[BUG]" if /\[BUG\]/i =~ log
     mark << "[SEGV]" if /Segmentation fault/i =~ log
     mark << "[FATAL]" if /\[FATAL\]/i =~ log
     b.update_title(:mark, mark)
   }
-  Build.run("echo", "[bug]")
-  Build.run("false")
+  b.run("echo", "[bug]")
+  b.run("false")
 }
 
 Build.main

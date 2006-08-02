@@ -3,7 +3,7 @@
 require 'build'
 
 Build.def_perm_target("modlog") {|b|
-  Build.run("echo", "aaa") {|log|
+  b.run("echo", "aaa") {|log|
     log.modify_log "zzz\n"
   }
 }

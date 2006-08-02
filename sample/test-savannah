@@ -3,8 +3,8 @@
 require 'build'
 
 Build.def_perm_target("savannah") {|b|
-  Build.gnu_savannah_cvs('config', 'config', nil)
-  Build.run("config/config.guess", :section=>"foo")
+  b.gnu_savannah_cvs('config', 'config', nil)
+  b.run("config/config.guess", :section=>"foo")
 }
 
 Build.main

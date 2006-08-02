@@ -3,7 +3,7 @@
 require 'build'
 
 Build.def_perm_target("warn") {|b|
-  Build.run("echo", "warn") {|log|
+  b.run("echo", "warn") {|log|
     b.update_title(:version, "foo") 
   }
 }

@@ -1,7 +1,6 @@
 require "uri"
 
 class Build
-  def Build.cvs(*args, &b) $Build.cvs(*args, &b) end
   def cvs(cvsroot, mod, branch, opts={})
     opts = opts.dup
     opts[:section] ||= 'cvs'
@@ -12,7 +11,7 @@ class Build
     if File.directory?(working_dir)
       Dir.chdir(working_dir) {
         h1 = cvs_revisions
-        $Build.run("cvs", "-f", "-z3", "-Q", "update", "-kb", "-dP", opts)
+        self.run("cvs", "-f", "-z3", "-Q", "update", "-kb", "-dP", opts)
         h2 = cvs_revisions
         cvs_print_revisions(h1, h2, opts[:viewcvs]||opts[:cvsweb])
       }
@@ -26,9 +25,9 @@ class Build
         }
       end
       if branch
-        $Build.run("cvs", "-f", "-z3", "-Qd", cvsroot, "co", "-kb", "-d", working_dir, "-Pr", branch, mod, opts)
+        self.run("cvs", "-f", "-z3", "-Qd", cvsroot, "co", "-kb", "-d", working_dir, "-Pr", branch, mod, opts)
       else
-        $Build.run("cvs", "-f", "-z3", "-Qd", cvsroot, "co", "-kb", "-d", working_dir, "-P", mod, opts)
+        self.run("cvs", "-f", "-z3", "-Qd", cvsroot, "co", "-kb", "-d", working_dir, "-P", mod, opts)
       end
       Dir.chdir(working_dir) {
         h2 = cvs_revisions

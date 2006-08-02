@@ -8,15 +8,14 @@ COMBFAIL1 = Build.def_perm_target("combfail1",
   when "succ" then command = "true"
   when "fail" then command = "false"
   end
-  Build.run(command)
+  b.run(command)
 }
 
-Build.def_perm_target("combfail2", COMBFAIL1) {
-    |b, cf1|
+Build.def_perm_target("combfail2", COMBFAIL1) {|b, cf1|
   combfail2_dir = b.work_dir
   /\Acombfail1=/ =~ cf1
   combfail1_dir = $'
-  Build.run(*%W(echo #{combfail1_dir} #{combfail2_dir}))
+  b.run(*%W(echo #{combfail1_dir} #{combfail2_dir}))
 }
 
 Build.main

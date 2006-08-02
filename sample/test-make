@@ -3,7 +3,7 @@
 require 'build'
 
 Build.def_perm_target("make-failure") {|b|
-  Build.make("nonexisting-target")
+  b.make("nonexisting-target")
 }
 
 Build.main

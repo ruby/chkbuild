@@ -15,12 +15,12 @@ GCC = Build.def_perm_target("gcc",
     "4.0"=>"branches/gcc-4_0-branch"
   }[suffix]
   Dir.chdir("..") {
-    Build.svn("svn://gcc.gnu.org/svn/gcc/#{gcc_branch}", 'gcc')
+    b.svn("svn://gcc.gnu.org/svn/gcc/#{gcc_branch}", 'gcc')
   }
-  Build.mkcd("objdir")
-  Build.run("../../gcc/configure", "--prefix=#{gcc_dir}", "--enable-languages=c", "--disable-shared", "--disable-multilib")
-  Build.make("bootstrap", "install", :timeout=>'5h')
-  Build.run("#{gcc_dir}/bin/gcc", '-v') {|log|
+  b.mkcd("objdir")
+  b.run("../../gcc/configure", "--prefix=#{gcc_dir}", "--enable-languages=c", "--disable-shared", "--disable-multilib")
+  b.make("bootstrap", "install", :timeout=>'5h')
+  b.run("#{gcc_dir}/bin/gcc", '-v') {|log|
     if /^gcc version (.*)$/ =~ log
       b.update_title(:version, "gcc #{$1}")
     end

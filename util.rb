@@ -62,7 +62,6 @@ class Build
     end
   end
 
-  def Build.mkcd(*args, &b) $Build.mkcd(*args, &b) end
   def mkcd(dir)
     FileUtils.mkpath dir
     Dir.chdir dir
@@ -112,21 +111,20 @@ class Build
     "sha256:#{d.hexdigest}"
   end
 
-  def Build.svn(*args, &b) $Build.svn(*args, &b) end
   def svn(url, working_dir, opts={})
     opts = opts.dup
     opts[:section] ||= 'svn'
     if File.exist?(working_dir) && File.exist?("#{working_dir}/.svn")
       Dir.chdir(working_dir) {
-        $Build.run "svn", "cleanup", opts
+        self.run "svn", "cleanup", opts
         opts[:section] = nil
-        $Build.run "svn", "update", opts
+        self.run "svn", "update", opts
       }
     else
       if File.exist?(working_dir)
         FileUtils.rm_rf(working_dir)
       end
-      $Build.run "svn", "checkout", url, working_dir, opts
+      self.run "svn", "checkout", url, working_dir, opts
     end
   end
 
@@ -137,14 +135,12 @@ class Build
     yield t
   end
 
-  def Build.gnu_savannah_cvs(*args, &b) $Build.gnu_savannah_cvs(*args, &b) end
   def gnu_savannah_cvs(proj, mod, branch, opts={})
     opts = opts.dup
     opts[:viewcvs] ||= "http://savannah.gnu.org/cgi-bin/viewcvs/#{proj}?diff_format=u"
-    $Build.cvs(":pserver:anonymous@cvs.savannah.gnu.org:/sources/#{proj}", mod, branch, opts)
+    self.cvs(":pserver:anonymous@cvs.savannah.gnu.org:/sources/#{proj}", mod, branch, opts)
   end
 
-  def Build.make(*args, &b) $Build.make(*args, &b) end
   def make(*targets)
     opts = {}
     opts = targets.pop if Hash === targets.last
@@ -152,13 +148,13 @@ class Build
     opts[:alt_commands] = ['make']
     if targets.empty?
       opts[:section] ||= 'make'
-      $Build.run("gmake", opts)
+      self.run("gmake", opts)
     else
       targets.each {|target|
 	h = opts.dup
 	h[:reason] = target
         h[:section] = target
-        $Build.run("gmake", target, h)
+        self.run("gmake", target, h)
       }
     end
   end

@@ -7,19 +7,19 @@ Build.limit(:data=>1024*1024*300, :as=>1024*1024*300)
 Build.def_perm_target("yarv") {|b|
   ruby_curr_dir = b.work_dir
   Dir.chdir("..") {
-    Build.svn("http://www.atdot.net/svn/yarv/trunk", 'yarv')
+    b.svn("http://www.atdot.net/svn/yarv/trunk", 'yarv')
     Dir.chdir("yarv") {
-      Build.run("autoconf")
+      b.run("autoconf")
     }
   }
-  Build.mkcd("yarv")
-  Build.run("../../yarv/configure", "--prefix=#{ruby_curr_dir}") {|log|
+  b.mkcd("yarv")
+  b.run("../../yarv/configure", "--prefix=#{ruby_curr_dir}") {|log|
     if /^checking target system type\.\.\. (\S+)$/ =~ log
       b.update_title(:version, "yarv #{$1}")
     end
   }
-  Build.add_finish_hook {
-    log = Build.all_log
+  b.add_finish_hook {
+    log = b.all_log
     mark = ''
     mark << "[BUG]" if /\[BUG\]/i =~ log
     mark << "[SEGV]" if /segmentation fault|signal segv/i =~
@@ -27,15 +27,15 @@ Build.def_perm_target("yarv") {|b|
     mark << "[FATAL]" if /\[FATAL\]/i =~ log
     b.update_title(:mark, mark)
   }
-  Build.make(:rlimit_data=>1024*1024*200, :rlimit_as=>1024*1024*200)
-  Build.run("./ruby", "-v") {|log|
+  b.make(:rlimit_data=>1024*1024*200, :rlimit_as=>1024*1024*200)
+  b.run("./ruby", "-v") {|log|
     if /^ruby [0-9.]+ \([0-9\-]+\) \[\S+\]$/ =~ log
       b.update_title(:version, $&)
     end
   }
-  Build.make("install-nodoc")
-  Build.run("./ruby", "../../yarv/sample/test.rb", :section=>"test.rb")
-  Build.run("./ruby", "../../yarv/test/runner.rb", "-v", :section=>"test-all") {|log|
+  b.make("install-nodoc")
+  b.run("./ruby", "../../yarv/sample/test.rb", :section=>"test.rb")
+  b.run("./ruby", "../../yarv/test/runner.rb", "-v", :section=>"test-all") {|log|
     if /^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors$/ =~ log
       failures = $1.to_i
       errors = $2.to_i

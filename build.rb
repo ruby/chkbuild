@@ -206,7 +206,6 @@ class Build
     careful_link "log", @current_txt
     remove_old_build(@start_time, opts.fetch(:old, Build.num_oldbuilds))
     @logfile.start_section 'start'
-    $Build = self
     @build_proc.call(self, *args)
     success = true
   ensure
@@ -307,7 +306,6 @@ class Build
     end
   end
 
-  def Build.all_log(*args, &b) $Build.all_log(*args, &b) end
   def all_log
     File.read(@log_filename)
   end
@@ -322,7 +320,6 @@ class Build
     @title_order.map {|key| title_hash[key] }.flatten.join(' ').gsub(/\s+/, ' ').strip
   end
 
-  def Build.add_finish_hook(*args, &b) $Build.add_finish_hook(*args, &b) end
   def add_finish_hook(&block)
     @finish_hook << block
   end
@@ -462,7 +459,6 @@ End
 
     attr_accessor :reason
   end
-  def Build.run(*args, &b) $Build.run(*args, &b) end
   def run(command, *args, &block)
     opts = {}
     opts = args.pop if Hash === args.last

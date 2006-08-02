@@ -3,7 +3,7 @@
 require 'build'
 
 Build.def_perm_target("limit") {|b|
-  Build.run("sh", "-c", "ulimit -a", :rlimit_data => 800*1024)
+  b.run("sh", "-c", "ulimit -a", :rlimit_data => 800*1024)
 }
 
 Build.main
