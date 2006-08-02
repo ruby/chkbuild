@@ -3,8 +3,6 @@
 require 'build'
 require 'chkbuild/ruby'
 
-#Build.rsync_ssh_upload_target("akr2@localhost::serein-localhost-upload")
-
 Build.limit(:data=>1024*1024*300, :as=>1024*1024*300)
 
 def_build_ruby2(

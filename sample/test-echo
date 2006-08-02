@@ -2,8 +2,6 @@
 
 require 'build'
 
-#Build.rsync_ssh_upload_target("akr2@localhost::upload")
-
 Build.def_perm_target("echo") {|b|
   Build.run("echo", "f&<>oo http://foo.example.net/bar?a=b&c=d baz")
 }
