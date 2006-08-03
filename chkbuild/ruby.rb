@@ -33,6 +33,9 @@ def def_build_ruby_internal(separated_dir, *args)
       when "o0"
         cflags.delete_if {|arg| /\A-O\d\z/ =~ arg }
         cflags << '-O0'
+      when "o1"
+        cflags.delete_if {|arg| /\A-O\d\z/ =~ arg }
+        cflags << '-O1'
       when "o3"
         cflags.delete_if {|arg| /\A-O\d\z/ =~ arg }
         cflags << '-O3'
