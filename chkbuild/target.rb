@@ -49,20 +49,26 @@ class ChkBuild::Target
   def add_title_hook(secname, &block) @title_hook << [secname, block] end
   def each_title_hook(&block) @title_hook.each(&block) end
 
+  def each_suffix_list
+    @branches.each {|suffix_list|
+      yield suffix_list
+    }
+  end
+
   def make_result
     return @result if defined? @result
     succeed = Result.new
-    @branches.each {|branch_info|
+    each_suffix_list {|suffix_list|
       dep_results = @dep_targets.map {|dep_target| dep_target.result }
       Util.permutation(*dep_results) {|dependencies|
         name = @target_name.dup
-        branch_info.each {|suffix| name << '-' << suffix }
+        suffix_list.each {|suffix| name << '-' << suffix }
         simple_name = name.dup
         dep_dirs = []
         dep_versions = []
-        dependencies.each {|dep_target_name, dep_branch_info, dep_dir, dep_ver|
+        dependencies.each {|dep_target_name, dep_suffix_list, dep_dir, dep_ver|
           name << "_#{dep_target_name}"
-          dep_branch_info.each {|suffix| name << '-' << suffix }
+          dep_suffix_list.each {|suffix| name << '-' << suffix }
           dep_dirs << "#{dep_target_name}=#{dep_dir}"
           dep_versions.concat dep_ver
         }
@@ -70,9 +76,9 @@ class ChkBuild::Target
         title[:version] = simple_name
         title[:dep_versions] = dep_versions
         title[:hostname] = "(#{Util.simple_hostname})"
-        status, dir, version_list = Build.new(self).build_in_child(name, title, branch_info+dep_dirs)
+        status, dir, version_list = Build.new(self).build_in_child(name, title, suffix_list+dep_dirs)
         if status.to_i == 0
-          succeed.add [@target_name, branch_info, dir, version_list] if status.to_i == 0
+          succeed.add [@target_name, suffix_list, dir, version_list] if status.to_i == 0
         end
       }
     }
