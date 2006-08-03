@@ -162,23 +162,27 @@ class Build
     return status, dir, version_list
   end
 
-  def child_build_wrapper(parent_pipe, start_time_obj, name, title, *args)
+  def child_build_wrapper(parent_pipe, start_time_obj, name, title, *branch_info)
     LOCK.puts name
-    @suffixes = args
+    @branch_info = branch_info
     @parent_pipe = parent_pipe
     @title = title.dup
     @title_order = [:status, :warn, :mark, :version, :dep_versions, :hostname]
     success = false
     begin
-      child_build_target(start_time_obj, name, *args)
+      child_build_target(start_time_obj, name, *branch_info)
       success = true
     rescue CommandError
     end
     success
   end
 
+  def suffixes
+    @branch_info.reject {|d| /=/ =~ d }
+  end
+
   def long_name
-    [@target_name, *@suffixes].join('-')
+    [@target_name, *self.suffixes].join('-')
   end
 
   def child_build_target(start_time_obj, name, *args)
