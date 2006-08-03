@@ -1,13 +1,5 @@
 require 'build'
 
-def build_ruby(*args)
-  def_build_ruby(*args).start_perm
-end
-
-def build_ruby2(*args)
-  def_build_ruby2(*args).start_perm
-end
-
 def def_build_ruby(*args)
   def_build_ruby_internal(false, *args)
 end
