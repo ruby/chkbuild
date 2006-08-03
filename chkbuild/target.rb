@@ -58,7 +58,7 @@ class ChkBuild::Target
     succeed = Depend.new
     @branches.each {|branch_suffix, *branch_info|
       @dep_targets.map! {|dep_or_build| ChkBuild::Target === dep_or_build ? dep_or_build.result : dep_or_build }
-      Depend.perm(@dep_targets) {|dependencies|
+      Util.permutation(*@dep_targets) {|dependencies|
         name = @target_name.dup
         name << "-#{branch_suffix}" if branch_suffix
         simple_name = name.dup
@@ -100,17 +100,6 @@ class ChkBuild::Target
 
     def each
       @list.each {|elt| yield elt }
-    end
-
-    def Depend.perm(depend_list, prefix=[], &block)
-      if depend_list.empty?
-        yield prefix
-      else
-        first, *rest = depend_list
-        first.each {|elt|
-          Depend.perm(rest, prefix + [elt], &block)
-        }
-      end
     end
   end
 end
