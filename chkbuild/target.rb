@@ -61,24 +61,22 @@ class ChkBuild::Target
     each_suffix_list {|suffix_list|
       dep_results = @dep_targets.map {|dep_target| dep_target.result }
       Util.permutation(*dep_results) {|dependencies|
-        name = @target_name.dup
-        suffix_list.each {|suffix| name << '-' << suffix }
-        simple_name = name.dup
+        build = Build.new(self, suffix_list)
+        name = build.suffixed_name
         dep_dirs = []
         dep_versions = []
-        dependencies.each {|dep_target_name, dep_suffix_list, dep_dir, dep_ver|
-          name << "_#{dep_target_name}"
-          dep_suffix_list.each {|suffix| name << '-' << suffix }
-          dep_dirs << "#{dep_target_name}=#{dep_dir}"
-          dep_versions.concat dep_ver
+        dependencies.each {|depbuild|
+          name << '_' << depbuild.suffixed_name
+          dep_dirs << "#{depbuild.target.target_name}=#{depbuild.dir}"
+          dep_versions.concat depbuild.version_list
         }
         title = {}
-        title[:version] = simple_name
+        title[:version] = build.suffixed_name
         title[:dep_versions] = dep_versions
         title[:hostname] = "(#{Util.simple_hostname})"
-        status, dir, version_list = Build.new(self).build_in_child(name, title, suffix_list+dep_dirs)
+        status = build.build_in_child(name, title, dep_dirs)
         if status.to_i == 0
-          succeed.add [@target_name, suffix_list, dir, version_list] if status.to_i == 0
+          succeed.add build
         end
       }
     }

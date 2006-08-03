@@ -48,8 +48,18 @@ class Build
   end
   Build.num_oldbuilds = 3
 
-  def initialize(target)
+  def initialize(target, suffix_list)
     @target = target
+    @suffix_list = suffix_list
+  end
+  attr_reader :target, :suffix_list
+
+  def suffixed_name
+    name = @target.target_name.dup
+    @suffix_list.each {|suffix|
+      name << '-' << suffix
+    }
+    name
   end
 
   def add_title_hook(secname, &block) @target.add_title_hook(secname, &block) end
@@ -66,7 +76,11 @@ class Build
     }
   end
 
-  def build_in_child(name, title, branch_info)
+  def build_in_child(name, title, dep_dirs)
+    if defined? @status
+      raise "already built"
+    end
+    branch_info = @suffix_list + dep_dirs
     start_time_obj = Time.now
     dir = "#{Build.build_dir}/#{name}/#{start_time_obj.strftime("%Y%m%dT%H%M%S")}"
     r, w = IO.pipe
@@ -92,7 +106,25 @@ class Build
     rescue ArgumentError
       version_list = []
     end
-    return status, dir, version_list
+    @status = status
+    @dir = dir
+    @version_list = version_list
+    return status
+  end
+
+  def status
+    return @status if defined? @status
+    raise "#{self.suffixed_name}: no status yet"
+  end
+
+  def dir
+    return @dir if defined? @dir
+    raise "#{self.suffixed_name}: no dir yet"
+  end
+
+  def version_list
+    return @version_list if defined? @version_list
+    raise "#{self.suffixed_name}: no version_list yet"
   end
 
   def child_build_wrapper(parent_pipe, start_time_obj, name, title, *branch_info)
