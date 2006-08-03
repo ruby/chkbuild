@@ -124,6 +124,10 @@ module Util
     t.sync
     yield t
   end
+
+  def simple_hostname
+    Socket.gethostname.sub(/\..*/, '')
+  end
 end
 
 class Build

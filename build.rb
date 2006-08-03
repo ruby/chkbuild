@@ -1,6 +1,5 @@
 require 'fileutils'
 require 'time'
-require 'socket'
 require 'zlib'
 require "erb"
 include ERB::Util
