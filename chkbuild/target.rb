@@ -55,7 +55,7 @@ class ChkBuild::Target
 
   def start_perm
     return @result if defined? @result
-    succeed = Depend.new
+    succeed = Result.new
     @branches.each {|branch_suffix, *branch_info|
       dep_results = @dep_targets.map {|dep_target| dep_target.result }
       Util.permutation(*dep_results) {|dependencies|
@@ -89,7 +89,7 @@ class ChkBuild::Target
     raise "#{@target_name}: no result yet"
   end
 
-  class Depend
+  class Result
     def initialize
       @list = []
     end
