@@ -23,11 +23,7 @@ class ChkBuild::Target
     @branches = []
     Util.permutation(*suffixes_ary) {|suffixes|
       suffixes.compact!
-      if suffixes.empty?
-        @branches << [nil, *suffixes]
-      else
-        @branches << [suffixes.join('-'), *suffixes]
-      end
+      @branches << suffixes
     }
   end
 
@@ -56,17 +52,17 @@ class ChkBuild::Target
   def make_result
     return @result if defined? @result
     succeed = Result.new
-    @branches.each {|branch_suffix, *branch_info|
+    @branches.each {|branch_info|
       dep_results = @dep_targets.map {|dep_target| dep_target.result }
       Util.permutation(*dep_results) {|dependencies|
         name = @target_name.dup
-        name << "-#{branch_suffix}" if branch_suffix
+        branch_info.each {|suffix| name << '-' << suffix }
         simple_name = name.dup
         dep_dirs = []
         dep_versions = []
-        dependencies.each {|dep_target_name, dep_branch_suffix, dep_dir, dep_ver|
+        dependencies.each {|dep_target_name, dep_branch_info, dep_dir, dep_ver|
           name << "_#{dep_target_name}"
-          name << "-#{dep_branch_suffix}" if dep_branch_suffix
+          dep_branch_info.each {|suffix| name << '-' << suffix }
           dep_dirs << "#{dep_target_name}=#{dep_dir}"
           dep_versions.concat dep_ver
         }
@@ -76,7 +72,7 @@ class ChkBuild::Target
         title[:hostname] = "(#{Util.simple_hostname})"
         status, dir, version_list = Build.new(self).build_in_child(name, title, branch_info+dep_dirs)
         if status.to_i == 0
-          succeed.add [@target_name, branch_suffix, dir, version_list] if status.to_i == 0
+          succeed.add [@target_name, branch_info, dir, version_list] if status.to_i == 0
         end
       }
     }
