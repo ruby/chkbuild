@@ -30,7 +30,7 @@ class Build
   @target_list = []
   def Build.main
     @target_list.each {|t|
-      t.start_perm
+      t.make_result
     }
   end
 

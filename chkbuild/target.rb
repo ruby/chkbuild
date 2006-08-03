@@ -53,7 +53,7 @@ class ChkBuild::Target
   def add_title_hook(secname, &block) @title_hook << [secname, block] end
   def each_title_hook(&block) @title_hook.each(&block) end
 
-  def start_perm
+  def make_result
     return @result if defined? @result
     succeed = Result.new
     @branches.each {|branch_suffix, *branch_info|
