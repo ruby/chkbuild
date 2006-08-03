@@ -13,12 +13,12 @@ Build.def_perm_target("yarv") {|b|
     }
   }
   b.mkcd("yarv")
-  b.run("../../yarv/configure", "--prefix=#{ruby_curr_dir}") {|log|
+  b.run("../../yarv/configure", "--prefix=#{ruby_curr_dir}") {|bb, log|
     if /^checking target system type\.\.\. (\S+)$/ =~ log
       b.update_title(:version, "yarv #{$1}")
     end
   }
-  b.add_finish_hook {
+  b.add_title_hook('end') {
     log = b.all_log
     mark = ''
     mark << "[BUG]" if /\[BUG\]/i =~ log
@@ -28,14 +28,14 @@ Build.def_perm_target("yarv") {|b|
     b.update_title(:mark, mark)
   }
   b.make(:rlimit_data=>1024*1024*200, :rlimit_as=>1024*1024*200)
-  b.run("./ruby", "-v") {|log|
+  b.run("./ruby", "-v") {|bb, log|
     if /^ruby [0-9.]+ \([0-9\-]+\) \[\S+\]$/ =~ log
       b.update_title(:version, $&)
     end
   }
   b.make("install-nodoc")
   b.run("./ruby", "../../yarv/sample/test.rb", :section=>"test.rb")
-  b.run("./ruby", "../../yarv/test/runner.rb", "-v", :section=>"test-all") {|log|
+  b.run("./ruby", "../../yarv/test/runner.rb", "-v", :section=>"test-all") {|bb, log|
     if /^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors$/ =~ log
       failures = $1.to_i
       errors = $2.to_i

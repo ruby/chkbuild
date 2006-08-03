@@ -15,6 +15,10 @@ require "udiff"
 require "logfile"
 require "util"
 
+module ChkBuild
+end
+require 'chkbuild/target'
+
 begin
   Process.setpriority(Process::PRIO_PROCESS, 0, 10)
 rescue Errno::EACCES # already niced to 11 or more
@@ -24,113 +28,44 @@ File.umask(002)
 STDIN.reopen("/dev/null", "r")
 
 class Build
-  @build_list = []
+  @target_list = []
   def Build.main
-    @build_list.each {|b|
-      b.start_perm
+    @target_list.each {|t|
+      t.start_perm
     }
   end
 
   def Build.def_perm_target(target_name, *args, &block)
-    b = Build.new
-    b.init_perm_target(target_name, *args, &block)
-    @build_list << b
-    b
+    t = ChkBuild::Target.new
+    t.init_perm_target(target_name, *args, &block)
+    @target_list << t
+    t
   end
 
-  def initialize
-    @title_hook = []
-    @finish_hook = []
-    add_title_hook('success') {|log|
-      update_title(:status) {|val| 'success' if !val }
-    }
-    add_title_hook('failure') {|log|
-      update_title(:status) {|val|
-        if !val
-          line = /\n/ =~ log ? $` : log
-          line = line.strip
-          line if !line.empty?
-        end
-      }
-    }
-    add_title_hook("end") {
-      num_warns = all_log.scan(/warn/i).length
-      update_title(:warn) {|val| "#{num_warns}W" } if 0 < num_warns
-    }
+  def self.build_dir() "#{TOP_DIRECTORY}/tmp/build" end
+  def self.public_dir() "#{TOP_DIRECTORY}/tmp/public_html" end
+
+  class << Build
+    attr_accessor :num_oldbuilds
+  end
+  Build.num_oldbuilds = 3
+
+  def initialize(target)
+    @target = target
   end
 
-  def add_title_hook(secname, &block) @title_hook << [secname, block] end
+  def add_title_hook(secname, &block) @target.add_title_hook(secname, &block) end
+
   def run_title_hooks()
-    @title_hook.each {|secname, block|
+    @target.each_title_hook {|secname, block|
       if log = @logfile.get_section(secname)
         logfile = @logfile
         class << log; self end.funcall(:define_method, :modify_log) {|str|
           logfile.modify_section(secname, str)
         }
-        block.call log
+        block.call self, log
       end
     }
-  end
-
-  def init_perm_target(target_name, *args, &block)
-    @target_name = target_name
-    @build_proc = block
-    @opts = {}
-    @opts = args.pop if Hash === args.last
-    @dep_targets = []
-    suffixes_ary = []
-    args.each {|arg|
-      if Depend === arg || Build === arg
-        @dep_targets << arg
-      else
-        suffixes_ary << arg
-      end
-    }
-    @branches = []
-    Build.permutation(*suffixes_ary) {|suffixes|
-      suffixes.compact!
-      if suffixes.empty?
-        @branches << [nil, *suffixes]
-      else
-        @branches << [suffixes.join('-'), *suffixes]
-      end
-    }
-  end
-
-  def start_perm
-    return @result if defined? @result
-    succeed = Depend.new
-    @branches.each {|branch_suffix, *branch_info|
-      @dep_targets.map! {|dep_or_build| Build === dep_or_build ? dep_or_build.result : dep_or_build }
-      Depend.perm(@dep_targets) {|dependencies|
-        name = @target_name.dup
-        name << "-#{branch_suffix}" if branch_suffix
-        simple_name = name.dup
-        dep_dirs = []
-        dep_versions = []
-        dependencies.each {|dep_target_name, dep_branch_suffix, dep_dir, dep_ver|
-          name << "_#{dep_target_name}"
-          name << "-#{dep_branch_suffix}" if dep_branch_suffix
-          dep_dirs << "#{dep_target_name}=#{dep_dir}"
-          dep_versions.concat dep_ver
-        }
-        title = {}
-        title[:version] = simple_name
-        title[:dep_versions] = dep_versions
-        title[:hostname] = "(#{Socket.gethostname.sub(/\..*/, '')})"
-        status, dir, version_list = build_in_child(name, title, branch_info+dep_dirs)
-	if status.to_i == 0
-	  succeed.add [@target_name, branch_suffix, dir, version_list] if status.to_i == 0
-	end
-      }
-    }
-    @result = succeed
-    succeed
-  end
-
-  def result
-    return @result if defined? @result
-    raise "#{@target_name}: no result yet"
   end
 
   def build_in_child(name, title, branch_info)
@@ -182,11 +117,11 @@ class Build
   end
 
   def long_name
-    [@target_name, *self.suffixes].join('-')
+    [@target.target_name, *self.suffixes].join('-')
   end
 
   def child_build_target(start_time_obj, name, *args)
-    opts = @opts
+    opts = @target.opts
     @start_time = start_time_obj.strftime("%Y%m%dT%H%M%S")
     @target_dir = "#{Build.build_dir}/#{name}"
     @dir = "#{@target_dir}/#{@start_time}"
@@ -204,7 +139,6 @@ class Build
     @logfile.change_default_output
 
     success = false
-    add_finish_hook { GDB.check_core(@dir) }
     @logfile.start_section name
     puts "args: #{args.inspect}"
     system("uname -a")
@@ -213,13 +147,13 @@ class Build
     careful_link "log", @current_txt
     remove_old_build(@start_time, opts.fetch(:old, Build.num_oldbuilds))
     @logfile.start_section 'start'
-    @build_proc.call(self, *args)
+    @target.build_proc.call(self, *args)
     success = true
   ensure
     output_status_section(success, $!)
     @logfile.start_section 'end'
+    GDB.check_core(@dir)
     run_title_hooks
-    run_finish_hooks
     careful_link @current_txt, "#{@public}/last.txt" if File.file? @current_txt
     title = make_title
     Marshal.dump([@title, @title_order], @parent_pipe)
@@ -251,9 +185,6 @@ class Build
   end
 
   def work_dir() Pathname.new(@dir) end
-
-  def self.build_dir() "#{TOP_DIRECTORY}/tmp/build" end
-  def self.public_dir() "#{TOP_DIRECTORY}/tmp/public_html" end
 
   def build_time_sequence
     dirs = Dir.entries(@target_dir)
@@ -320,20 +251,6 @@ class Build
     @title_order.map {|key| title_hash[key] }.flatten.join(' ').gsub(/\s+/, ' ').strip
   end
 
-  def add_finish_hook(&block)
-    @finish_hook << block
-  end
-
-  def run_finish_hooks
-    @finish_hook.reverse_each {|block|
-      begin
-        block.call
-      rescue Exception
-        p $!
-      end
-    }
-  end
-
   def update_summary(name, public, start_time, title)
     open("#{public}/summary.txt", "a") {|f| f.puts "#{start_time} #{title}" }
     open("#{public}/summary.html", "a") {|f|
@@ -396,11 +313,6 @@ End
     err.backtrace.each {|pos| puts "| #{pos}" }
   end
 
-  class << Build
-    attr_accessor :num_oldbuilds
-  end
-  Build.num_oldbuilds = 3
-
   def make_diff_content(time)
     tmp = Tempfile.open("#{time}.")
     pat = /#{time}/
@@ -433,31 +345,6 @@ End
       z.puts "+++ #{time2}"
       UDiff.diff(tmp1.path, tmp2.path, z)
     }
-  end
-
-  class Depend
-    def initialize
-      @list = []
-    end
-
-    def add(elt)
-      @list << elt
-    end
-
-    def each
-      @list.each {|elt| yield elt }
-    end
-
-    def Depend.perm(depend_list, prefix=[], &block)
-      if depend_list.empty?
-        yield prefix
-      else
-        first, *rest = depend_list
-        first.each {|elt|
-          Depend.perm(rest, prefix + [elt], &block)
-        }
-      end
-    end
   end
 
   class CommandError < StandardError

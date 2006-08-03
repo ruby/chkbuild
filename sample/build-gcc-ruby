@@ -20,7 +20,7 @@ GCC = Build.def_perm_target("gcc",
   b.mkcd("objdir")
   b.run("../../gcc/configure", "--prefix=#{gcc_dir}", "--enable-languages=c", "--disable-shared", "--disable-multilib")
   b.make("bootstrap", "install", :timeout=>'5h')
-  b.run("#{gcc_dir}/bin/gcc", '-v') {|log|
+  b.run("#{gcc_dir}/bin/gcc", '-v') {|bb, log|
     if /^gcc version (.*)$/ =~ log
       b.update_title(:version, "gcc #{$1}")
     end

@@ -11,6 +11,11 @@ def tp(obj)
   open("/dev/tty", "w") {|f| f.puts obj.inspect }
 end
 
+def tpp(obj)
+  require 'pp'
+  open("/dev/tty", "w") {|f| PP.pp(obj, f) }
+end
+
 module Kernel
   if !nil.respond_to?(:funcall)
     if nil.respond_to?(:fcall) 
@@ -39,12 +44,14 @@ class IO
 end
 
 module Util
+  extend Util # similar to module_function but instance methods are public.
+
   def permutation(*args)
     if block_given?
-      Build.permutation_each(*args) {|vs| yield vs }
+      permutation_each(*args) {|vs| yield vs }
     else
       r = []
-      Build.permutation_each(*args) {|vs| r << vs }
+      permutation_each(*args) {|vs| r << vs }
       r
     end
   end
@@ -55,7 +62,7 @@ module Util
     else
       arg, *rest = args
       arg.each {|v|
-        Build.permutation_each(*rest) {|vs|
+        permutation_each(*rest) {|vs|
           yield [v, *vs]
         }
       }

@@ -3,7 +3,7 @@
 require 'build'
 
 Build.def_perm_target("failure") {|b|
-  b.add_finish_hook {
+  b.add_title_hook('end') {
     log = b.all_log
     mark = ''
     mark << "[BUG]" if /\[BUG\]/i =~ log

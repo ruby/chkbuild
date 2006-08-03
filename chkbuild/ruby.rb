@@ -76,19 +76,19 @@ def def_build_ruby_internal(separated_dir, *args)
     b.run("./ruby", "#{srcdir+'test/runner.rb'}", "-v", :section=>"test-all")
   }
 
-  b.add_title_hook("configure") {|log|
+  b.add_title_hook("configure") {|bb, log|
     if /^checking target system type\.\.\. (\S+)$/ =~ log
       b.update_title(:version, "#{b.long_name} #{$1}")
     end
   }
 
-  b.add_title_hook("version") {|log|
+  b.add_title_hook("version") {|bb, log|
     if /^ruby [0-9.]+ \([0-9\-]+\) \[\S+\]$/ =~ log
       b.update_title(:version, $&)
     end
   }
     
-  b.add_title_hook("test.rb") {|log|
+  b.add_title_hook("test.rb") {|bb, log|
     b.update_title(:status) {|val|
       if /^end of test/ !~ log
         if /^test: \d+ failed (\d+)/ =~ log
@@ -98,7 +98,7 @@ def def_build_ruby_internal(separated_dir, *args)
     }
   }
 
-  b.add_title_hook("test-all") {|log|
+  b.add_title_hook("test-all") {|bb, log|
     b.update_title(:status) {|val|
       if /^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors$/ =~ log
         failures = $1.to_i
