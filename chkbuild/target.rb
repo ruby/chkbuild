@@ -14,7 +14,7 @@ class ChkBuild::Target
     @dep_targets = []
     suffixes_ary = []
     args.each {|arg|
-      if Depend === arg || ChkBuild::Target === arg
+      if ChkBuild::Target === arg
         @dep_targets << arg
       else
         suffixes_ary << arg
@@ -57,8 +57,8 @@ class ChkBuild::Target
     return @result if defined? @result
     succeed = Depend.new
     @branches.each {|branch_suffix, *branch_info|
-      @dep_targets.map! {|dep_or_build| ChkBuild::Target === dep_or_build ? dep_or_build.result : dep_or_build }
-      Util.permutation(*@dep_targets) {|dependencies|
+      dep_results = @dep_targets.map {|dep_target| dep_target.result }
+      Util.permutation(*dep_results) {|dependencies|
         name = @target_name.dup
         name << "-#{branch_suffix}" if branch_suffix
         simple_name = name.dup
