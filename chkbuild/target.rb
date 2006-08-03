@@ -1,6 +1,37 @@
 class ChkBuild::Target
-  def initialize
+  def initialize(target_name, *args, &block)
+    @target_name = target_name
+    @build_proc = block
+    @opts = {}
+    @opts = args.pop if Hash === args.last
+    init_perm_target(*args)
     @title_hook = []
+    init_default_title_hooks
+  end
+  attr_reader :target_name, :opts, :build_proc
+
+  def init_perm_target(*args)
+    @dep_targets = []
+    suffixes_ary = []
+    args.each {|arg|
+      if Depend === arg || ChkBuild::Target === arg
+        @dep_targets << arg
+      else
+        suffixes_ary << arg
+      end
+    }
+    @branches = []
+    Util.permutation(*suffixes_ary) {|suffixes|
+      suffixes.compact!
+      if suffixes.empty?
+        @branches << [nil, *suffixes]
+      else
+        @branches << [suffixes.join('-'), *suffixes]
+      end
+    }
+  end
+
+  def init_default_title_hooks
     add_title_hook('success') {|b, log|
       b.update_title(:status) {|val| 'success' if !val }
     }
@@ -21,32 +52,6 @@ class ChkBuild::Target
 
   def add_title_hook(secname, &block) @title_hook << [secname, block] end
   def each_title_hook(&block) @title_hook.each(&block) end
-
-  def init_perm_target(target_name, *args, &block)
-    @target_name = target_name
-    @build_proc = block
-    @opts = {}
-    @opts = args.pop if Hash === args.last
-    @dep_targets = []
-    suffixes_ary = []
-    args.each {|arg|
-      if Depend === arg || ChkBuild::Target === arg
-        @dep_targets << arg
-      else
-        suffixes_ary << arg
-      end
-    }
-    @branches = []
-    Util.permutation(*suffixes_ary) {|suffixes|
-      suffixes.compact!
-      if suffixes.empty?
-        @branches << [nil, *suffixes]
-      else
-        @branches << [suffixes.join('-'), *suffixes]
-      end
-    }
-  end
-  attr_reader :target_name, :opts, :build_proc
 
   def start_perm
     return @result if defined? @result
