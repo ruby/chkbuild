@@ -62,22 +62,8 @@ class ChkBuild::Target
       dep_results = @dep_targets.map {|dep_target| dep_target.result }
       Util.permutation(*dep_results) {|dependencies|
         build = Build.new(self, suffix_list)
-        name = build.suffixed_name
-        dep_dirs = []
-        dep_versions = []
-        dependencies.each {|depbuild|
-          name << '_' << depbuild.suffixed_name
-          dep_dirs << "#{depbuild.target.target_name}=#{depbuild.dir}"
-          dep_versions.concat depbuild.version_list
-        }
-        title = {}
-        title[:version] = build.suffixed_name
-        title[:dep_versions] = dep_versions
-        title[:hostname] = "(#{Util.simple_hostname})"
-        status = build.build_in_child(name, title, dep_dirs)
-        if status.to_i == 0
-          succeed.add build
-        end
+        dependencies.each {|depbuild| build.add_depbuild depbuild }
+        succeed.add(build) if build.build
       }
     }
     @result = succeed

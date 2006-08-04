@@ -51,8 +51,13 @@ class Build
   def initialize(target, suffix_list)
     @target = target
     @suffix_list = suffix_list
+    @depbuilds = []
   end
   attr_reader :target, :suffix_list
+
+  def add_depbuild(depbuild)
+    @depbuilds << depbuild
+  end
 
   def suffixed_name
     name = @target.target_name.dup
@@ -74,6 +79,23 @@ class Build
         block.call self, log
       end
     }
+  end
+
+  def build
+    name = self.suffixed_name
+    dep_dirs = []
+    dep_versions = []
+    @depbuilds.each {|depbuild|
+      name << '_' << depbuild.suffixed_name
+      dep_dirs << "#{depbuild.target.target_name}=#{depbuild.dir}"
+      dep_versions.concat depbuild.version_list
+    }
+    title = {}
+    title[:version] = self.suffixed_name
+    title[:dep_versions] = dep_versions
+    title[:hostname] = "(#{Util.simple_hostname})"
+    status = self.build_in_child(name, title, dep_dirs)
+    status.to_i == 0
   end
 
   def build_in_child(name, title, dep_dirs)
