@@ -4,13 +4,13 @@ class ChkBuild::Target
     @build_proc = block
     @opts = {}
     @opts = args.pop if Hash === args.last
-    init_perm_target(*args)
+    init_target(*args)
     @title_hook = []
     init_default_title_hooks
   end
   attr_reader :target_name, :opts, :build_proc
 
-  def init_perm_target(*args)
+  def init_target(*args)
     @dep_targets = []
     suffixes_ary = []
     args.each {|arg|
