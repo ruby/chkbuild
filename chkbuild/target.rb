@@ -44,6 +44,13 @@ class ChkBuild::Target
       num_warns = log.scan(/warn/i).length
       b.update_title(:warn) {|val| "#{num_warns}W" } if 0 < num_warns
     }
+    add_title_hook('dependencies') {|b, log|
+      dep_versions = []
+      log.each_line {|depver|
+        dep_versions << depver.chomp
+      }
+      b.update_title(:dep_versions, dep_versions)
+    }
   end
 
   def add_title_hook(secname, &block) @title_hook << [secname, block] end

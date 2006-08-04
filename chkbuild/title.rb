@@ -1,20 +1,19 @@
 require 'util'
 
 class ChkBuild::Title
-  def initialize(target, suffixes, dep_versions, logfile)
+  def initialize(target, suffixes, logfile)
     @target = target
     @suffixes = suffixes
-    @dep_versions = dep_versions
     @logfile = logfile
     @title = {}
     @title[:version] = self.suffixed_name
-    @title[:dep_versions] = dep_versions
+    @title[:dep_versions] = []
     @title[:hostname] = "(#{Util.simple_hostname})"
     @title_order = [:status, :warn, :mark, :version, :dep_versions, :hostname]
   end
 
   def versions
-    return ["(#{@title[:version]})", *@title[:dep_versions]]
+    return ["#{@title[:version]}", *@title[:dep_versions]]
   end
 
   def suffixed_name
@@ -48,7 +47,13 @@ class ChkBuild::Title
 
   def make_title
     title_hash = @title
-    @title_order.map {|key| title_hash[key] }.flatten.join(' ').gsub(/\s+/, ' ').strip
+    @title_order.map {|key|
+      if key == :dep_versions
+        title_hash[key].map {|ver| "(#{ver})" }
+      else
+        title_hash[key]
+      end
+    }.flatten.join(' ').gsub(/\s+/, ' ').strip
   end
 
   def [](key)

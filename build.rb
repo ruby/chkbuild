@@ -167,6 +167,12 @@ class Build
     @logfile.start_section name
     puts "args: #{args.inspect}"
     system("uname -a")
+    if !dep_versions.empty?
+      @logfile.start_section 'dependencies'
+      dep_versions.each {|depver|
+        puts "#{depver}"
+      }
+    end
     FileUtils.mkpath(@public)
     FileUtils.mkpath(@public_log)
     careful_link "log", @current_txt
@@ -179,7 +185,7 @@ class Build
     @logfile.start_section 'end'
     GDB.check_core(@dir)
     careful_link @current_txt, "#{@public}/last.txt" if File.file? @current_txt
-    @title = ChkBuild::Title.new(@target, @suffixes, dep_versions, @logfile)
+    @title = ChkBuild::Title.new(@target, @suffixes, @logfile)
     @title.run_title_hooks
     title = @title.make_title
     Marshal.dump(@title.versions, @parent_pipe)
