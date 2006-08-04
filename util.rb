@@ -46,23 +46,23 @@ end
 module Util
   extend Util # similar to module_function but instance methods are public.
 
-  def permutation(*args)
+  def product(*args)
     if block_given?
-      permutation_each(*args) {|vs| yield vs }
+      product_each(*args) {|vs| yield vs }
     else
       r = []
-      permutation_each(*args) {|vs| r << vs }
+      product_each(*args) {|vs| r << vs }
       r
     end
   end
 
-  def permutation_each(*args)
+  def product_each(*args)
     if args.empty?
       yield []
     else
       arg, *rest = args
       arg.each {|v|
-        permutation_each(*rest) {|vs|
+        product_each(*rest) {|vs|
           yield [v, *vs]
         }
       }

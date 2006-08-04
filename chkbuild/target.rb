@@ -21,7 +21,7 @@ class ChkBuild::Target
       end
     }
     @branches = []
-    Util.permutation(*suffixes_ary) {|suffixes|
+    Util.product(*suffixes_ary) {|suffixes|
       suffixes.compact!
       @branches << suffixes
     }
@@ -60,7 +60,7 @@ class ChkBuild::Target
     succeed = Result.new
     each_suffix_list {|suffix_list|
       dep_results = @dep_targets.map {|dep_target| dep_target.result }
-      Util.permutation(*dep_results) {|dependencies|
+      Util.product(*dep_results) {|dependencies|
         build = Build.new(self, suffix_list)
         dependencies.each {|depbuild| build.add_depbuild depbuild }
         succeed.add(build) if build.build
