@@ -46,6 +46,16 @@ end
 module Util
   extend Util # similar to module_function but instance methods are public.
 
+  def rproduct(*args)
+    if block_given?
+      product_each(*args.reverse) {|vs| yield vs.reverse }
+    else
+      r = []
+      product_each(*args.reverse) {|vs| r << vs.reverse }
+      r
+    end
+  end
+
   def product(*args)
     if block_given?
       product_each(*args) {|vs| yield vs }
