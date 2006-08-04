@@ -2,10 +2,12 @@
 
 require 'build'
 
-Build.def_target("warn") {|b|
-  b.run("echo", "warn") {|bb, log|
-    b.update_title(:version, "foo") 
-  }
+warn = Build.def_target("warn") {|b|
+  b.run("echo", "warn")
+}
+
+warn.add_title_hook('echo') {|b, log|
+  b.update_title(:version, "foo") 
 }
 
 Build.main
