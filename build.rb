@@ -99,7 +99,7 @@ class Build
   end
 
   def build_in_child(name, title, dep_dirs)
-    if defined? @status
+    if defined? @child_status
       raise "already built"
     end
     branch_info = @suffixes + dep_dirs
@@ -128,24 +128,24 @@ class Build
     rescue ArgumentError
       version_list = []
     end
-    @status = status
-    @dir = dir
-    @version_list = version_list
+    @child_status = status
+    @child_dir = dir
+    @child_version_list = version_list
     return status
   end
 
   def status
-    return @status if defined? @status
+    return @child_status if defined? @child_status
     raise "#{self.suffixed_name}: no status yet"
   end
 
   def dir
-    return @dir if defined? @dir
+    return @child_dir if defined? @child_dir
     raise "#{self.suffixed_name}: no dir yet"
   end
 
   def version_list
-    return @version_list if defined? @version_list
+    return @child_version_list if defined? @child_version_list
     raise "#{self.suffixed_name}: no version_list yet"
   end
 
