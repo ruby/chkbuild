@@ -18,8 +18,7 @@ Build.def_target("yarv") {|b|
       b.update_title(:version, "yarv #{$1}")
     end
   }
-  b.add_title_hook('end') {
-    log = b.all_log
+  b.add_title_hook(nil) {|bb, log|
     mark = ''
     mark << "[BUG]" if /\[BUG\]/i =~ log
     mark << "[SEGV]" if /segmentation fault|signal segv/i =~

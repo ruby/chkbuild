@@ -17,6 +17,7 @@ require "util"
 module ChkBuild
 end
 require 'chkbuild/target'
+require 'chkbuild/title'
 
 begin
   Process.setpriority(Process::PRIO_PROCESS, 0, 10)
@@ -69,18 +70,6 @@ class Build
 
   def add_title_hook(secname, &block) @target.add_title_hook(secname, &block) end
 
-  def run_title_hooks()
-    @target.each_title_hook {|secname, block|
-      if log = @logfile.get_section(secname)
-        logfile = @logfile
-        class << log; self end.funcall(:define_method, :modify_log) {|str|
-          logfile.modify_section(secname, str)
-        }
-        block.call self, log
-      end
-    }
-  end
-
   def build
     name = self.suffixed_name
     dep_dirs = []
@@ -90,15 +79,11 @@ class Build
       dep_dirs << "#{depbuild.target.target_name}=#{depbuild.dir}"
       dep_versions.concat depbuild.version_list
     }
-    title = {}
-    title[:version] = self.suffixed_name
-    title[:dep_versions] = dep_versions
-    title[:hostname] = "(#{Util.simple_hostname})"
-    status = self.build_in_child(name, title, dep_dirs)
+    status = self.build_in_child(name, dep_versions, dep_dirs)
     status.to_i == 0
   end
 
-  def build_in_child(name, title, dep_dirs)
+  def build_in_child(name, dep_versions, dep_dirs)
     if defined? @child_status
       raise "already built"
     end
@@ -110,7 +95,7 @@ class Build
     w.close_on_exec = true
     pid = fork {
       r.close
-      if child_build_wrapper(w, start_time_obj, name, title, *branch_info)
+      if child_build_wrapper(w, start_time_obj, name, dep_versions, *branch_info)
         exit 0
       else
         exit 1
@@ -122,9 +107,7 @@ class Build
     Process.wait(pid)
     status = $?
     begin
-      title, title_order = Marshal.load(str)
-      version = title[:version]
-      version_list = ["(#{version})", *title[:dep_versions]]
+      version_list = Marshal.load(str)
     rescue ArgumentError
       version_list = []
     end
@@ -149,22 +132,20 @@ class Build
     raise "#{self.suffixed_name}: no version_list yet"
   end
 
-  def child_build_wrapper(parent_pipe, start_time_obj, name, title, *branch_info)
+  def child_build_wrapper(parent_pipe, start_time_obj, name, dep_versions, *branch_info)
     LOCK.puts name
     @branch_info = branch_info
     @parent_pipe = parent_pipe
-    @title = title.dup
-    @title_order = [:status, :warn, :mark, :version, :dep_versions, :hostname]
     success = false
     begin
-      child_build_target(start_time_obj, name, *branch_info)
+      child_build_target(start_time_obj, name, dep_versions, *branch_info)
       success = true
     rescue CommandError
     end
     success
   end
 
-  def child_build_target(start_time_obj, name, *args)
+  def child_build_target(start_time_obj, name, dep_versions, *args)
     opts = @target.opts
     @start_time = start_time_obj.strftime("%Y%m%dT%H%M%S")
     @target_dir = "#{Build.build_dir}/#{name}"
@@ -197,10 +178,11 @@ class Build
     output_status_section(success, $!)
     @logfile.start_section 'end'
     GDB.check_core(@dir)
-    run_title_hooks
     careful_link @current_txt, "#{@public}/last.txt" if File.file? @current_txt
-    title = make_title
-    Marshal.dump([@title, @title_order], @parent_pipe)
+    @title = ChkBuild::Title.new(@target, @suffixes, dep_versions, @logfile)
+    @title.run_title_hooks
+    title = @title.make_title
+    Marshal.dump(@title.versions, @parent_pipe)
     @parent_pipe.close
     update_summary(name, @public, @start_time, title)
     compress_file(@log_filename, "#{@public_log}/#{@start_time}.txt.gz")
@@ -275,24 +257,12 @@ class Build
     File.rename tmp, filename
   end
 
-  def update_title(key, val=nil)
-    if val == nil && block_given?
-      val = yield @title[key]
-      return if !val
-    end
-    @title[key] = val
-    unless @title_order.include? key
-      @title_order[-1,0] = [key]
-    end
+  def update_title(key, val=nil, &block)
+    @title.update_title(key, val, &block)
   end
 
   def all_log
     File.read(@log_filename)
-  end
-
-  def make_title(err=$!)
-    title_hash = @title
-    @title_order.map {|key| title_hash[key] }.flatten.join(' ').gsub(/\s+/, ' ').strip
   end
 
   def update_summary(name, public, start_time, title)

@@ -3,8 +3,7 @@
 require 'build'
 
 Build.def_target("fail") {|b|
-  b.add_title_hook('end') {
-    log = b.all_log
+  b.add_title_hook(nil) {|bb, log|
     mark = ''
     mark << "[BUG]" if /\[BUG\]/i =~ log
     mark << "[SEGV]" if /Segmentation fault/i =~ log

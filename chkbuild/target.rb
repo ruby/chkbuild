@@ -40,8 +40,8 @@ class ChkBuild::Target
         end
       }
     }
-    add_title_hook("end") {|b, log|
-      num_warns = b.all_log.scan(/warn/i).length
+    add_title_hook(nil) {|b, log|
+      num_warns = log.scan(/warn/i).length
       b.update_title(:warn) {|val| "#{num_warns}W" } if 0 < num_warns
     }
   end

@@ -70,21 +70,21 @@ def def_build_ruby_internal(separated_dir, *args)
 
   b.add_title_hook("configure") {|bb, log|
     if /^checking target system type\.\.\. (\S+)$/ =~ log
-      b.update_title(:version, "#{b.suffixed_name} [#{$1}]")
+      bb.update_title(:version, "#{bb.suffixed_name} [#{$1}]")
     end
   }
 
   b.add_title_hook("version") {|bb, log|
     if /^ruby [0-9.]+ \([0-9\-]+\) \[\S+\]$/ =~ log
       ver = $&
-      ss = b.suffixes.reject {|s| /\A(pth|o\d)\z/ !~ s }
+      ss = bb.suffixed_name.split(/-/)[1..-1].reject {|s| /\A(pth|o\d)\z/ !~ s }
       ver << " [#{ss.join(',')}]" if !ss.empty?
-      b.update_title(:version, ver)
+      bb.update_title(:version, ver)
     end
   }
     
   b.add_title_hook("test.rb") {|bb, log|
-    b.update_title(:status) {|val|
+    bb.update_title(:status) {|val|
       if /^end of test/ !~ log
         if /^test: \d+ failed (\d+)/ =~ log
           "#{$1}NotOK"
@@ -94,7 +94,7 @@ def def_build_ruby_internal(separated_dir, *args)
   }
 
   b.add_title_hook("test-all") {|bb, log|
-    b.update_title(:status) {|val|
+    bb.update_title(:status) {|val|
       if /^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors$/ =~ log
         failures = $1.to_i
         errors = $2.to_i
@@ -105,14 +105,13 @@ def def_build_ruby_internal(separated_dir, *args)
     }
   }
 
-  b.add_title_hook("end") {
-    log = b.all_log
+  b.add_title_hook(nil) {|bb, log|
     mark = ''
     mark << "[BUG]" if /\[BUG\]/i =~ log
     mark << "[SEGV]" if /segmentation fault|signal segv/i =~
       log.sub(/combination may cause frequent hang or segmentation fault/, '') # skip tk message.
     mark << "[FATAL]" if /\[FATAL\]/i =~ log
-    b.update_title(:mark, mark)
+    bb.update_title(:mark, mark)
   }
 
   b
