@@ -48,12 +48,12 @@ class Build
   end
   Build.num_oldbuilds = 3
 
-  def initialize(target, suffix_list)
+  def initialize(target, suffixes)
     @target = target
-    @suffix_list = suffix_list
+    @suffixes = suffixes
     @depbuilds = []
   end
-  attr_reader :target, :suffix_list
+  attr_reader :target, :suffixes
 
   def add_depbuild(depbuild)
     @depbuilds << depbuild
@@ -61,7 +61,7 @@ class Build
 
   def suffixed_name
     name = @target.target_name.dup
-    @suffix_list.each {|suffix|
+    @suffixes.each {|suffix|
       name << '-' << suffix
     }
     name
@@ -102,7 +102,7 @@ class Build
     if defined? @status
       raise "already built"
     end
-    branch_info = @suffix_list + dep_dirs
+    branch_info = @suffixes + dep_dirs
     start_time_obj = Time.now
     dir = "#{Build.build_dir}/#{name}/#{start_time_obj.strftime("%Y%m%dT%H%M%S")}"
     r, w = IO.pipe
@@ -164,14 +164,6 @@ class Build
     success
   end
 
-  def suffixes
-    @branch_info.reject {|d| /=/ =~ d }
-  end
-
-  def long_name
-    [@target.target_name, *self.suffixes].join('-')
-  end
-
   def child_build_target(start_time_obj, name, *args)
     opts = @target.opts
     @start_time = start_time_obj.strftime("%Y%m%dT%H%M%S")
@@ -215,7 +207,7 @@ class Build
     make_diff
     make_html_log(@log_filename, title, "#{@public}/last.html")
     compress_file("#{@public}/last.html", "#{@public}/last.html.gz")
-    Build.run_upload_hooks(self.long_name)
+    Build.run_upload_hooks(self.suffixed_name)
   end
 
   def output_status_section(success, err)
@@ -486,10 +478,10 @@ End
   def self.add_upload_hook(&block)
     @upload_hook << block
   end
-  def self.run_upload_hooks(long_name)
+  def self.run_upload_hooks(suffixed_name)
     @upload_hook.reverse_each {|block|
       begin
-        block.call long_name
+        block.call suffixed_name
       rescue Exception
         p $!
       end

@@ -10,7 +10,7 @@ Build.def_perm_target("dep2",
   ["dev", "stable"],
   Dep1) {
     |b, suffix, dep1|
-  p b.long_name
+  p b.suffixed_name
 }
 
 Build.main

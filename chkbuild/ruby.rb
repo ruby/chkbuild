@@ -70,13 +70,16 @@ def def_build_ruby_internal(separated_dir, *args)
 
   b.add_title_hook("configure") {|bb, log|
     if /^checking target system type\.\.\. (\S+)$/ =~ log
-      b.update_title(:version, "#{b.long_name} #{$1}")
+      b.update_title(:version, "#{b.suffixed_name} [#{$1}]")
     end
   }
 
   b.add_title_hook("version") {|bb, log|
     if /^ruby [0-9.]+ \([0-9\-]+\) \[\S+\]$/ =~ log
-      b.update_title(:version, $&)
+      ver = $&
+      ss = b.suffixes.reject {|s| /\A(pth|o\d)\z/ !~ s }
+      ver << " [#{ss.join(',')}]" if !ss.empty?
+      b.update_title(:version, ver)
     end
   }
     
