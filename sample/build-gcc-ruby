@@ -5,7 +5,7 @@ require 'chkbuild/ruby'
 
 Build.limit(:data=>1024*1024*600, :as=>1024*1024*600)
 
-GCC = Build.def_perm_target("gcc",
+GCC = Build.def_target("gcc",
   ["trunk", "4.1", "4.0"],
   :old => 1) {|b, suffix|
   gcc_dir = b.work_dir

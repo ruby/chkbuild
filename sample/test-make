@@ -2,7 +2,7 @@
 
 require 'build'
 
-Build.def_perm_target("make-failure") {|b|
+Build.def_target("make-failure") {|b|
   b.make("nonexisting-target")
 }
 

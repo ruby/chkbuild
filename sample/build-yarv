@@ -4,7 +4,7 @@ require 'build'
 
 Build.limit(:data=>1024*1024*300, :as=>1024*1024*300)
 
-Build.def_perm_target("yarv") {|b|
+Build.def_target("yarv") {|b|
   ruby_curr_dir = b.work_dir
   Dir.chdir("..") {
     b.svn("http://www.atdot.net/svn/yarv/trunk", 'yarv')

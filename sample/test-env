@@ -2,7 +2,7 @@
 
 require 'build'
 
-Build.def_perm_target("env") {|b|
+Build.def_target("env") {|b|
   b.run("sh", "-c", "echo $AAA", "ENV:AAA"=>"foooo")
 }
 

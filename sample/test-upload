@@ -6,7 +6,7 @@ Build.add_upload_hook {|name|
   p "#{Build.public_dir}/#{name}"
 }
 
-Build.def_perm_target("uptest", ["dev", "stable"]) {|b|
+Build.def_target("uptest", ["dev", "stable"]) {|b|
   b.run("echo", "uptest")
 }
 

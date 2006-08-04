@@ -2,11 +2,11 @@
 
 require 'build'
 
-Dep1 = Build.def_perm_target("dep1",
+Dep1 = Build.def_target("dep1",
   ["dev", "stable"]) {|b, suffix|
 }
 
-Build.def_perm_target("dep2",
+Build.def_target("dep2",
   ["dev", "stable"],
   Dep1) {
     |b, suffix, dep1|

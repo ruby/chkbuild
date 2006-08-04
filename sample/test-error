@@ -2,7 +2,7 @@
 
 require 'build'
 
-Build.def_perm_target("error") {|b|
+Build.def_target("error") {|b|
   x
 }
 

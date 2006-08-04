@@ -2,7 +2,7 @@
 
 require 'build'
 
-Build.def_perm_target("fail") {|b|
+Build.def_target("fail") {|b|
   b.add_title_hook('end') {
     log = b.all_log
     mark = ''

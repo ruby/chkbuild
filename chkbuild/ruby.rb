@@ -9,7 +9,7 @@ def def_build_ruby2(*args)
 end
 
 def def_build_ruby_internal(separated_dir, *args)
-  b = Build.def_perm_target("ruby", *args) {|b, *suffixes|
+  b = Build.def_target("ruby", *args) {|b, *suffixes|
     ruby_work_dir = b.work_dir
 
     ruby_branch = nil

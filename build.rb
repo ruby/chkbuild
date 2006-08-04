@@ -34,7 +34,7 @@ class Build
     }
   end
 
-  def Build.def_perm_target(target_name, *args, &block)
+  def Build.def_target(target_name, *args, &block)
     t = ChkBuild::Target.new(target_name, *args, &block)
     @target_list << t
     t

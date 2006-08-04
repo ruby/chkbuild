@@ -2,7 +2,7 @@
 
 require 'build'
 
-Build.def_perm_target("savannah") {|b|
+Build.def_target("savannah") {|b|
   b.gnu_savannah_cvs('config', 'config', nil)
   b.run("config/config.guess", :section=>"foo")
 }
