@@ -25,14 +25,17 @@ Autoconf = Build.def_target("autoconf") {|b|
   }
   b.make
   b.make("install")
-  b.run("#{dir}/bin/autoconf", '--version', :section=>'version') {|bb, log|
-    case log
-    when /^Autoconf version (.*)$/
-      b.update_title(:version, "autoconf #{$1}")
-    when /^autoconf \(GNU Autoconf\) (.*)$/
-      b.update_title(:version, "autoconf #{$1}")
-    end
-  }
+
+  b.run("#{dir}/bin/autoconf", '--version', :section=>'version')
+}
+
+Autoconf.add_title_hook('version') {|b, log|
+  case log
+  when /^Autoconf version (.*)$/
+    b.update_title(:version, "autoconf #{$1}")
+  when /^autoconf \(GNU Autoconf\) (.*)$/
+    b.update_title(:version, "autoconf #{$1}")
+  end
 }
 
 def_build_ruby2(
