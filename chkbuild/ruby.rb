@@ -5,7 +5,7 @@ def def_build_ruby(*args)
 end
 
 def def_build_ruby2(*args)
-  def_build_ruby_internal(false, *args)
+  def_build_ruby_internal(true, *args)
 end
 
 def def_build_ruby_internal(separated_dir, *args)
