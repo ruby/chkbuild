@@ -56,19 +56,19 @@ class ChkBuild::Target
   def add_title_hook(secname, &block) @title_hook << [secname, block] end
   def each_title_hook(&block) @title_hook.each(&block) end
 
-  def each_suffix_list
-    @branches.each {|suffix_list|
-      yield suffix_list
+  def each_suffixes
+    @branches.each {|suffixes|
+      yield suffixes
     }
   end
 
   def make_result
     return @result if defined? @result
     succeed = Result.new
-    each_suffix_list {|suffix_list|
+    each_suffixes {|suffixes|
       dep_results = @dep_targets.map {|dep_target| dep_target.result }
       Util.rproduct(*dep_results) {|dependencies|
-        build = ChkBuild::Build.new(self, suffix_list)
+        build = ChkBuild::Build.new(self, suffixes)
         dependencies.each {|depbuild| build.add_depbuild depbuild }
         succeed.add(build) if build.build
       }
