@@ -59,6 +59,9 @@ class Build
   def add_depbuild(depbuild)
     @depbuilds << depbuild
   end
+  def lock_depbuilds
+    @depbuilds.freeze
+  end
 
   def suffixed_name
     name = @target.target_name.dup
@@ -69,7 +72,7 @@ class Build
   end
 
   def depsuffixed_name
-    @depbuilds.freeze
+    lock_depbuilds
     name = self.suffixed_name
     @depbuilds.each {|depbuild|
       name << '_' << depbuild.suffixed_name
@@ -80,6 +83,7 @@ class Build
   def add_title_hook(secname, &block) @target.add_title_hook(secname, &block) end
 
   def build
+    lock_depbuilds
     dep_dirs = []
     dep_versions = []
     @depbuilds.each {|depbuild|
