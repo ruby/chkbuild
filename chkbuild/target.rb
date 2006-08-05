@@ -70,7 +70,8 @@ class ChkBuild::Target
       Util.rproduct(*dep_results) {|dependencies|
         build = ChkBuild::Build.new(self, suffixes)
         dependencies.each {|depbuild| build.add_depbuild depbuild }
-        succeed.add(build) if build.build
+        build.build
+        succeed.add(build) if build.success?
       }
     }
     @result = succeed

@@ -5,7 +5,7 @@ module ChkBuild
 
   @target_list = []
   def ChkBuild.main_build
-    Build.lock_start
+    ::Build.lock_start
     @target_list.each {|t|
       t.make_result
     }

@@ -101,6 +101,18 @@ class ChkBuild::Build
     return status
   end
 
+  def success?
+    if defined? @child_status
+      if @child_status.to_i == 0
+        true
+      else
+        false
+      end
+    else
+      nil
+    end
+  end
+
   def status
     return @child_status if defined? @child_status
     raise "#{self.suffixed_name}: no status yet"
