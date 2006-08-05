@@ -196,7 +196,7 @@ class ChkBuild::Build
           puts "failed(#{err.reason})"
         else
           puts "failed(#{err.class}:#{err.message})"
-          show_backtrace
+          show_backtrace err
         end
       else
         puts "failed"
