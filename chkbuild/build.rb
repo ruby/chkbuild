@@ -50,7 +50,14 @@ class ChkBuild::Build
     name
   end
 
-  def add_title_hook(secname, &block) @target.add_title_hook(secname, &block) end
+  def build_time_sequence
+    dirs = Dir.entries(@target_dir)
+    dirs.reject! {|d| /\A\d{8}T\d{6}\z/ !~ d } # year 10000 problem
+    dirs.sort!
+    dirs
+  end
+
+  ################
 
   def build
     dep_dirs = []
@@ -199,13 +206,6 @@ class ChkBuild::Build
 
   def work_dir() Pathname.new(@dir) end
 
-  def build_time_sequence
-    dirs = Dir.entries(@target_dir)
-    dirs.reject! {|d| /\A\d{8}T\d{6}\z/ !~ d } # year 10000 problem
-    dirs.sort!
-    dirs
-  end
-
   def remove_old_build(current, num)
     dirs = build_time_sequence
     dirs.delete current
@@ -242,14 +242,6 @@ class ChkBuild::Build
     f << content
     f.close
     File.rename tmp, filename
-  end
-
-  def update_title(key, val=nil, &block)
-    @title.update_title(key, val, &block)
-  end
-
-  def all_log
-    File.read(@log_filename)
   end
 
   def update_summary(public, start_time, title)
