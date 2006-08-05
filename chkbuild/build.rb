@@ -26,6 +26,11 @@ class ChkBuild::Build
     @target = target
     @suffixes = suffixes
     @depbuilds = depbuilds
+
+    @target_dir = "#{ChkBuild.build_dir}/#{self.depsuffixed_name}"
+    @public = "#{ChkBuild.public_dir}/#{self.depsuffixed_name}"
+    @public_log = "#{@public}/log"
+    @current_txt = "#{@public}/current.txt"
   end
   attr_reader :target, :suffixes, :depbuilds
 
@@ -134,11 +139,7 @@ class ChkBuild::Build
   def child_build_target(start_time_obj, dep_versions, *branch_info)
     opts = @target.opts
     @start_time = start_time_obj.strftime("%Y%m%dT%H%M%S")
-    @target_dir = "#{ChkBuild.build_dir}/#{self.depsuffixed_name}"
     @dir = "#{@target_dir}/#{@start_time}"
-    @public = "#{ChkBuild.public_dir}/#{self.depsuffixed_name}"
-    @public_log = "#{@public}/log"
-    @current_txt = "#{@public}/current.txt"
     @log_filename = "#{@dir}/log"
     mkcd @target_dir
     raise "already exist: #{@start_time}" if File.exist? @start_time
