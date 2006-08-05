@@ -217,33 +217,6 @@ class ChkBuild::Build
     }
   end
 
-  def force_link(old, new)
-    tmp = nil
-    i = 0
-    loop {
-      i += 1
-      tmp = "#{new}.tmp#{i}"
-      break unless File.exist? tmp
-    } # race condition
-    File.link old, tmp
-    File.rename tmp, new
-  end
-
-  def atomic_make_file(filename, content)
-    tmp = nil
-    i = 0
-    begin
-      tmp = "#{filename}.tmp#{i}"
-      f = File.open(tmp, File::WRONLY|File::CREAT|File::TRUNC|File::EXCL)
-    rescue Errno::EEXIST
-      i += 1
-      retry
-    end
-    f << content
-    f.close
-    File.rename tmp, filename
-  end
-
   def update_summary(public, start_time, title)
     open("#{public}/summary.txt", "a") {|f| f.puts "#{start_time} #{title}" }
     open("#{public}/summary.html", "a") {|f|
