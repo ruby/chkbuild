@@ -163,7 +163,7 @@ class ChkBuild::Build
     success = false
     FileUtils.mkpath(@public)
     FileUtils.mkpath(@public_log)
-    careful_link "log", @current_txt
+    force_link "log", @current_txt
     remove_old_build(@start_time, opts.fetch(:old, ::Build.num_oldbuilds))
     @logfile.start_section 'start'
     @target.build_proc.call(self, *branch_info)
@@ -172,7 +172,7 @@ class ChkBuild::Build
     output_status_section(success, $!)
     @logfile.start_section 'end'
     GDB.check_core(@dir)
-    careful_link @current_txt, "#{@public}/last.txt" if File.file? @current_txt
+    force_link @current_txt, "#{@public}/last.txt" if File.file? @current_txt
     @title = ChkBuild::Title.new(@target, @logfile)
     @title.run_title_hooks
     title = @title.make_title
@@ -217,7 +217,7 @@ class ChkBuild::Build
     }
   end
 
-  def careful_link(old, new)
+  def force_link(old, new)
     tmp = nil
     i = 0
     loop {
@@ -229,7 +229,7 @@ class ChkBuild::Build
     File.rename tmp, new
   end
 
-  def careful_make_file(filename, content)
+  def atomic_make_file(filename, content)
     tmp = nil
     i = 0
     begin
@@ -290,7 +290,7 @@ End
   def make_html_log(log_filename, title, dst)
     log = File.read(log_filename)
     content = ERB.new(HTMLTemplate).result(binding)
-    careful_make_file(dst, content)
+    atomic_make_file(dst, content)
   end
 
   def compress_file(src, dst)
