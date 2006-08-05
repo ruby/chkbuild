@@ -9,7 +9,7 @@ def def_build_ruby2(*args)
 end
 
 def def_build_ruby_internal(separated_dir, *args)
-  b = Build.def_target("ruby", *args) {|b, *suffixes|
+  t = Build.def_target("ruby", *args) {|b, *suffixes|
     ruby_work_dir = b.work_dir
 
     ruby_branch = nil
@@ -68,23 +68,23 @@ def def_build_ruby_internal(separated_dir, *args)
     b.run("./ruby", "#{srcdir+'test/runner.rb'}", "-v", :section=>"test-all")
   }
 
-  b.add_title_hook("configure") {|bb, log|
+  t.add_title_hook("configure") {|title, log|
     if /^checking target system type\.\.\. (\S+)$/ =~ log
-      bb.update_title(:version, "#{bb.suffixed_name} [#{$1}]")
+      title.update_title(:version, "#{title.suffixed_name} [#{$1}]")
     end
   }
 
-  b.add_title_hook("version") {|bb, log|
+  t.add_title_hook("version") {|title, log|
     if /^ruby [0-9.]+ \([0-9\-]+\) \[\S+\]$/ =~ log
       ver = $&
-      ss = bb.suffixed_name.split(/-/)[1..-1].reject {|s| /\A(pth|o\d)\z/ !~ s }
+      ss = title.suffixed_name.split(/-/)[1..-1].reject {|s| /\A(pth|o\d)\z/ !~ s }
       ver << " [#{ss.join(',')}]" if !ss.empty?
-      bb.update_title(:version, ver)
+      title.update_title(:version, ver)
     end
   }
     
-  b.add_title_hook("test.rb") {|bb, log|
-    bb.update_title(:status) {|val|
+  t.add_title_hook("test.rb") {|title, log|
+    title.update_title(:status) {|val|
       if /^end of test/ !~ log
         if /^test: \d+ failed (\d+)/ =~ log
           "#{$1}NotOK"
@@ -93,8 +93,8 @@ def def_build_ruby_internal(separated_dir, *args)
     }
   }
 
-  b.add_title_hook("test-all") {|bb, log|
-    bb.update_title(:status) {|val|
+  t.add_title_hook("test-all") {|title, log|
+    title.update_title(:status) {|val|
       if /^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors$/ =~ log
         failures = $1.to_i
         errors = $2.to_i
@@ -105,14 +105,14 @@ def def_build_ruby_internal(separated_dir, *args)
     }
   }
 
-  b.add_title_hook(nil) {|bb, log|
+  t.add_title_hook(nil) {|title, log|
     mark = ''
     mark << "[BUG]" if /\[BUG\]/i =~ log
     mark << "[SEGV]" if /segmentation fault|signal segv/i =~
       log.sub(/combination may cause frequent hang or segmentation fault/, '') # skip tk message.
     mark << "[FATAL]" if /\[FATAL\]/i =~ log
-    bb.update_title(:mark, mark)
+    title.update_title(:mark, mark)
   }
 
-  b
+  t
 end

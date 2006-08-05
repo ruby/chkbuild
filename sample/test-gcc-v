@@ -6,9 +6,9 @@ gcc_v = Build.def_target("gcc-v") {|b|
   b.run("gcc", '-v', :section=>'version')
 }
 
-gcc_v.add_title_hook('version') {|b, log|
+gcc_v.add_title_hook('version') {|title, log|
   if /^gcc version (.*)$/ =~ log
-    b.update_title(:gcc_version, "(gcc #{$1})")
+    title.update_title(:gcc_version, "(gcc #{$1})")
   end
 }
 

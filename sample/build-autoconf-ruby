@@ -29,12 +29,12 @@ Autoconf = Build.def_target("autoconf") {|b|
   b.run("#{dir}/bin/autoconf", '--version', :section=>'version')
 }
 
-Autoconf.add_title_hook('version') {|b, log|
+Autoconf.add_title_hook('version') {|title, log|
   case log
   when /^Autoconf version (.*)$/
-    b.update_title(:version, "autoconf #{$1}")
+    title.update_title(:version, "autoconf #{$1}")
   when /^autoconf \(GNU Autoconf\) (.*)$/
-    b.update_title(:version, "autoconf #{$1}")
+    title.update_title(:version, "autoconf #{$1}")
   end
 }
 

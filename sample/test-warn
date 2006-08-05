@@ -6,8 +6,8 @@ warn = Build.def_target("warn") {|b|
   b.run("echo", "warn")
 }
 
-warn.add_title_hook('echo') {|b, log|
-  b.update_title(:version, "foo") 
+warn.add_title_hook('echo') {|title, log|
+  title.update_title(:version, "foo") 
 }
 
 Build.main

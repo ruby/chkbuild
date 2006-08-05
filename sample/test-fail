@@ -2,16 +2,17 @@
 
 require 'build'
 
-Build.def_target("fail") {|b|
-  b.add_title_hook(nil) {|bb, log|
-    mark = ''
-    mark << "[BUG]" if /\[BUG\]/i =~ log
-    mark << "[SEGV]" if /Segmentation fault/i =~ log
-    mark << "[FATAL]" if /\[FATAL\]/i =~ log
-    b.update_title(:mark, mark)
-  }
+t = Build.def_target("fail") {|b|
   b.run("echo", "[bug]")
   b.run("false")
+}
+
+t.add_title_hook(nil) {|title, log|
+  mark = ''
+  mark << "[BUG]" if /\[BUG\]/i =~ log
+  mark << "[SEGV]" if /Segmentation fault/i =~ log
+  mark << "[FATAL]" if /\[FATAL\]/i =~ log
+  title.update_title(:mark, mark)
 }
 
 Build.main

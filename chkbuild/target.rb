@@ -28,11 +28,11 @@ class ChkBuild::Target
   end
 
   def init_default_title_hooks
-    add_title_hook('success') {|b, log|
-      b.update_title(:status) {|val| 'success' if !val }
+    add_title_hook('success') {|title, log|
+      title.update_title(:status) {|val| 'success' if !val }
     }
-    add_title_hook('failure') {|b, log|
-      b.update_title(:status) {|val|
+    add_title_hook('failure') {|title, log|
+      title.update_title(:status) {|val|
         if !val
           line = /\n/ =~ log ? $` : log
           line = line.strip
@@ -40,16 +40,16 @@ class ChkBuild::Target
         end
       }
     }
-    add_title_hook(nil) {|b, log|
+    add_title_hook(nil) {|title, log|
       num_warns = log.scan(/warn/i).length
-      b.update_title(:warn) {|val| "#{num_warns}W" } if 0 < num_warns
+      title.update_title(:warn) {|val| "#{num_warns}W" } if 0 < num_warns
     }
-    add_title_hook('dependencies') {|b, log|
+    add_title_hook('dependencies') {|title, log|
       dep_versions = []
       log.each_line {|depver|
         dep_versions << depver.chomp
       }
-      b.update_title(:dep_versions, dep_versions)
+      title.update_title(:dep_versions, dep_versions)
     }
   end
 

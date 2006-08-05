@@ -23,9 +23,9 @@ GCC = Build.def_target("gcc",
   b.run("#{gcc_dir}/bin/gcc", '-v', :section=>'version')
 }
 
-GCC.add_title_hook('version') {|b, log|
+GCC.add_title_hook('version') {|title, log|
   if /^gcc version (.*)$/ =~ log
-    b.update_title(:version, "gcc #{$1}")
+    title.update_title(:version, "gcc #{$1}")
   end
 }
 
