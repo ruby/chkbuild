@@ -68,14 +68,21 @@ class Build
     name
   end
 
+  def depsuffixed_name
+    name = self.suffixed_name
+    @depbuilds.each {|depbuild|
+      name << '_' << depbuild.suffixed_name
+    }
+    name
+  end
+
   def add_title_hook(secname, &block) @target.add_title_hook(secname, &block) end
 
   def build
-    name = self.suffixed_name
+    name = self.depsuffixed_name
     dep_dirs = []
     dep_versions = []
     @depbuilds.each {|depbuild|
-      name << '_' << depbuild.suffixed_name
       dep_dirs << "#{depbuild.target.target_name}=#{depbuild.dir}"
       dep_versions.concat depbuild.version_list
     }
@@ -134,7 +141,6 @@ class Build
 
   def child_build_wrapper(parent_pipe, start_time_obj, name, dep_versions, *branch_info)
     LOCK.puts name
-    @branch_info = branch_info
     @parent_pipe = parent_pipe
     success = false
     begin
@@ -145,7 +151,7 @@ class Build
     success
   end
 
-  def child_build_target(start_time_obj, name, dep_versions, *args)
+  def child_build_target(start_time_obj, name, dep_versions, *branch_info)
     opts = @target.opts
     @start_time = start_time_obj.strftime("%Y%m%dT%H%M%S")
     @target_dir = "#{Build.build_dir}/#{name}"
@@ -169,7 +175,7 @@ class Build
     careful_link "log", @current_txt
     remove_old_build(@start_time, opts.fetch(:old, Build.num_oldbuilds))
     @logfile.start_section 'start'
-    @target.build_proc.call(self, *args)
+    @target.build_proc.call(self, *branch_info)
     success = true
   ensure
     output_status_section(success, $!)
