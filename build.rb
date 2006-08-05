@@ -144,7 +144,7 @@ class Build
   end
 
   def child_build_wrapper(parent_pipe, start_time_obj, dep_versions, *branch_info)
-    LOCK.puts self.depsuffixed_name
+    LOCK_IO.puts self.depsuffixed_name
     @parent_pipe = parent_pipe
     success = false
     begin
@@ -472,13 +472,13 @@ End
 
   FileUtils.mkpath Build.build_dir
   lock_path = "#{Build.build_dir}/.lock"
-  LOCK = open(lock_path, File::WRONLY|File::CREAT)
-  if LOCK.flock(File::LOCK_EX|File::LOCK_NB) == false
+  LOCK_IO = open(lock_path, File::WRONLY|File::CREAT)
+  if LOCK_IO.flock(File::LOCK_EX|File::LOCK_NB) == false
     raise "another chkbuild is running."
   end
-  LOCK.truncate(0)
-  LOCK.sync = true
-  LOCK.close_on_exec = true
+  LOCK_IO.truncate(0)
+  LOCK_IO.sync = true
+  LOCK_IO.close_on_exec = true
   lock_pid = $$
   at_exit {
     File.unlink lock_path if $$ == lock_pid
