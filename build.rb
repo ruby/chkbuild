@@ -69,6 +69,7 @@ class Build
   end
 
   def depsuffixed_name
+    @depbuilds.freeze
     name = self.suffixed_name
     @depbuilds.each {|depbuild|
       name << '_' << depbuild.suffixed_name
@@ -79,30 +80,29 @@ class Build
   def add_title_hook(secname, &block) @target.add_title_hook(secname, &block) end
 
   def build
-    name = self.depsuffixed_name
     dep_dirs = []
     dep_versions = []
     @depbuilds.each {|depbuild|
       dep_dirs << "#{depbuild.target.target_name}=#{depbuild.dir}"
       dep_versions.concat depbuild.version_list
     }
-    status = self.build_in_child(name, dep_versions, dep_dirs)
+    status = self.build_in_child(dep_versions, dep_dirs)
     status.to_i == 0
   end
 
-  def build_in_child(name, dep_versions, dep_dirs)
+  def build_in_child(dep_versions, dep_dirs)
     if defined? @child_status
       raise "already built"
     end
     branch_info = @suffixes + dep_dirs
     start_time_obj = Time.now
-    dir = "#{Build.build_dir}/#{name}/#{start_time_obj.strftime("%Y%m%dT%H%M%S")}"
+    dir = "#{Build.build_dir}/#{self.depsuffixed_name}/#{start_time_obj.strftime("%Y%m%dT%H%M%S")}"
     r, w = IO.pipe
     r.close_on_exec = true
     w.close_on_exec = true
     pid = fork {
       r.close
-      if child_build_wrapper(w, start_time_obj, name, dep_versions, *branch_info)
+      if child_build_wrapper(w, start_time_obj, dep_versions, *branch_info)
         exit 0
       else
         exit 1
@@ -139,24 +139,24 @@ class Build
     raise "#{self.suffixed_name}: no version_list yet"
   end
 
-  def child_build_wrapper(parent_pipe, start_time_obj, name, dep_versions, *branch_info)
-    LOCK.puts name
+  def child_build_wrapper(parent_pipe, start_time_obj, dep_versions, *branch_info)
+    LOCK.puts self.depsuffixed_name
     @parent_pipe = parent_pipe
     success = false
     begin
-      child_build_target(start_time_obj, name, dep_versions, *branch_info)
+      child_build_target(start_time_obj, dep_versions, *branch_info)
       success = true
     rescue CommandError
     end
     success
   end
 
-  def child_build_target(start_time_obj, name, dep_versions, *branch_info)
+  def child_build_target(start_time_obj, dep_versions, *branch_info)
     opts = @target.opts
     @start_time = start_time_obj.strftime("%Y%m%dT%H%M%S")
-    @target_dir = "#{Build.build_dir}/#{name}"
+    @target_dir = "#{Build.build_dir}/#{self.depsuffixed_name}"
     @dir = "#{@target_dir}/#{@start_time}"
-    @public = "#{Build.public_dir}/#{name}"
+    @public = "#{Build.public_dir}/#{self.depsuffixed_name}"
     @public_log = "#{@public}/log"
     @current_txt = "#{@public}/current.txt"
     @log_filename = "#{@dir}/log"
@@ -165,7 +165,7 @@ class Build
     Dir.mkdir @start_time # fail if it is already exists.
     Dir.chdir @start_time
 
-    @logfile = ChkBuild::LogFile.write_open(@log_filename, name, dep_versions)
+    @logfile = ChkBuild::LogFile.write_open(@log_filename, self.depsuffixed_name, dep_versions)
     Thread.current[:logfile] = @logfile
     @logfile.change_default_output
 
@@ -187,7 +187,7 @@ class Build
     title = @title.make_title
     Marshal.dump(@title.versions, @parent_pipe)
     @parent_pipe.close
-    update_summary(name, @public, @start_time, title)
+    update_summary(@public, @start_time, title)
     compress_file(@log_filename, "#{@public_log}/#{@start_time}.txt.gz")
     make_diff
     make_html_log(@log_filename, title, "#{@public}/last.html")
@@ -268,12 +268,12 @@ class Build
     File.read(@log_filename)
   end
 
-  def update_summary(name, public, start_time, title)
+  def update_summary(public, start_time, title)
     open("#{public}/summary.txt", "a") {|f| f.puts "#{start_time} #{title}" }
     open("#{public}/summary.html", "a") {|f|
       if f.stat.size == 0
-        f.puts "<title>#{h name} build summary</title>"
-        f.puts "<h1>#{h name} build summary</h1>"
+        f.puts "<title>#{h self.depsuffixed_name} build summary</title>"
+        f.puts "<h1>#{h self.depsuffixed_name} build summary</h1>"
         f.puts "<p><a href=\"../\">chkbuild</a></p>"
       end
       f.print "<a href=\"log/#{start_time}.txt.gz\" name=\"#{start_time}\">#{h start_time}</a> #{h title}"
