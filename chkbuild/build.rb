@@ -22,19 +22,12 @@ require "chkbuild/logfile"
 class ChkBuild::Build
   include Util
 
-  def initialize(target, suffixes)
+  def initialize(target, suffixes, depbuilds)
     @target = target
     @suffixes = suffixes
-    @depbuilds = []
+    @depbuilds = depbuilds
   end
   attr_reader :target, :suffixes, :depbuilds
-
-  def add_depbuild(depbuild)
-    @depbuilds << depbuild
-  end
-  def lock_depbuilds
-    @depbuilds.freeze
-  end
 
   def suffixed_name
     name = @target.target_name.dup
@@ -45,7 +38,6 @@ class ChkBuild::Build
   end
 
   def depsuffixed_name
-    lock_depbuilds
     name = self.suffixed_name
     @depbuilds.each {|depbuild|
       name << '_' << depbuild.suffixed_name
@@ -56,7 +48,6 @@ class ChkBuild::Build
   def add_title_hook(secname, &block) @target.add_title_hook(secname, &block) end
 
   def build
-    lock_depbuilds
     dep_dirs = []
     dep_versions = []
     @depbuilds.each {|depbuild|

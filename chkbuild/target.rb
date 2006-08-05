@@ -68,9 +68,7 @@ class ChkBuild::Target
     each_suffixes {|suffixes|
       dep_builds = @dep_targets.map {|dep_target| dep_target.make_build_objs }
       Util.rproduct(*dep_builds) {|dependencies|
-        build = ChkBuild::Build.new(self, suffixes)
-        dependencies.each {|depbuild| build.add_depbuild depbuild }
-        builds << build
+        builds << ChkBuild::Build.new(self, suffixes, dependencies)
       }
     }
     @builds = builds
