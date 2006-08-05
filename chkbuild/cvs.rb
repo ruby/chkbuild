@@ -1,6 +1,6 @@
 require "uri"
 
-class Build
+class ChkBuild::Build
   def cvs(cvsroot, mod, branch, opts={})
     opts = opts.dup
     opts[:section] ||= 'cvs'

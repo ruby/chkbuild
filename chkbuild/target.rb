@@ -68,7 +68,7 @@ class ChkBuild::Target
     each_suffix_list {|suffix_list|
       dep_results = @dep_targets.map {|dep_target| dep_target.result }
       Util.rproduct(*dep_results) {|dependencies|
-        build = Build.new(self, suffix_list)
+        build = ChkBuild::Build.new(self, suffix_list)
         dependencies.each {|depbuild| build.add_depbuild depbuild }
         succeed.add(build) if build.build
       }

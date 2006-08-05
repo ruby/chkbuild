@@ -140,10 +140,7 @@ module Util
   end
 end
 
-class Build
-  include Util
-  extend Util
-
+class ChkBuild::Build
   def svn(url, working_dir, opts={})
     opts = opts.dup
     opts[:section] ||= 'svn'
@@ -184,6 +181,11 @@ class Build
       }
     end
   end
+end
+
+class Build
+  include Util
+  extend Util
 
   def self.rsync_ssh_upload_target(rsync_target, private_key=nil)
     Build.add_upload_hook {|name|
