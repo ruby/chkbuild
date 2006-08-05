@@ -224,7 +224,7 @@ class ChkBuild::Build
       i += 1
       tmp = "#{new}.tmp#{i}"
       break unless File.exist? tmp
-    }
+    } # race condition
     File.link old, tmp
     File.rename tmp, new
   end
