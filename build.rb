@@ -189,7 +189,7 @@ class Build
     @logfile.start_section 'end'
     GDB.check_core(@dir)
     careful_link @current_txt, "#{@public}/last.txt" if File.file? @current_txt
-    @title = ChkBuild::Title.new(@target, @suffixes, @logfile)
+    @title = ChkBuild::Title.new(@target, @logfile)
     @title.run_title_hooks
     title = @title.make_title
     Marshal.dump(@title.versions, @parent_pipe)

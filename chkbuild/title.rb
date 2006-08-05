@@ -1,12 +1,11 @@
 require 'util'
 
 class ChkBuild::Title
-  def initialize(target, suffixes, logfile)
+  def initialize(target, logfile)
     @target = target
-    @suffixes = suffixes
     @logfile = logfile
     @title = {}
-    @title[:version] = self.suffixed_name
+    @title[:version] = @logfile.suffixed_name
     @title[:dep_versions] = []
     @title[:hostname] = "(#{Util.simple_hostname})"
     @title_order = [:status, :warn, :mark, :version, :dep_versions, :hostname]
@@ -16,13 +15,10 @@ class ChkBuild::Title
     return ["#{@title[:version]}", *@title[:dep_versions]]
   end
 
-  def suffixed_name
-    name = @target.target_name.dup
-    @suffixes.each {|suffix|
-      name << '-' << suffix
-    }
-    name
-  end
+  def depsuffixed_name() @logfile.depsuffixed_name end
+  def suffixed_name() @logfile.suffixed_name end
+  def target_name() @logfile.target_name end
+  def suffixes() @logfile.suffixes end
 
   def run_title_hooks
     @target.each_title_hook {|secname, block|

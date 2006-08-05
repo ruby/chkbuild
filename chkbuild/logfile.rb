@@ -23,7 +23,7 @@ class ChkBuild::LogFile
   InitialMark = '=='
 
   def self.write_open(filename, target_name, suffixes, dep_suffixed_name_list, dep_versions)
-    depsuffixed_name = name.dup
+    depsuffixed_name = target_name.dup
     suffixes.each {|s| depsuffixed_name << '-' << s }
     dep_suffixed_name_list.each {|d| depsuffixed_name << '_' << d }
 
@@ -40,6 +40,18 @@ class ChkBuild::LogFile
     }
     logfile
   end
+
+  def depsuffixed_name
+    return @depsuffixed_name if defined? @depsuffixed_name
+    if /\A\S+\s+(\S+)/ =~ self.get_all_log
+      return @depsuffixed_name = $1
+    end
+    raise "unexpected log format"
+  end
+
+  def suffixed_name() depsuffixed_name.sub(/_.*/, '') end
+  def target_name() suffixed_name.sub(/-.*/, '') end
+  def suffixes() suffixed_name.split(/-/)[1..-1] end
 
   def self.read_open(filename)
     self.new(filename, false)
