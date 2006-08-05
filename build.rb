@@ -11,13 +11,13 @@ require 'escape'
 require 'timeoutcom'
 require 'gdb'
 require "udiff"
-require "logfile"
 require "util"
 
 module ChkBuild
 end
 require 'chkbuild/target'
 require 'chkbuild/title'
+require "chkbuild/logfile"
 
 begin
   Process.setpriority(Process::PRIO_PROCESS, 0, 10)
@@ -159,7 +159,7 @@ class Build
     Dir.mkdir @start_time # fail if it is already exists.
     Dir.chdir @start_time
 
-    @logfile = LogFile.new(@log_filename)
+    @logfile = ChkBuild::LogFile.write_open(@log_filename)
     Thread.current[:logfile] = @logfile
     @logfile.change_default_output
 

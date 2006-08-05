@@ -16,12 +16,22 @@ class IO
   end
 end
 
-class LogFile
+class ChkBuild::LogFile
   InitialMark = '=='
 
-  def initialize(filename)
+  def self.write_open(filename)
+    self.new(filename, true)
+  end
+
+  def self.read_open(filename)
+    self.new(filename, false)
+  end
+
+  def initialize(filename, writemode)
+    @writemode = writemode
+    mode = writemode ? File::RDWR|File::CREAT|File::APPEND : File::RDONLY
     @filename = filename
-    @io = File.open(filename, File::RDWR|File::CREAT|File::APPEND)
+    @io = File.open(filename, mode)
     @io.sync = true
     @mark = read_separator
     @sections = detect_sections
@@ -55,6 +65,7 @@ class LogFile
 
   # logfile.with_default_output { ... }
   def with_default_output
+    raise "not opened for writing" if !@writemode
     File.open(@filename, File::WRONLY|File::APPEND) {|f|
       STDERR.tmp_reopen(f) {
         STDERR.sync = true
@@ -67,6 +78,7 @@ class LogFile
   end
 
   def change_default_output
+    raise "not opened for writing" if !@writemode
     STDOUT.reopen(@save_io = File.for_fd(@io.fileno, File::WRONLY|File::APPEND))
     STDERR.reopen(STDOUT)
     STDOUT.sync = true
@@ -109,6 +121,7 @@ class LogFile
   end
 
   def modify_section(secname, data)
+    raise "not opened for writing" if !@writemode
     spos = @sections[secname]
     raise ArgumentError, "no section: #{secname.inspect}" if !spos
     data += "\n" if /\n\z/ !~ data
