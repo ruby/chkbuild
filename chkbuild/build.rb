@@ -64,7 +64,7 @@ class ChkBuild::Build
   end
 
   def build_in_child(dep_versions, dep_dirs)
-    if defined? @child_status
+    if defined? @built_status
       raise "already built"
     end
     branch_info = @suffixes + dep_dirs
@@ -91,15 +91,15 @@ class ChkBuild::Build
     rescue ArgumentError
       version_list = []
     end
-    @child_status = status
-    @child_dir = dir
-    @child_version_list = version_list
+    @built_status = status
+    @built_dir = dir
+    @built_version_list = version_list
     return status
   end
 
   def success?
-    if defined? @child_status
-      if @child_status.to_i == 0
+    if defined? @built_status
+      if @built_status.to_i == 0
         true
       else
         false
@@ -110,17 +110,17 @@ class ChkBuild::Build
   end
 
   def status
-    return @child_status if defined? @child_status
+    return @built_status if defined? @built_status
     raise "#{self.suffixed_name}: no status yet"
   end
 
   def dir
-    return @child_dir if defined? @child_dir
+    return @built_dir if defined? @built_dir
     raise "#{self.suffixed_name}: no dir yet"
   end
 
   def version_list
-    return @child_version_list if defined? @child_version_list
+    return @built_version_list if defined? @built_version_list
     raise "#{self.suffixed_name}: no version_list yet"
   end
 
