@@ -70,8 +70,10 @@ class ChkBuild::Target
       Util.rproduct(*dep_results) {|dependencies|
         build = ChkBuild::Build.new(self, suffixes)
         dependencies.each {|depbuild| build.add_depbuild depbuild }
-        build.build
-        succeed.add(build) if build.success?
+        if dependencies.all? {|depbuild| depbuild.success? }
+          build.build
+        end
+        succeed.add(build)
       }
     }
     @result = succeed
@@ -84,6 +86,8 @@ class ChkBuild::Target
   end
 
   class Result
+    include Enumerable
+
     def initialize
       @list = []
     end
