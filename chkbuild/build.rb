@@ -117,7 +117,7 @@ class ChkBuild::Build
   end
 
   def child_build_wrapper(parent_pipe, start_time_obj, dep_versions, *branch_info)
-    ::Build::LOCK_IO.puts self.depsuffixed_name
+    Build.lock_puts self.depsuffixed_name
     @parent_pipe = parent_pipe
     success = false
     begin

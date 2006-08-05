@@ -13,10 +13,12 @@ end
 
 File.umask(002)
 STDIN.reopen("/dev/null", "r")
+STDOUT.sync = true
 
 class Build
   @target_list = []
   def Build.main
+    Build.lock_start
     @target_list.each {|t|
       t.make_result
     }
@@ -64,18 +66,26 @@ class Build
   TOP_DIRECTORY = Dir.getwd
 
   FileUtils.mkpath Build.build_dir
-  lock_path = "#{Build.build_dir}/.lock"
-  LOCK_IO = open(lock_path, File::WRONLY|File::CREAT)
-  if LOCK_IO.flock(File::LOCK_EX|File::LOCK_NB) == false
-    raise "another chkbuild is running."
-  end
-  LOCK_IO.truncate(0)
-  LOCK_IO.sync = true
-  LOCK_IO.close_on_exec = true
-  lock_pid = $$
-  at_exit {
-    File.unlink lock_path if $$ == lock_pid
-  }
-end
+  LOCK_PATH = "#{Build.build_dir}/.lock"
 
-STDOUT.sync = true
+  def Build.lock_start
+    if !defined?(@lock_io)
+      @lock_io = open(LOCK_PATH, File::WRONLY|File::CREAT)
+    end
+    if @lock_io.flock(File::LOCK_EX|File::LOCK_NB) == false
+      raise "another chkbuild is running."
+    end
+    @lock_io.truncate(0)
+    @lock_io.sync = true
+    @lock_io.close_on_exec = true
+    @lock_io.puts "locked pid:#{$$}"
+    lock_pid = $$
+    at_exit {
+      @lock_io.puts "exit pid:#{$$}" if $$ == lock_pid
+    }
+  end
+
+  def Build.lock_puts(mesg)
+    @lock_io.puts mesg
+  end
+end
