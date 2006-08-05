@@ -159,20 +159,11 @@ class Build
     Dir.mkdir @start_time # fail if it is already exists.
     Dir.chdir @start_time
 
-    @logfile = ChkBuild::LogFile.write_open(@log_filename)
+    @logfile = ChkBuild::LogFile.write_open(@log_filename, name, dep_versions)
     Thread.current[:logfile] = @logfile
     @logfile.change_default_output
 
     success = false
-    @logfile.start_section name
-    puts "args: #{args.inspect}"
-    system("uname -a")
-    if !dep_versions.empty?
-      @logfile.start_section 'dependencies'
-      dep_versions.each {|depver|
-        puts "#{depver}"
-      }
-    end
     FileUtils.mkpath(@public)
     FileUtils.mkpath(@public_log)
     careful_link "log", @current_txt

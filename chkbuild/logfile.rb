@@ -16,11 +16,24 @@ class IO
   end
 end
 
+module ChkBuild
+end
 class ChkBuild::LogFile
   InitialMark = '=='
 
-  def self.write_open(filename)
-    self.new(filename, true)
+  def self.write_open(filename, name, dep_versions)
+    logfile = self.new(filename, true)
+    logfile.start_section name
+    logfile.with_default_output {
+      system("uname -a")
+      if !dep_versions.empty?
+        logfile.start_section 'dependencies'
+        dep_versions.each {|depver|
+          puts "#{depver}"
+        }
+      end
+    }
+    logfile
   end
 
   def self.read_open(filename)
