@@ -1,12 +1,12 @@
 require 'test/unit'
 require 'tempfile'
-require 'logfile'
+require 'chkbuild/logfile'
 
 class TestLogFile < Test::Unit::TestCase
   def with_logfile
     t = Tempfile.new("test-logfile")
     begin
-      l = LogFile.new(t.path)
+      l = ChkBuild::LogFile.new(t.path, true)
       yield l
     ensure
       t.close(true)
