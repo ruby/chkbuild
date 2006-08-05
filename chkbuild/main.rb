@@ -19,8 +19,8 @@ module ChkBuild
 
   def ChkBuild.main_list
     @target_list.each {|t|
-      t.each_suffixes {|suffixes|
-        p [t.target_name, suffixes]
+      t.each_build_obj {|build|
+        puts build.depsuffixed_name
       }
     }
   end

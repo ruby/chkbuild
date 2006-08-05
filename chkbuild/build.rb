@@ -27,7 +27,7 @@ class ChkBuild::Build
     @suffixes = suffixes
     @depbuilds = []
   end
-  attr_reader :target, :suffixes
+  attr_reader :target, :suffixes, :depbuilds
 
   def add_depbuild(depbuild)
     @depbuilds << depbuild

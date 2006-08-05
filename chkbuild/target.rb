@@ -62,19 +62,30 @@ class ChkBuild::Target
     }
   end
 
+  def make_build_objs
+    return @builds if defined? @builds
+    builds = []
+    each_suffixes {|suffixes|
+      dep_builds = @dep_targets.map {|dep_target| dep_target.make_build_objs }
+      Util.rproduct(*dep_builds) {|dependencies|
+        build = ChkBuild::Build.new(self, suffixes)
+        dependencies.each {|depbuild| build.add_depbuild depbuild }
+        builds << build
+      }
+    }
+    @builds = builds
+  end
+  def each_build_obj(&block)
+    make_build_objs.each(&block)
+  end
+
   def make_result
     return @result if defined? @result
     succeed = Result.new
-    each_suffixes {|suffixes|
-      dep_results = @dep_targets.map {|dep_target| dep_target.result }
-      Util.rproduct(*dep_results) {|dependencies|
-        build = ChkBuild::Build.new(self, suffixes)
-        dependencies.each {|depbuild| build.add_depbuild depbuild }
-        if dependencies.all? {|depbuild| depbuild.success? }
-          build.build
-        end
-        succeed.add(build)
-      }
+    each_build_obj {|build|
+      if build.depbuilds.all? {|depbuild| depbuild.success? }
+        succeed.add(build) if build.build
+      end
     }
     @result = succeed
     succeed
