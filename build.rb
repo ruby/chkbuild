@@ -169,7 +169,10 @@ class Build
     Dir.mkdir @start_time # fail if it is already exists.
     Dir.chdir @start_time
 
-    @logfile = ChkBuild::LogFile.write_open(@log_filename, self.depsuffixed_name, dep_versions)
+    @logfile = ChkBuild::LogFile.write_open(@log_filename,
+      @target.target_name, @suffixes,
+      @depbuilds.map {|db| db.suffixed_name },
+      @depbuilds.map {|db| db.version_list }.flatten)
     Thread.current[:logfile] = @logfile
     @logfile.change_default_output
 

@@ -18,12 +18,17 @@ end
 
 module ChkBuild
 end
+
 class ChkBuild::LogFile
   InitialMark = '=='
 
-  def self.write_open(filename, name, dep_versions)
+  def self.write_open(filename, target_name, suffixes, dep_suffixed_name_list, dep_versions)
+    depsuffixed_name = name.dup
+    suffixes.each {|s| depsuffixed_name << '-' << s }
+    dep_suffixed_name_list.each {|d| depsuffixed_name << '_' << d }
+
     logfile = self.new(filename, true)
-    logfile.start_section name
+    logfile.start_section depsuffixed_name
     logfile.with_default_output {
       system("uname -a")
       if !dep_versions.empty?
