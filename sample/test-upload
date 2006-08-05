@@ -3,7 +3,7 @@
 require 'build'
 
 Build.add_upload_hook {|name|
-  p "#{Build.public_dir}/#{name}"
+  p "#{ChkBuild.public_dir}/#{name}"
 }
 
 Build.def_target("uptest", ["dev", "stable"]) {|b|

@@ -1,7 +1,7 @@
+require 'chkbuild'
+
 require 'fileutils'
 
-module ChkBuild
-end
 require "util"
 require 'chkbuild/target'
 require 'chkbuild/build'
@@ -29,9 +29,6 @@ class Build
     @target_list << t
     t
   end
-
-  def self.build_dir() "#{TOP_DIRECTORY}/tmp/build" end
-  def self.public_dir() "#{TOP_DIRECTORY}/tmp/public_html" end
 
   class << Build
     attr_accessor :num_oldbuilds
@@ -65,8 +62,8 @@ class Build
 
   TOP_DIRECTORY = Dir.getwd
 
-  FileUtils.mkpath Build.build_dir
-  LOCK_PATH = "#{Build.build_dir}/.lock"
+  FileUtils.mkpath ChkBuild.build_dir
+  LOCK_PATH = "#{ChkBuild.build_dir}/.lock"
 
   def Build.lock_start
     if !defined?(@lock_io)
