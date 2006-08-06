@@ -129,15 +129,18 @@ module Util
   end
 
   def force_link(old, new)
-    tmp = nil
     i = 0
-    loop {
+    tmp = new
+    begin
+      File.link old, tmp
+    rescue Errno::EEXIST
       i += 1
       tmp = "#{new}.tmp#{i}"
-      break unless File.exist? tmp
-    } # race condition
-    File.link old, tmp
-    File.rename tmp, new
+      retry
+    end
+    if tmp != new
+      File.rename tmp, new
+    end
   end
 
   def atomic_make_file(filename, content)
