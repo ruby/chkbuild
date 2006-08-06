@@ -123,6 +123,10 @@ def def_build_ruby_internal(separated_dir, *args)
   }
 
   t.add_diff_preprocess_hook {|line|
+    line.sub(%r{\(druby://localhost:\d+\)}) { "(druby://localhost:<port>)" }
+  }
+
+  t.add_diff_preprocess_hook {|line|
     line.sub(/^Elapsed: [0-9.]+s/) { "Elapsed: <t>s" }
   }
 
