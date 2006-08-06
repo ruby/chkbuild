@@ -1,48 +1,10 @@
 #!/usr/bin/env ruby
 
 require 'build'
+require 'chkbuild/ruby'
 
 Build.limit(:data=>1024*1024*300, :as=>1024*1024*300)
 
-Build.def_target("yarv") {|b|
-  ruby_curr_dir = b.work_dir
-  Dir.chdir("..") {
-    b.svn("http://www.atdot.net/svn/yarv/trunk", 'yarv')
-    Dir.chdir("yarv") {
-      b.run("autoconf")
-    }
-  }
-  b.mkcd("yarv")
-  b.run("../../yarv/configure", "--prefix=#{ruby_curr_dir}") {|title, log|
-    if /^checking target system type\.\.\. (\S+)$/ =~ log
-      title.update_title(:version, "yarv #{$1}")
-    end
-  }
-  b.add_title_hook(nil) {|title, log|
-    mark = ''
-    mark << "[BUG]" if /\[BUG\]/i =~ log
-    mark << "[SEGV]" if /segmentation fault|signal segv/i =~
-      log.sub(/combination may cause frequent hang or segmentation fault/, '') # skip tk message.
-    mark << "[FATAL]" if /\[FATAL\]/i =~ log
-    title.update_title(:mark, mark)
-  }
-  b.make(:rlimit_data=>1024*1024*200, :rlimit_as=>1024*1024*200)
-  b.run("./ruby", "-v") {|title, log|
-    if /^ruby [0-9.]+ \([0-9\-]+\) \[\S+\]$/ =~ log
-      title.update_title(:version, $&)
-    end
-  }
-  b.make("install-nodoc")
-  b.run("./ruby", "../../yarv/sample/test.rb", :section=>"test.rb")
-  b.run("./ruby", "../../yarv/test/runner.rb", "-v", :section=>"test-all") {|title, log|
-    if /^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors$/ =~ log
-      failures = $1.to_i
-      errors = $2.to_i
-      if failures != 0 || errors != 0
-        title.update_title(:status, "#{failures}F#{errors}E")
-      end
-    end
-  }
-}
+def_build_ruby2(["yarv"])
 
 Build.main

@@ -22,6 +22,7 @@ def def_build_ruby_internal(separated_dir, *args)
       case s
       when "trunk" then ruby_branch = nil
       when "1.8" then ruby_branch = 'ruby_1_8'
+      when "yarv" then ruby_branch = 'yarv'
       when "o0"
         cflags.delete_if {|arg| /\A-O\d\z/ =~ arg }
         cflags << '-O0'
@@ -51,10 +52,13 @@ def def_build_ruby_internal(separated_dir, *args)
     srcdir = (checkout_dir+'ruby').relative_path_from(objdir)
 
     Dir.chdir(checkout_dir)
-    b.cvs(
-      ":pserver:anonymous@cvs.ruby-lang.org:/src", "ruby", ruby_branch,
-      :cvsweb => "http://www.ruby-lang.org/cgi-bin/cvsweb.cgi"
-      )
+    if ruby_branch == 'yarv'
+      b.svn("http://www.atdot.net/svn/yarv/trunk", 'ruby')
+    else
+      b.cvs(
+        ":pserver:anonymous@cvs.ruby-lang.org:/src", "ruby", ruby_branch,
+        :cvsweb => "http://www.ruby-lang.org/cgi-bin/cvsweb.cgi")
+    end
     Dir.chdir("ruby")
     b.run(autoconf_command)
 
