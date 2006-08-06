@@ -169,9 +169,9 @@ class ChkBuild::Build
     GDB.check_core(@dir)
     force_link @current_txt, @public+'last.txt' if @current_txt.file?
     titlegen = ChkBuild::Title.new(@target, @logfile)
-    err = catch_error('run_title_hooks') { titlegen.run_title_hooks }
+    title_err = catch_error('run_title_hooks') { titlegen.run_title_hooks }
     title = titlegen.make_title
-    title << " (run_title_hooks error)" if err
+    title << " (run_title_hooks error)" if title_err
     Marshal.dump(titlegen.versions, @parent_pipe)
     @parent_pipe.close
     update_summary(@start_time, title)
@@ -180,6 +180,7 @@ class ChkBuild::Build
     make_html_log(@log_filename, title, @public+"last.html")
     compress_file(@public+"last.html", @public+"last.html.gz")
     ::Build.run_upload_hooks(self.suffixed_name)
+    raise err if err
   end
 
   def output_status_section(err)
