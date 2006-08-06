@@ -293,7 +293,11 @@ End
     pat = /#{time}/
     Zlib::GzipReader.wrap(open(@public_log+"#{time}.txt.gz")) {|z|
       z.each_line {|line|
-        tmp << line.gsub(time, '<buildtime>')
+        line = line.gsub(time, '<buildtime>')
+        @target.each_diff_preprocess_hook {|block|
+          catch_error(block.to_s) { line = block.call(line) }
+        }
+        tmp << line
       }
     }
     tmp.flush

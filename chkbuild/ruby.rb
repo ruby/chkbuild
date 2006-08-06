@@ -118,5 +118,17 @@ def def_build_ruby_internal(separated_dir, *args)
     title.update_title(:mark, mark)
   }
 
+  t.add_diff_preprocess_hook {|line|
+    line.sub(/^ *\d+\) (Error:|Failure:)/) { " <n>) #{$1}" }
+  }
+
+  t.add_diff_preprocess_hook {|line|
+    line.sub(/^Elapsed: [0-9.]+s/) { "Elapsed: <t>s" }
+  }
+
+  t.add_diff_preprocess_hook {|line|
+    line.sub(/^Finished in [0-9.]+ seconds\./) { "Finished in <t> seconds." }
+  }
+
   t
 end

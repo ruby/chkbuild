@@ -7,6 +7,8 @@ class ChkBuild::Target
     init_target(*args)
     @title_hook = []
     init_default_title_hooks
+    @diff_preprocess_hook = []
+    init_default_diff_preprocess_hooks
   end
   attr_reader :target_name, :opts, :build_proc
 
@@ -55,6 +57,15 @@ class ChkBuild::Target
 
   def add_title_hook(secname, &block) @title_hook << [secname, block] end
   def each_title_hook(&block) @title_hook.each(&block) end
+
+  def init_default_diff_preprocess_hooks
+    add_diff_preprocess_hook {|line|
+      line.sub(/# \d{4,}-\d\d-\d\dT\d\d:\d\d:\d\d[-+]\d\d:\d\d$/, '# <time>')
+    }
+  end
+
+  def add_diff_preprocess_hook(&block) @diff_preprocess_hook << block end
+  def each_diff_preprocess_hook(&block) @diff_preprocess_hook.each(&block) end
 
   def each_suffixes
     @branches.each {|suffixes|
