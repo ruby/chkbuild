@@ -7,6 +7,8 @@ module TimeoutCommand
     case arg
     when Integer, Float
       timeout = arg
+    when Time
+      timeout = arg - Time.now
     when /\A\d+(\.\d+)?s?\z/
       timeout = $&.to_f
     when /\A\d+(\.\d+)?m\z/
@@ -16,15 +18,15 @@ module TimeoutCommand
     when /\A\d+(\.\d+)?d\z/
       timeout = $&.to_f * 60 * 60 * 24
     else
-      raise ArgumentError, "invalid time: #{time.inspect}"
+      raise ArgumentError, "invalid time: #{arg.inspect}"
     end
     timeout
   end
 
-  def kill_processgroup(pgid)
+  def kill_processgroup(pgid, msgout)
     begin
       Process.kill('INT', -pgid)
-      STDERR.puts "timeout: INT signal sent."
+      msgout.puts "timeout: INT signal sent."
       signals = ['TERM', 'KILL']
       signals.each {|sig|
         Process.kill(0, -pgid); sleep 0.1
@@ -37,14 +39,17 @@ module TimeoutCommand
           Process.kill(0, -pgid)
         }
         Process.kill(sig, -pgid)
-        STDERR.puts "timeout: #{sig} signal sent."
+        msgout.puts "timeout: #{sig} signal sent."
       }
     rescue Errno::ESRCH # no process i.e. success to kill
     end
   end
 
-  def timeout_command(secs)
+  def timeout_command(secs, msgout=STDERR)
     secs = parse_timeout(secs)
+    if secs < 0
+      raise TimeoutError, 'no time to run a command'
+    end
     pid = fork {
       Process.setpgid($$, $$)
       yield
@@ -57,12 +62,12 @@ module TimeoutCommand
     begin
       timeout(secs) { Process.wait pid }
     rescue TimeoutError
-      STDERR.puts "timeout: #{secs} seconds exceeds."
+      msgout.puts "timeout: #{secs} seconds exceeds."
       Thread.new { Process.wait pid }
       begin
         Process.kill(0, -pid)
-        STDERR.puts "timeout: the process group is alive."
-        kill_processgroup(pid)
+        msgout.puts "timeout: the process group is alive."
+        kill_processgroup(pid, msgout)
       rescue Errno::ESRCH # no process
       end
       raise
