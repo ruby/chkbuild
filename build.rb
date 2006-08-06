@@ -1,7 +1,5 @@
 require 'chkbuild'
 
-require 'fileutils'
-
 require "util"
 require 'chkbuild/target'
 require 'chkbuild/build'
@@ -53,12 +51,12 @@ class Build
 
   TOP_DIRECTORY = Dir.getwd
 
-  FileUtils.mkpath ChkBuild.build_dir
-  LOCK_PATH = "#{ChkBuild.build_dir}/.lock"
+  ChkBuild.build_dir.mkpath
+  LOCK_PATH = ChkBuild.build_dir + '.lock'
 
   def Build.lock_start
     if !defined?(@lock_io)
-      @lock_io = open(LOCK_PATH, File::WRONLY|File::CREAT)
+      @lock_io = LOCK_PATH.open(File::WRONLY|File::CREAT)
     end
     if @lock_io.flock(File::LOCK_EX|File::LOCK_NB) == false
       raise "another chkbuild is running."
