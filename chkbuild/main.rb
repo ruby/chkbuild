@@ -1,9 +1,9 @@
 require 'pathname'
 
 module ChkBuild
-  TOP_DIRECTORY = Dir.getwd
-  def ChkBuild.build_dir() Pathname.new("#{TOP_DIRECTORY}/tmp/build") end
-  def ChkBuild.public_dir() Pathname.new("#{TOP_DIRECTORY}/tmp/public_html") end
+  TOP_DIRECTORY = Pathname.getwd
+  def ChkBuild.build_dir() TOP_DIRECTORY+"tmp/build" end
+  def ChkBuild.public_dir() TOP_DIRECTORY+"tmp/public_html" end
 
   def ChkBuild.main_help(status=true)
     if File.executable? $0
