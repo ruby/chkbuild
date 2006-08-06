@@ -2,9 +2,13 @@
 
 require 'build'
 
-Build.def_target("savannah") {|b|
+t = Build.def_target("savannah") {|b|
   b.gnu_savannah_cvs('config', 'config', nil)
-  b.run("config/config.guess", :section=>"foo")
+  b.run("config/config.guess")
+}
+
+t.add_title_hook('config.guess') {|title, log|
+  title.update_title(:status, log.chomp[/[^\n]*\z/])
 }
 
 Build.main
