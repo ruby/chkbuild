@@ -323,8 +323,8 @@ End
     attr_accessor :reason
   end
   def run(command, *args, &block)
-    opts = {}
-    opts = args.pop if Hash === args.last
+    opts = @target.opts.dup
+    opts.update args.pop if Hash === args.last
 
     if opts.include?(:section)
       secname = opts[:section]
