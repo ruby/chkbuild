@@ -169,8 +169,9 @@ class ChkBuild::Build
     GDB.check_core(@dir)
     force_link @current_txt, @public+'last.txt' if @current_txt.file?
     titlegen = ChkBuild::Title.new(@target, @logfile)
-    titlegen.run_title_hooks
+    err = catch_error('run_title_hooks') { titlegen.run_title_hooks }
     title = titlegen.make_title
+    title << " (run_title_hooks error)" if err
     Marshal.dump(titlegen.versions, @parent_pipe)
     @parent_pipe.close
     update_summary(@start_time, title)
@@ -195,13 +196,22 @@ class ChkBuild::Build
     end
   end
 
-  def catch_error
+  def catch_error(name=nil)
     err = nil
     begin
       yield
     rescue Exception => err
     end
+    if err && name
+      output_error_section("#{name} error", err)
+    end
     return err
+  end
+
+  def output_error_section(secname, err)
+    @logfile.start_section secname
+    puts "#{err.class}:#{err.message}"
+    show_backtrace err
   end
 
   def work_dir() @dir end
@@ -373,10 +383,6 @@ End
           p $?
         end
         raise CommandError.new($?, opts.fetch(:section, command))
-      end
-    ensure
-      if block && secname
-        add_title_hook(secname, &block)
       end
     end
   end
