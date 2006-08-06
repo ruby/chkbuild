@@ -9,7 +9,7 @@ module GDB
   def check_core(dir)
     binaries = {}
     core_info = []
-    Find.find(dir) {|f|
+    Find.find(dir.to_s) {|f|
       stat = File.stat(f)
       basename = File.basename(f)
       binaries[basename] = f if stat.file? && stat.executable?

@@ -27,10 +27,10 @@ class ChkBuild::Build
     @suffixes = suffixes
     @depbuilds = depbuilds
 
-    @target_dir = "#{ChkBuild.build_dir}/#{self.depsuffixed_name}"
-    @public = "#{ChkBuild.public_dir}/#{self.depsuffixed_name}"
-    @public_log = "#{@public}/log"
-    @current_txt = "#{@public}/current.txt"
+    @target_dir = ChkBuild.build_dir + self.depsuffixed_name
+    @public = ChkBuild.public_dir + self.depsuffixed_name
+    @public_log = @public+"log"
+    @current_txt = @public+"current.txt"
   end
   attr_reader :target, :suffixes, :depbuilds
 
@@ -51,7 +51,7 @@ class ChkBuild::Build
   end
 
   def build_time_sequence
-    dirs = Dir.entries(@target_dir)
+    dirs = @target_dir.entries.map {|e| e.to_s }
     dirs.reject! {|d| /\A\d{8}T\d{6}\z/ !~ d } # year 10000 problem
     dirs.sort!
     dirs
@@ -76,7 +76,7 @@ class ChkBuild::Build
     end
     branch_info = @suffixes + dep_dirs
     start_time_obj = Time.now
-    dir = "#{ChkBuild.build_dir}/#{self.depsuffixed_name}/#{start_time_obj.strftime("%Y%m%dT%H%M%S")}"
+    dir = ChkBuild.build_dir + self.depsuffixed_name + start_time_obj.strftime("%Y%m%dT%H%M%S")
     r, w = IO.pipe
     r.close_on_exec = true
     w.close_on_exec = true
@@ -146,8 +146,8 @@ class ChkBuild::Build
   def child_build_target(start_time_obj, dep_versions, *branch_info)
     opts = @target.opts
     @start_time = start_time_obj.strftime("%Y%m%dT%H%M%S")
-    @dir = "#{@target_dir}/#{@start_time}"
-    @log_filename = "#{@dir}/log"
+    @dir = @target_dir + @start_time
+    @log_filename = @dir + 'log'
     mkcd @target_dir
     raise "already exist: #{@start_time}" if File.exist? @start_time
     Dir.mkdir @start_time # fail if it is already exists.
@@ -161,8 +161,8 @@ class ChkBuild::Build
     @logfile.change_default_output
 
     success = false
-    FileUtils.mkpath(@public)
-    FileUtils.mkpath(@public_log)
+    @public.mkpath
+    @public_log.mkpath
     force_link "log", @current_txt
     remove_old_build(@start_time, opts.fetch(:old, ::Build.num_oldbuilds))
     @logfile.start_section 'start'
@@ -172,17 +172,17 @@ class ChkBuild::Build
     output_status_section(success, $!)
     @logfile.start_section 'end'
     GDB.check_core(@dir)
-    force_link @current_txt, "#{@public}/last.txt" if File.file? @current_txt
+    force_link @current_txt, @public+'last.txt' if @current_txt.file?
     @title = ChkBuild::Title.new(@target, @logfile)
     @title.run_title_hooks
     title = @title.make_title
     Marshal.dump(@title.versions, @parent_pipe)
     @parent_pipe.close
-    update_summary(@public, @start_time, title)
-    compress_file(@log_filename, "#{@public_log}/#{@start_time}.txt.gz")
+    update_summary(@start_time, title)
+    compress_file(@log_filename, @public_log+"#{@start_time}.txt.gz")
     make_diff
-    make_html_log(@log_filename, title, "#{@public}/last.html")
-    compress_file("#{@public}/last.html", "#{@public}/last.html.gz")
+    make_html_log(@log_filename, title, @public+"last.html")
+    compress_file(@public+"last.html", @public+"last.html.gz")
     ::Build.run_upload_hooks(self.suffixed_name)
   end
 
@@ -204,22 +204,21 @@ class ChkBuild::Build
     end
   end
 
-  def work_dir() Pathname.new(@dir) end
+  def work_dir() @dir end
 
   def remove_old_build(current, num)
     dirs = build_time_sequence
     dirs.delete current
     return if dirs.length <= num
-    target_dir = @target_dir
     dirs[-num..-1] = []
     dirs.each {|d|
-      FileUtils.rmtree "#{target_dir}/#{d}"
+      (@target_dir+d).rmtree
     }
   end
 
-  def update_summary(public, start_time, title)
-    open("#{public}/summary.txt", "a") {|f| f.puts "#{start_time} #{title}" }
-    open("#{public}/summary.html", "a") {|f|
+  def update_summary(start_time, title)
+    open(@public+"summary.txt", "a") {|f| f.puts "#{start_time} #{title}" }
+    open(@public+"summary.html", "a") {|f|
       if f.stat.size == 0
         f.puts "<title>#{h self.depsuffixed_name} build summary</title>"
         f.puts "<h1>#{h self.depsuffixed_name} build summary</h1>"
@@ -282,7 +281,7 @@ End
   def make_diff_content(time)
     tmp = Tempfile.open("#{time}.")
     pat = /#{time}/
-    Zlib::GzipReader.wrap(open("#{@public_log}/#{time}.txt.gz")) {|z|
+    Zlib::GzipReader.wrap(open(@public_log+"#{time}.txt.gz")) {|z|
       z.each_line {|line|
         tmp << line.gsub(time, '<buildtime>')
       }
@@ -306,7 +305,7 @@ End
     time1 = time_seq.last
     tmp1 = make_diff_content(time1)
     tmp2 = make_diff_content(time2)
-    Zlib::GzipWriter.wrap(open("#{@public_log}/#{time2}.diff.txt.gz", "w")) {|z|
+    Zlib::GzipWriter.wrap(open(@public_log+"#{time2}.diff.txt.gz", "w")) {|z|
       z.puts "--- #{time1}"
       z.puts "+++ #{time2}"
       UDiff.diff(tmp1.path, tmp2.path, z)
