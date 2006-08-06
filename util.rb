@@ -5,8 +5,6 @@ require "digest/sha2"
 require "fcntl"
 require "tempfile"
 
-require 'chkbuild/cvs'
-
 def tp(obj)
   open("/dev/tty", "w") {|f| f.puts obj.inspect }
 end
