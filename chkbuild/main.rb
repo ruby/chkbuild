@@ -16,7 +16,7 @@ module ChkBuild
     print <<"End"
 usage:
   #{command} [build]
-  #{command} list
+  #{command} list [depsuffixed_name...]
   #{command} title
 End
     exit status
@@ -47,9 +47,10 @@ End
   def ChkBuild.main_title
     @target_list.each {|t|
       t.each_build_obj {|build|
-        current_txt = ChkBuild.public_dir + build.depsuffixed_name + 'current.txt'
-        if current_txt.exist?
-          logfile = ChkBuild::LogFile.read_open(current_txt)
+        next if !ARGV.empty? && !ARGV.include?(build.depsuffixed_name)
+        last_txt = ChkBuild.public_dir + build.depsuffixed_name + 'last.txt'
+        if last_txt.exist?
+          logfile = ChkBuild::LogFile.read_open(last_txt)
           title = ChkBuild::Title.new(t, logfile)
           title.run_title_hooks
           puts "#{build.depsuffixed_name}:\t#{title.make_title}"
@@ -59,7 +60,7 @@ End
   end
 
   def ChkBuild.main
-    subcommand = ARGV[0] || 'build'
+    subcommand = ARGV.shift || 'build'
     case subcommand
     when 'help', '-h' then ChkBuild.main_help
     when 'build' then ChkBuild.main_build
