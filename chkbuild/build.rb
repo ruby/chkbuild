@@ -157,26 +157,27 @@ class ChkBuild::Build
       @target.target_name, @suffixes,
       @depbuilds.map {|db| db.suffixed_name },
       @depbuilds.map {|db| db.version_list }.flatten)
-    Thread.current[:logfile] = @logfile
     @logfile.change_default_output
-
-    success = false
     @public.mkpath
     @public_log.mkpath
     force_link "log", @current_txt
     remove_old_build(@start_time, opts.fetch(:old, ::Build.num_oldbuilds))
     @logfile.start_section 'start'
-    @target.build_proc.call(self, *branch_info)
-    success = true
-  ensure
-    output_status_section(success, $!)
+    success = false
+    err = nil
+    begin
+      @target.build_proc.call(self, *branch_info)
+      success = true
+    rescue Exception => err
+    end
+    output_status_section(success, err)
     @logfile.start_section 'end'
     GDB.check_core(@dir)
     force_link @current_txt, @public+'last.txt' if @current_txt.file?
-    @title = ChkBuild::Title.new(@target, @logfile)
-    @title.run_title_hooks
-    title = @title.make_title
-    Marshal.dump(@title.versions, @parent_pipe)
+    titlegen = ChkBuild::Title.new(@target, @logfile)
+    titlegen.run_title_hooks
+    title = titlegen.make_title
+    Marshal.dump(titlegen.versions, @parent_pipe)
     @parent_pipe.close
     update_summary(@start_time, title)
     compress_file(@log_filename, @public_log+"#{@start_time}.txt.gz")
@@ -330,7 +331,7 @@ End
     else
       secname = opts[:reason] || File.basename(command)
     end
-    Thread.current[:logfile].start_section(secname) if secname
+    @logfile.start_section(secname) if secname
 
     puts "+ #{[command, *args].map {|s| Escape.shell_escape s }.join(' ')}"
     pos = STDOUT.pos
