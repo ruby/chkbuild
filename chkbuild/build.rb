@@ -163,14 +163,8 @@ class ChkBuild::Build
     force_link "log", @current_txt
     remove_old_build(@start_time, opts.fetch(:old, ::Build.num_oldbuilds))
     @logfile.start_section 'start'
-    success = false
-    err = nil
-    begin
-      @target.build_proc.call(self, *branch_info)
-      success = true
-    rescue Exception => err
-    end
-    output_status_section(success, err)
+    err = catch_error { @target.build_proc.call(self, *branch_info) }
+    output_status_section(err)
     @logfile.start_section 'end'
     GDB.check_core(@dir)
     force_link @current_txt, @public+'last.txt' if @current_txt.file?
@@ -187,22 +181,27 @@ class ChkBuild::Build
     ::Build.run_upload_hooks(self.suffixed_name)
   end
 
-  def output_status_section(success, err)
-    if success
+  def output_status_section(err)
+    if !err
       @logfile.start_section 'success'
     else
       @logfile.start_section 'failure'
-      if err
-        if CommandError === err
-          puts "failed(#{err.reason})"
-        else
-          puts "failed(#{err.class}:#{err.message})"
-          show_backtrace err
-        end
+      if CommandError === err
+        puts "failed(#{err.reason})"
       else
-        puts "failed"
+        puts "failed(#{err.class}:#{err.message})"
+        show_backtrace err
       end
     end
+  end
+
+  def catch_error
+    err = nil
+    begin
+      yield
+    rescue Exception => err
+    end
+    return err
   end
 
   def work_dir() @dir end
