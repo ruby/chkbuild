@@ -27,12 +27,28 @@ module ChkBuild
     }
   end
 
+  def ChkBuild.main_title
+    @target_list.each {|t|
+      t.each_build_obj {|build|
+        current_txt = ChkBuild.public_dir + build.depsuffixed_name + 'current.txt'
+        if current_txt.exist?
+          logfile = ChkBuild::LogFile.read_open(current_txt)
+          title = ChkBuild::Title.new(t, logfile)
+          title.run_title_hooks
+          puts "#{build.depsuffixed_name}:\t#{title.make_title}"
+        end
+      }
+    }
+  end
+
   def ChkBuild.main
     case subcommand = ARGV[0]
     when 'build', nil
       ChkBuild.main_build
     when 'list'
       ChkBuild.main_list
+    when 'title'
+      ChkBuild.main_title
     else
       puts "unexpected subcommand: #{subcommand}"
       exit 1
