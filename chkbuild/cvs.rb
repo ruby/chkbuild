@@ -61,7 +61,7 @@ class ChkBuild::Build
             puts changes
             changes = nil
           end
-          line = "#{f}\t#{r1} -> #{r2}"
+          line = "#{f}\t#{r1}->#{r2}"
           if viewcvs
             repository = repository1 || repository2
             uri = URI.parse(viewcvs)
