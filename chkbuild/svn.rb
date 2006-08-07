@@ -9,7 +9,7 @@ class ChkBuild::Build
         self.run "svn", "cleanup", opts
         opts[:section] = nil
         h1 = svn_revisions
-        self.run "svn", "update", opts
+        self.run "svn", "update", "-q", opts
         h2 = svn_revisions
         svn_print_revisions(h1, h2)
       }
