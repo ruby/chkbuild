@@ -1,5 +1,6 @@
 require 'fileutils'
 
+module ChkBuild; end # for testing
 class ChkBuild::Build
   def svn(svnroot, rep_dir, working_dir, opts={})
     url = svnroot + '/' + rep_dir
@@ -23,21 +24,34 @@ class ChkBuild::Build
   end
 
   def svn_revisions
-    h = {}
     IO.popen("svn status -v") {|f|
-      f.each {|line|
-        if /\d+\s+(\d+)\s+\S+\s+(\S+)/ =~ line
-          rev = $1.to_i
-          path = $2
-          h[path] = rev
-        end
-      }
+      svn_parse_status(f)
+    }
+  end
+
+  def svn_parse_status(f)
+    h = {}
+    f.each {|line|
+      if /\d+\s+(\d+)\s+\S+\s+(\S+)/ =~ line
+        rev = $1.to_i
+        path = $2
+        h[path] = rev
+      end
     }
     h
   end
 
   def svn_print_revisions(h1, h2, viewcvs=nil)
-    changes = 'changes:'
+    changes = "changes: #{h1['.']}->#{h2['.']}"
+    h1.delete '.'
+    h2.delete '.'
+    d1 = {}; h1.keys.each {|k| d1[$`] = true if %r{/[^/]*\z} =~ k }
+    d2 = {}; h2.keys.each {|k| d2[$`] = true if %r{/[^/]*\z} =~ k }
+    d1.each_key {|k|
+      next if !d2.include?(k)
+      h1.delete k
+      h2.delete k
+    }
     (h1.keys|h2.keys).sort.each {|f|
       r1 = h1[f] || 'none'
       r2 = h2[f] || 'none'
@@ -46,7 +60,7 @@ class ChkBuild::Build
         puts changes
         changes = nil
       end
-      line = "#{f}\t#{r1} -> #{r2}"
+      line = "#{f}\t#{r1}->#{r2}"
       if viewcvs
         diff_url = viewcvs.dup
         diff_url << '/' << f if f != '.'
