@@ -11,6 +11,7 @@ class ChkBuild::Build
         h1 = svn_revisions
         self.run "svn", "update", opts
         h2 = svn_revisions
+        svn_print_revisions(h1, h2)
       }
     else
       if File.exist?(working_dir)
@@ -36,7 +37,7 @@ class ChkBuild::Build
 
   def svn_print_revisions(h1, h2, viewcvs=nil)
     changes = 'changes:'
-    (h1.keys|h2.keys).each {|f|
+    (h1.keys|h2.keys).sort.each {|f|
       r1 = h1[f] || 'none'
       r2 = h2[f] || 'none'
       next if r1 == r2
