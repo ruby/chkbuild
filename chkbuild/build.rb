@@ -82,10 +82,11 @@ class ChkBuild::Build
     w.close_on_exec = true
     pid = fork {
       r.close
-      if child_build_wrapper(w, start_time_obj, dep_versions, *branch_info)
-        exit 0
-      else
+      err = child_build_wrapper(w, start_time_obj, dep_versions, *branch_info)
+      if err
         exit 1
+      else
+        exit 0
       end
     }
     w.close
@@ -134,13 +135,7 @@ class ChkBuild::Build
   def child_build_wrapper(parent_pipe, start_time_obj, dep_versions, *branch_info)
     Build.lock_puts self.depsuffixed_name
     @parent_pipe = parent_pipe
-    success = false
-    begin
-      child_build_target(start_time_obj, dep_versions, *branch_info)
-      success = true
-    rescue CommandError
-    end
-    success
+    child_build_target(start_time_obj, dep_versions, *branch_info)
   end
 
   def child_build_target(start_time_obj, dep_versions, *branch_info)
@@ -180,7 +175,7 @@ class ChkBuild::Build
     make_html_log(@log_filename, title, @public+"last.html")
     compress_file(@public+"last.html", @public+"last.html.gz")
     ::Build.run_upload_hooks(self.suffixed_name)
-    raise err if err
+    return err
   end
 
   def output_status_section(err)
