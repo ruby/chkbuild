@@ -60,7 +60,7 @@ class ChkBuild::Target
 
   def init_default_diff_preprocess_hooks
     add_diff_preprocess_hook {|line|
-      line.sub(/ # \d{4,}-\d\d-\d\dT\d\d:\d\d:\d\d[-+]\d\d:\d\d$/, '# <time>')
+      line.sub(/ # \d{4,}-\d\d-\d\dT\d\d:\d\d:\d\d[-+]\d\d:\d\d$/, ' # <time>')
     }
   end
 
