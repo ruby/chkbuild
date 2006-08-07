@@ -15,7 +15,10 @@ GCC = Build.def_target("gcc",
     "4.0"=>"branches/gcc-4_0-branch"
   }[suffix]
   Dir.chdir("..") {
-    b.svn("svn://gcc.gnu.org/svn/gcc/#{gcc_branch}", 'gcc')
+    b.svn("svn://gcc.gnu.org/svn/gcc", gcc_branch, 'gcc',
+      :viewcvs=>"http://gcc.gnu.org/viewcvs")
+    # svn://gcc.gnu.org/svn/gcc/trunk
+    # http://gcc.gnu.org/viewcvs/trunk/gcc/config/m68k/m68k.md?r1=115272&r2=115973
   }
   b.mkcd("objdir")
   b.run("../../gcc/configure", "--prefix=#{gcc_dir}", "--enable-languages=c", "--disable-shared", "--disable-multilib")
@@ -31,7 +34,7 @@ GCC.add_title_hook('version') {|title, log|
 
 def_build_ruby2(
   ["trunk", "1.8"],
-  [nil, "o3"],
+  ["o0", "o1", nil, "o3"],
   [nil, "pth"],
   GCC,
   :old => 1)

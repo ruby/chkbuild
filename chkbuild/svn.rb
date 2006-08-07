@@ -1,7 +1,8 @@
 require 'fileutils'
 
 class ChkBuild::Build
-  def svn(url, working_dir, opts={})
+  def svn(svnroot, rep_dir, working_dir, opts={})
+    url = svnroot + '/' + rep_dir
     opts = opts.dup
     opts[:section] ||= 'svn'
     if File.exist?(working_dir) && File.exist?("#{working_dir}/.svn")
@@ -11,7 +12,7 @@ class ChkBuild::Build
         h1 = svn_revisions
         self.run "svn", "update", "-q", opts
         h2 = svn_revisions
-        svn_print_revisions(h1, h2)
+        svn_print_revisions(h1, h2, opts[:viewcvs]+'/'+rep_dir)
       }
     else
       if File.exist?(working_dir)
@@ -46,6 +47,12 @@ class ChkBuild::Build
         changes = nil
       end
       line = "#{f}\t#{r1} -> #{r2}"
+      if viewcvs
+        diff_url = viewcvs.dup
+        diff_url << '/' << f if f != '.'
+        diff_url << "?r1=#{r1}&r2=#{r2}"
+        line << " " << diff_url
+      end
       puts line
     }
   end
