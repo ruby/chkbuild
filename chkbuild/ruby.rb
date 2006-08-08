@@ -1,14 +1,24 @@
 require 'build'
 
 def def_build_ruby(*args)
-  def_build_ruby_internal(false, *args)
+  opts = Hash === args.last ? args.pop : {}
+  default_opts = {:separated_srcdir=>false}
+  opts = default_opts.merge(opts)
+  args.push opts
+  def_build_ruby_internal(*args)
 end
 
 def def_build_ruby2(*args)
-  def_build_ruby_internal(true, *args)
+  opts = Hash === args.last ? args.pop : {}
+  default_opts = {:separated_srcdir=>true}
+  opts = default_opts.merge(opts)
+  args.push opts
+  def_build_ruby_internal(*args)
 end
 
-def def_build_ruby_internal(separated_dir, *args)
+def def_build_ruby_internal(*args)
+  opts = Hash === args.last ? args.last : {}
+  separated_srcdir = opts[:separated_srcdir]
   t = Build.def_target("ruby", *args) {|b, *suffixes|
     ruby_work_dir = b.work_dir
 
@@ -44,7 +54,7 @@ def def_build_ruby_internal(separated_dir, *args)
     }
 
     objdir = ruby_work_dir+'ruby'
-    if separated_dir
+    if separated_srcdir
       checkout_dir = ruby_work_dir.dirname
     else
       checkout_dir = ruby_work_dir
