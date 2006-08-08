@@ -41,6 +41,18 @@ class ChkBuild::Build
     h
   end
 
+  def svn_path_sort(ary)
+    ary.sort_by {|path|
+      path.gsub(%r{([^/]+)(/|\z)}) {
+        if $2 == ""
+          "A#{$1}"
+        else
+          "B#{$1}\0"
+        end
+      }
+    }
+  end
+
   def svn_print_revisions(h1, h2, viewcvs=nil)
     changes = "changes: #{h1['.']}->#{h2['.']}"
     h1.delete '.'
@@ -52,7 +64,7 @@ class ChkBuild::Build
       h1.delete k
       h2.delete k
     }
-    (h1.keys|h2.keys).sort.each {|f|
+    svn_path_sort(h1.keys|h2.keys).each {|f|
       r1 = h1[f] || 'none'
       r2 = h2[f] || 'none'
       next if r1 == r2
