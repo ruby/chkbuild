@@ -129,20 +129,20 @@ def def_build_ruby_internal(*args)
     title.update_title(:mark, mark)
   }
 
-  t.add_diff_preprocess_hook {|line|
-    line.sub(/^ *\d+\) (Error:|Failure:)/) { " <n>) #{$1}" }
+  t.add_diff_preprocess_gsub(/^ *\d+\) (Error:|Failure:)/) {|match|
+    " <n>) #{match[1]}"
   }
 
-  t.add_diff_preprocess_hook {|line|
-    line.sub(%r{\(druby://localhost:\d+\)}) { "(druby://localhost:<port>)" }
+  t.add_diff_preprocess_gsub(%r{\(druby://localhost:\d+\)}) {|match|
+    "(druby://localhost:<port>)"
   }
 
-  t.add_diff_preprocess_hook {|line|
-    line.sub(/^Elapsed: [0-9.]+s/) { "Elapsed: <t>s" }
+  t.add_diff_preprocess_gsub(/^Elapsed: [0-9.]+s/) {|match|
+    "Elapsed: <t>s"
   }
 
-  t.add_diff_preprocess_hook {|line|
-    line.sub(/^Finished in [0-9.]+ seconds\./) { "Finished in <t> seconds." }
+  t.add_diff_preprocess_gsub(/^Finished in [0-9.]+ seconds\./) {|match|
+    "Finished in <t> seconds."
   }
 
   t

@@ -59,11 +59,14 @@ class ChkBuild::Target
   def each_title_hook(&block) @title_hook.each(&block) end
 
   def init_default_diff_preprocess_hooks
-    add_diff_preprocess_hook {|line|
-      line.sub(/ # \d{4,}-\d\d-\d\dT\d\d:\d\d:\d\d[-+]\d\d:\d\d$/, ' # <time>')
+    add_diff_preprocess_gsub(/ # \d{4,}-\d\d-\d\dT\d\d:\d\d:\d\d[-+]\d\d:\d\d$/) {|match|
+      ' # <time>'
     }
   end
 
+  def add_diff_preprocess_gsub(pat, &block)
+    @diff_preprocess_hook << lambda {|line| line.gsub(pat) { yield $~ } }
+  end
   def add_diff_preprocess_hook(&block) @diff_preprocess_hook << block end
   def each_diff_preprocess_hook(&block) @diff_preprocess_hook.each(&block) end
 
