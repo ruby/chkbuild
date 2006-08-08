@@ -68,16 +68,14 @@ class ChkBuild::Build
 
   def build
     dep_dirs = []
-    dep_versions = []
     @depbuilds.each {|depbuild|
       dep_dirs << "#{depbuild.target.target_name}=#{depbuild.dir}"
-      dep_versions.concat depbuild.version_list
     }
-    status = self.build_in_child(dep_versions, dep_dirs)
+    status = self.build_in_child(dep_dirs)
     status.to_i == 0
   end
 
-  def build_in_child(dep_versions, dep_dirs)
+  def build_in_child(dep_dirs)
     if defined? @built_status
       raise "already built"
     end
@@ -90,7 +88,7 @@ class ChkBuild::Build
     w.close_on_exec = true
     pid = fork {
       r.close
-      err = child_build_wrapper(w, dep_versions, *branch_info)
+      err = child_build_wrapper(w, *branch_info)
       if err
         exit 1
       else
@@ -150,13 +148,13 @@ class ChkBuild::Build
     raise "#{self.suffixed_name}: no version yet"
   end
 
-  def child_build_wrapper(parent_pipe, dep_versions, *branch_info)
+  def child_build_wrapper(parent_pipe, *branch_info)
     Build.lock_puts self.depsuffixed_name
     @parent_pipe = parent_pipe
-    child_build_target(dep_versions, *branch_info)
+    child_build_target(*branch_info)
   end
 
-  def child_build_target(dep_versions, *branch_info)
+  def child_build_target(*branch_info)
     opts = @target.opts
     @dir = @target_dir + @start_time
     @log_filename = @dir + 'log'
