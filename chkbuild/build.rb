@@ -101,13 +101,13 @@ class ChkBuild::Build
     Process.wait(pid)
     status = $?
     begin
-      version_list = Marshal.load(str)
+      version = Marshal.load(str)
     rescue ArgumentError
-      version_list = []
+      version = self.suffixed_name
     end
     @built_status = status
     @built_dir = dir
-    @built_version_list = version_list
+    @built_version = version
     return status
   end
 
@@ -138,13 +138,8 @@ class ChkBuild::Build
     raise "#{self.suffixed_name}: no dir yet"
   end
 
-  def version_list
-    return @built_version_list if defined? @built_version_list
-    raise "#{self.suffixed_name}: no version_list yet"
-  end
-
   def version
-    return @built_version_list[0] if defined? @built_version_list
+    return @built_version if defined? @built_version
     raise "#{self.suffixed_name}: no version yet"
   end
 
@@ -186,7 +181,7 @@ class ChkBuild::Build
     title_err = catch_error('run_title_hooks') { titlegen.run_title_hooks }
     title = titlegen.make_title
     title << " (run_title_hooks error)" if title_err
-    Marshal.dump(titlegen.versions, @parent_pipe)
+    Marshal.dump(titlegen.version, @parent_pipe)
     @parent_pipe.close
     compress_file(@log_filename, @public_log+"#{@start_time}.txt.gz")
     has_diff = make_diff

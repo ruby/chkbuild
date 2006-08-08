@@ -11,8 +11,8 @@ class ChkBuild::Title
     @title_order = [:status, :warn, :mark, :version, :dep_versions, :hostname]
   end
 
-  def versions
-    return [@title[:version], *@title[:dep_versions]]
+  def version
+    return @title[:version]
   end
 
   def depsuffixed_name() @logfile.depsuffixed_name end
@@ -44,11 +44,7 @@ class ChkBuild::Title
   def make_title
     title_hash = @title
     @title_order.map {|key|
-      if key == :dep_versions
-        title_hash[key].map {|ver| "(#{ver})" }
-      else
-        title_hash[key]
-      end
+      title_hash[key]
     }.flatten.join(' ').gsub(/\s+/, ' ').strip
   end
 
