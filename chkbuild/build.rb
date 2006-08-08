@@ -163,7 +163,7 @@ class ChkBuild::Build
     @logfile.start_section 'end'
     GDB.check_core(@dir)
     force_link @current_txt, @public+'last.txt' if @current_txt.file?
-    titlegen = ChkBuild::Title.new(@target, @logfile)
+    titlegen = ChkBuild::Title.new(@target, @start_time, @logfile)
     title_err = catch_error('run_title_hooks') { titlegen.run_title_hooks }
     title = titlegen.make_title
     title << " (run_title_hooks error)" if title_err

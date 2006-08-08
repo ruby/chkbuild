@@ -1,8 +1,9 @@
 require 'util'
 
 class ChkBuild::Title
-  def initialize(target, logfile)
+  def initialize(target, start_time, logfile)
     @target = target
+    @start_time = start_time
     @logfile = logfile
     @title = {}
     @title[:version] = @logfile.suffixed_name
@@ -12,7 +13,7 @@ class ChkBuild::Title
   end
 
   def versions
-    return ["#{@title[:version]}", *@title[:dep_versions]]
+    return ["#{@start_time} #{@title[:version]}", *@title[:dep_versions]]
   end
 
   def depsuffixed_name() @logfile.depsuffixed_name end

@@ -33,9 +33,7 @@ class ChkBuild::LogFile
       system("uname -a")
       if !dep_versions.empty?
         logfile.start_section 'dependencies'
-        dep_versions.each {|depver|
-          puts "#{depver}"
-        }
+        puts dep_versions
       end
     }
     logfile
