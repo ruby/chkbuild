@@ -13,7 +13,7 @@ class ChkBuild::Build
         h1 = cvs_revisions
         self.run("cvs", "-f", "-z3", "-Q", "update", "-kb", "-dP", opts)
         h2 = cvs_revisions
-        cvs_print_revisions(h1, h2, opts[:viewcvs]||opts[:cvsweb])
+        cvs_print_revisions(h1, h2, opts[:viewvc]||opts[:viewcvs]||opts[:cvsweb])
       }
     else
       h1 = nil
@@ -31,7 +31,7 @@ class ChkBuild::Build
       end
       Dir.chdir(working_dir) {
         h2 = cvs_revisions
-        cvs_print_revisions(h1, h2, opts[:viewcvs]||opts[:cvsweb])
+        cvs_print_revisions(h1, h2, opts[:viewvc]||opts[:viewcvs]||opts[:cvsweb])
       }
     end
   end

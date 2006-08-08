@@ -13,7 +13,9 @@ class ChkBuild::Build
         h1 = svn_revisions
         self.run "svn", "update", "-q", opts
         h2 = svn_revisions
-        svn_print_revisions(h1, h2, opts[:viewcvs]+'/'+rep_dir)
+        viewvc = opts[:viewvc]||opts[:viewcvs]
+        viewvc = viewvc+'/'+rep_dir if viewvc
+        svn_print_revisions(h1, h2, viewvc)
       }
     else
       if File.exist?(working_dir)
