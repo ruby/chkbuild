@@ -34,8 +34,7 @@ gcc.add_title_hook('version') {|title, log|
 
 gcc.add_diff_preprocess_gsub(
   /^(  transformation: [0-9.]+, building DFA: [0-9.]+|  DFA minimization: [0-9.]+, making insn equivalence: [0-9.]+| all automaton generation: [0-9.]+, output: [0-9.]+)$/) {|match|
-    match[0].gsub(/[0-9.]+/, '<t>')
-  }
+  match[0].gsub(/[0-9.]+/, '<t>')
 }
 
 def_build_ruby(
