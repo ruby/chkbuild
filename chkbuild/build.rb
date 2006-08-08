@@ -315,11 +315,19 @@ End
     time1 = time_seq.last
     tmp1 = make_diff_content(time1)
     tmp2 = make_diff_content(time2)
-    Zlib::GzipWriter.wrap(open(@public_log+"#{time2}.diff.txt.gz", "w")) {|z|
+    pos1 = pos2 = nil
+    output_path = @public_log+"#{time2}.diff.txt.gz"
+    Zlib::GzipWriter.wrap(open(output_path, "w")) {|z|
       z.puts "--- #{time1}"
       z.puts "+++ #{time2}"
+      pos1 = z.pos
       UDiff.diff(tmp1.path, tmp2.path, z)
+      pos2 = z.pos
     }
+    if pos1 == pos2
+      output_path.unlink
+      return false
+    end
     return true
   end
 
