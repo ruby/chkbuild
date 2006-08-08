@@ -49,7 +49,7 @@ class ChkBuild::Target
     add_title_hook('dependencies') {|title, log|
       dep_versions = []
       log.each_line {|depver|
-        dep_versions << depver.chomp
+        dep_versions << depver.chomp.sub(/^\d+T\d+\s+/, '')
       }
       title.update_title(:dep_versions, dep_versions)
     }
@@ -65,7 +65,6 @@ class ChkBuild::Target
     add_diff_preprocess_gsub(/\b\d{8,}T\d{6}\b/) {|match|
       '<time>'
     }
-
   end
 
   def add_diff_preprocess_gsub(pat, &block)

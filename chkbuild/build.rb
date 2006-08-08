@@ -50,6 +50,13 @@ class ChkBuild::Build
     name
   end
 
+  def traverse_depbuild(&block)
+    @depbuilds.each {|depbuild|
+      yield depbuild
+      depbuild.traverse_depbuild(&block)
+    }
+  end
+
   def build_time_sequence
     dirs = @target_dir.entries.map {|e| e.to_s }
     dirs.reject! {|d| /\A\d{8}T\d{6}\z/ !~ d } # year 10000 problem
@@ -76,13 +83,14 @@ class ChkBuild::Build
     end
     branch_info = @suffixes + dep_dirs
     start_time_obj = Time.now
-    dir = ChkBuild.build_dir + self.depsuffixed_name + start_time_obj.strftime("%Y%m%dT%H%M%S")
+    @start_time = start_time_obj.strftime("%Y%m%dT%H%M%S")
+    dir = ChkBuild.build_dir + self.depsuffixed_name + @start_time
     r, w = IO.pipe
     r.close_on_exec = true
     w.close_on_exec = true
     pid = fork {
       r.close
-      err = child_build_wrapper(w, start_time_obj, dep_versions, *branch_info)
+      err = child_build_wrapper(w, dep_versions, *branch_info)
       if err
         exit 1
       else
@@ -103,6 +111,11 @@ class ChkBuild::Build
     @built_dir = dir
     @built_version_list = version_list
     return status
+  end
+
+  def start_time
+    return @start_time if defined? @start_time
+    raise "#{self.suffixed_name}: no start_time yet"
   end
 
   def success?
@@ -132,15 +145,19 @@ class ChkBuild::Build
     raise "#{self.suffixed_name}: no version_list yet"
   end
 
-  def child_build_wrapper(parent_pipe, start_time_obj, dep_versions, *branch_info)
-    Build.lock_puts self.depsuffixed_name
-    @parent_pipe = parent_pipe
-    child_build_target(start_time_obj, dep_versions, *branch_info)
+  def version
+    return @built_version_list[0] if defined? @built_version_list
+    raise "#{self.suffixed_name}: no version yet"
   end
 
-  def child_build_target(start_time_obj, dep_versions, *branch_info)
+  def child_build_wrapper(parent_pipe, dep_versions, *branch_info)
+    Build.lock_puts self.depsuffixed_name
+    @parent_pipe = parent_pipe
+    child_build_target(dep_versions, *branch_info)
+  end
+
+  def child_build_target(dep_versions, *branch_info)
     opts = @target.opts
-    @start_time = start_time_obj.strftime("%Y%m%dT%H%M%S")
     @dir = @target_dir + @start_time
     @log_filename = @dir + 'log'
     mkcd @target_dir
@@ -148,10 +165,14 @@ class ChkBuild::Build
     Dir.mkdir @start_time # fail if it is already exists.
     Dir.chdir @start_time
 
+    dep_versions = []
+    traverse_depbuild {|depbuild|
+      dep_versions << "#{depbuild.start_time} #{depbuild.version}"
+    }
     @logfile = ChkBuild::LogFile.write_open(@log_filename,
       @target.target_name, @suffixes,
       @depbuilds.map {|db| db.suffixed_name },
-      @depbuilds.map {|db| db.version_list }.flatten)
+      dep_versions)
     @logfile.change_default_output
     @public.mkpath
     @public_log.mkpath
@@ -163,7 +184,7 @@ class ChkBuild::Build
     @logfile.start_section 'end'
     GDB.check_core(@dir)
     force_link @current_txt, @public+'last.txt' if @current_txt.file?
-    titlegen = ChkBuild::Title.new(@target, @start_time, @logfile)
+    titlegen = ChkBuild::Title.new(@target, @logfile)
     title_err = catch_error('run_title_hooks') { titlegen.run_title_hooks }
     title = titlegen.make_title
     title << " (run_title_hooks error)" if title_err
