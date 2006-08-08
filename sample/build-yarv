@@ -5,6 +5,8 @@ require 'chkbuild/ruby'
 
 Build.limit(:data=>1024*1024*300, :as=>1024*1024*300)
 
-def_build_ruby2(["yarv"])
+def_build_ruby(
+  ["yarv"],
+  :separated_srcdir => true)
 
 Build.main

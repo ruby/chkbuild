@@ -38,8 +38,9 @@ Autoconf.add_title_hook('version') {|title, log|
   end
 }
 
-def_build_ruby2(
+def_build_ruby(
   ["trunk", "1.8"],
-  Autoconf)
+  Autoconf,
+  :separated_srcdir => true)
 
 Build.main

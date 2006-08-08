@@ -5,8 +5,9 @@ require 'chkbuild/ruby'
 
 Build.limit(:data=>1024*1024*300, :as=>1024*1024*300)
 
-def_build_ruby2(
+def_build_ruby(
   ["trunk", "1.8"],
-  [nil, "pth"])
+  [nil, "pth"],
+  :separated_srcdir => true)
 
 Build.main

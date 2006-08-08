@@ -38,11 +38,12 @@ gcc.add_diff_preprocess_hook {|line|
   }
 }
 
-def_build_ruby2(
+def_build_ruby(
   ["trunk", "1.8"],
   ["o0", "o1", nil, "o3"],
   [nil, "pth"],
   gcc,
-  :old => 1)
+  :old => 1,
+  :separated_srcdir => true)
 
 Build.main
