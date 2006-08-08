@@ -169,9 +169,9 @@ class ChkBuild::Build
     title << " (run_title_hooks error)" if title_err
     Marshal.dump(titlegen.versions, @parent_pipe)
     @parent_pipe.close
-    update_summary(@start_time, title)
     compress_file(@log_filename, @public_log+"#{@start_time}.txt.gz")
-    make_diff
+    has_diff = make_diff
+    update_summary(@start_time, title, has_diff)
     make_html_log(@log_filename, title, @public+"last.html")
     compress_file(@public+"last.html", @public+"last.html.gz")
     ::Build.run_upload_hooks(self.suffixed_name)
@@ -222,7 +222,7 @@ class ChkBuild::Build
     }
   end
 
-  def update_summary(start_time, title)
+  def update_summary(start_time, title, has_diff)
     open(@public+"summary.txt", "a") {|f| f.puts "#{start_time} #{title}" }
     open(@public+"summary.html", "a") {|f|
       if f.stat.size == 0
@@ -231,7 +231,7 @@ class ChkBuild::Build
         f.puts "<p><a href=\"../\">chkbuild</a></p>"
       end
       f.print "<a href=\"log/#{start_time}.txt.gz\" name=\"#{start_time}\">#{h start_time}</a> #{h title}"
-      f.print " (<a href=\"log/#{start_time}.diff.txt.gz\">diff</a>)" # xxx: diff file may not exist.
+      f.print " (<a href=\"log/#{start_time}.diff.txt.gz\">diff</a>)" if has_diff
       f.puts "<br>"
     }
   end
@@ -311,7 +311,7 @@ End
     }
     time_seq.sort!
     time_seq.delete time2
-    return if time_seq.empty?
+    return false if time_seq.empty?
     time1 = time_seq.last
     tmp1 = make_diff_content(time1)
     tmp2 = make_diff_content(time2)
@@ -320,6 +320,7 @@ End
       z.puts "+++ #{time2}"
       UDiff.diff(tmp1.path, tmp2.path, z)
     }
+    return true
   end
 
   class CommandError < StandardError
