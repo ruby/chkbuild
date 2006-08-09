@@ -62,9 +62,9 @@ class ChkBuild::Target
     add_diff_preprocess_gsub(/ # \d{4,}-\d\d-\d\dT\d\d:\d\d:\d\d[-+]\d\d:\d\d$/) {|match|
       ' # <time>'
     }
-    add_diff_preprocess_gsub(/\b\d{8,}T\d{6}\b/) {|match|
-      '<time>'
-    }
+    #add_diff_preprocess_gsub(/\b\d{8,}T\d{6}\b/) {|match|
+    #  '<time>'
+    #}
   end
 
   def add_diff_preprocess_gsub(pat, &block)

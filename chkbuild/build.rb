@@ -292,11 +292,21 @@ End
   end
 
   def make_diff_content(time)
-    tmp = Tempfile.open("#{time}.")
-    pat = /#{time}/
+    times = [time]
+    uncompressed = Tempfile.open("#{time}.u.")
+    Zlib::GzipReader.wrap(open(@public_log+"#{time}.txt.gz")) {|z|
+      FileUtils.copy_stream(z, uncompressed)
+    }
+    uncompressed.flush
+    logfile = ChkBuild::LogFile.read_open(uncompressed.path)
+    logfile.dependencies.each {|dep_suffixed_name, dep_time, dep_version|
+      times << dep_time
+    }
+    pat = Regexp.union(*times.uniq)
+    tmp = Tempfile.open("#{time}.d.")
     Zlib::GzipReader.wrap(open(@public_log+"#{time}.txt.gz")) {|z|
       z.each_line {|line|
-        line = line.gsub(time, '<buildtime>')
+        line = line.gsub(pat, '<buildtime>')
         @target.each_diff_preprocess_hook {|block|
           catch_error(block.to_s) { line = block.call(line) }
         }
