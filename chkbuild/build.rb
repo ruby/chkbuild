@@ -158,14 +158,7 @@ class ChkBuild::Build
     Dir.mkdir @start_time # fail if it is already exists.
     Dir.chdir @start_time
 
-    dep_versions = []
-    traverse_depbuild {|depbuild|
-      dep_versions << [depbuild.start_time, depbuild.version]
-    }
-    @logfile = ChkBuild::LogFile.write_open(@log_filename,
-      @target.target_name, @suffixes,
-      @depbuilds.map {|db| db.suffixed_name },
-      dep_versions)
+    @logfile = ChkBuild::LogFile.write_open(@log_filename, self)
     @logfile.change_default_output
     @public.mkpath
     @public_log.mkpath

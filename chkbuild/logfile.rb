@@ -22,7 +22,15 @@ end
 class ChkBuild::LogFile
   InitialMark = '=='
 
-  def self.write_open(filename, target_name, suffixes, dep_suffixed_name_list, dep_versions)
+  def self.write_open(filename, build)
+    target_name = build.target.target_name
+    suffixes = build.suffixes
+    dep_suffixed_name_list = build.depbuilds.map {|db| db.suffixed_name }
+    dep_versions = []
+    build.traverse_depbuild {|depbuild|
+      dep_versions << [depbuild.start_time, depbuild.version]
+    }
+
     depsuffixed_name = target_name.dup
     suffixes.each {|s| depsuffixed_name << '-' << s }
     dep_suffixed_name_list.each {|d| depsuffixed_name << '_' << d }
