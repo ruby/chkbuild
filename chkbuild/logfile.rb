@@ -41,6 +41,17 @@ class ChkBuild::LogFile
     logfile
   end
 
+  def dependencies
+    return [] unless log = self.get_section('dependencies')
+    r = []
+    log.each_line {|line|
+      if /^(\d+T\d+)\s+/ =~ line
+        r << [$1, $'.strip]
+      end
+    }
+    r
+  end
+
   def depsuffixed_name
     return @depsuffixed_name if defined? @depsuffixed_name
     if /\A\S+\s+(\S+)/ =~ self.get_all_log

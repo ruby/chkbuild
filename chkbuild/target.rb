@@ -48,8 +48,7 @@ class ChkBuild::Target
     }
     add_title_hook('dependencies') {|title, log|
       dep_versions = []
-      log.each_line {|depver|
-        ver = depver.chomp.sub(/^\d+T\d+\s+/, '')
+      title.logfile.dependencies.each {|time, ver|
         dep_versions << "(#{ver})"
       }
       title.update_title(:dep_versions, dep_versions)

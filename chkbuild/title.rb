@@ -10,6 +10,7 @@ class ChkBuild::Title
     @title[:hostname] = "(#{Util.simple_hostname})"
     @title_order = [:status, :warn, :mark, :version, :dep_versions, :hostname]
   end
+  attr_reader :logfile
 
   def version
     return @title[:version]
