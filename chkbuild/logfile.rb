@@ -33,7 +33,11 @@ class ChkBuild::LogFile
           logfile.start_section 'dependencies'
           section_started = true
         end
-        puts "#{depbuild.start_time} #{depbuild.version}"
+        if depbuild.suffixed_name == depbuild.version
+          puts "#{depbuild.suffixed_name} #{depbuild.start_time}"
+        else
+          puts "#{depbuild.suffixed_name} #{depbuild.start_time} (#{depbuild.version})"
+        end
       }
     }
     logfile
@@ -43,8 +47,10 @@ class ChkBuild::LogFile
     return [] unless log = self.get_section('dependencies')
     r = []
     log.each_line {|line|
-      if /^(\d+T\d+)\s+/ =~ line
-        r << [$1, $'.strip]
+      if /^(\S+) (\d+T\d+) \((.*)\)$/ =~ line
+        r << [$1, $2, $3]
+      elsif /^(\S+) (\d+T\d+)$/ =~ line
+        r << [$1, $2, $1]
       end
     }
     r
