@@ -24,6 +24,12 @@ module Kernel
   end
 end
 
+unless File.respond_to? :identical?
+  def File.identical?(filename1, filename2)
+    test(?-, filename1, filename2)
+  end
+end
+
 class IO
   def close_on_exec
     self.fcntl(Fcntl::F_GETFD) & Fcntl::FD_CLOEXEC != 0
@@ -107,12 +113,6 @@ module Util
       val = max_limit
     end
     Process.setrlimit(resource, val, val)
-  end
-
-  def identical_file?(f1, f2)
-    s1 = File.stat(f1)
-    s2 = File.stat(f2)
-    s1.dev == s2.dev && s1.ino == s2.ino
   end
 
   def sha256_digest_file(filename)

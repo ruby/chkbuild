@@ -17,7 +17,7 @@ class ChkBuild::Build
       }
     else
       h1 = nil
-      if identical_file?(@dir, '.') &&
+      if File.identical?(@dir, '.') &&
          !(ts = build_time_sequence - [@start_time]).empty? &&
          File.directory?(old_working_dir = "#{@target_dir}/#{ts.last}/#{working_dir}")
         Dir.chdir(old_working_dir) {
