@@ -23,28 +23,18 @@ class ChkBuild::LogFile
   InitialMark = '=='
 
   def self.write_open(filename, build)
-    target_name = build.target.target_name
-    suffixes = build.suffixes
-    dep_suffixed_name_list = build.depbuilds.map {|db| db.suffixed_name }
-    dep_versions = []
-    build.traverse_depbuild {|depbuild|
-      dep_versions << [depbuild.start_time, depbuild.version]
-    }
-
-    depsuffixed_name = target_name.dup
-    suffixes.each {|s| depsuffixed_name << '-' << s }
-    dep_suffixed_name_list.each {|d| depsuffixed_name << '_' << d }
-
     logfile = self.new(filename, true)
-    logfile.start_section depsuffixed_name
+    logfile.start_section build.depsuffixed_name
     logfile.with_default_output {
       system("uname -a")
-      if !dep_versions.empty?
-        logfile.start_section 'dependencies'
-        dep_versions.each {|time, version|
-          puts "#{time} #{version}"
-        }
-      end
+      section_started = false
+      build.traverse_depbuild {|depbuild|
+        if !section_started
+          logfile.start_section 'dependencies'
+          section_started = true
+        end
+        puts "#{depbuild.start_time} #{depbuild.version}"
+      }
     }
     logfile
   end
