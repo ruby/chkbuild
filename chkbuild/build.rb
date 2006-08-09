@@ -160,7 +160,7 @@ class ChkBuild::Build
 
     dep_versions = []
     traverse_depbuild {|depbuild|
-      dep_versions << "#{depbuild.start_time} #{depbuild.version}"
+      dep_versions << [depbuild.start_time, depbuild.version]
     }
     @logfile = ChkBuild::LogFile.write_open(@log_filename,
       @target.target_name, @suffixes,
