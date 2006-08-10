@@ -210,7 +210,7 @@ class Build
 
     pid = fork {
       ENV.delete 'SSH_AUTH_SOCK'
-      exec "rsync", "--delete", "-rte", "ssh -akxi #{private_key}", "#{ChkBuild.public_dir}/#{name}", "#{rsync_target}"
+      exec "rsync", "--delete", "-rte", "ssh -akxi #{private_key}", "#{ChkBuild.public_top}/#{name}", "#{rsync_target}"
     }
     Process.wait pid
   end

@@ -3,7 +3,7 @@ require 'pathname'
 module ChkBuild
   TOP_DIRECTORY = Pathname.getwd
   def ChkBuild.build_dir() TOP_DIRECTORY+"tmp/build" end
-  def ChkBuild.public_dir() TOP_DIRECTORY+"tmp/public_html" end
+  def ChkBuild.public_top() TOP_DIRECTORY+"tmp/public_html" end
 
   def ChkBuild.main_help(status=true)
     if File.executable? $0
@@ -48,7 +48,7 @@ End
     @target_list.each {|t|
       t.each_build_obj {|build|
         next if !ARGV.empty? && !ARGV.include?(build.depsuffixed_name)
-        last_txt = ChkBuild.public_dir + build.depsuffixed_name + 'last.txt'
+        last_txt = ChkBuild.public_top + build.depsuffixed_name + 'last.txt'
         if last_txt.exist?
           logfile = ChkBuild::LogFile.read_open(last_txt)
           title = ChkBuild::Title.new(t, logfile)

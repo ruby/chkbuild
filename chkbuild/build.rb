@@ -28,7 +28,7 @@ class ChkBuild::Build
     @depbuilds = depbuilds
 
     @target_dir = ChkBuild.build_dir + self.depsuffixed_name
-    @public = ChkBuild.public_dir + self.depsuffixed_name
+    @public = ChkBuild.public_top + self.depsuffixed_name
     @public_log = @public+"log"
     @current_txt = @public+"current.txt"
   end
