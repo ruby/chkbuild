@@ -8,14 +8,6 @@ def def_build_ruby(*args)
   def_build_ruby_internal(*args)
 end
 
-def def_build_ruby2(*args)
-  opts = Hash === args.last ? args.pop : {}
-  default_opts = {:separated_srcdir=>true}
-  opts = default_opts.merge(opts)
-  args.push opts
-  def_build_ruby_internal(*args)
-end
-
 def def_build_ruby_internal(*args)
   opts = Hash === args.last ? args.last : {}
   separated_srcdir = opts[:separated_srcdir]
