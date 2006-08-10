@@ -51,8 +51,8 @@ class Build
 
   TOP_DIRECTORY = Dir.getwd
 
-  ChkBuild.build_dir.mkpath
-  LOCK_PATH = ChkBuild.build_dir + '.lock'
+  ChkBuild.build_top.mkpath
+  LOCK_PATH = ChkBuild.build_top + '.lock'
 
   def Build.lock_start
     if !defined?(@lock_io)

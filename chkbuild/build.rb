@@ -27,7 +27,7 @@ class ChkBuild::Build
     @suffixes = suffixes
     @depbuilds = depbuilds
 
-    @target_dir = ChkBuild.build_dir + self.depsuffixed_name
+    @target_dir = ChkBuild.build_top + self.depsuffixed_name
     @public = ChkBuild.public_top + self.depsuffixed_name
     @public_log = @public+"log"
     @current_txt = @public+"current.txt"
@@ -82,7 +82,7 @@ class ChkBuild::Build
     branch_info = @suffixes + dep_dirs
     start_time_obj = Time.now
     @start_time = start_time_obj.strftime("%Y%m%dT%H%M%S")
-    dir = ChkBuild.build_dir + self.depsuffixed_name + @start_time
+    dir = ChkBuild.build_top + self.depsuffixed_name + @start_time
     r, w = IO.pipe
     r.close_on_exec = true
     w.close_on_exec = true

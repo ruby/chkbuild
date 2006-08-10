@@ -2,7 +2,7 @@ require 'pathname'
 
 module ChkBuild
   TOP_DIRECTORY = Pathname.getwd
-  def ChkBuild.build_dir() TOP_DIRECTORY+"tmp/build" end
+  def ChkBuild.build_top() TOP_DIRECTORY+"tmp/build" end
   def ChkBuild.public_top() TOP_DIRECTORY+"tmp/public_html" end
 
   def ChkBuild.main_help(status=true)
