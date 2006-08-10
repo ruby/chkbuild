@@ -12,7 +12,7 @@ COMBFAIL1 = Build.def_target("combfail1",
 }
 
 Build.def_target("combfail2", COMBFAIL1) {|b, cf1|
-  combfail2_dir = b.work_dir
+  combfail2_dir = b.build_dir
   /\Acombfail1=/ =~ cf1
   combfail1_dir = $'
   b.run(*%W(echo #{combfail1_dir} #{combfail2_dir}))

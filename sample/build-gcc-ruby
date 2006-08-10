@@ -8,7 +8,7 @@ Build.limit(:data=>1024*1024*600, :as=>1024*1024*600)
 gcc = Build.def_target("gcc",
   ["trunk", "4.1", "4.0"],
   :old => 1) {|b, suffix|
-  gcc_dir = b.work_dir
+  gcc_dir = b.build_dir
   gcc_branch = {
     "trunk"=>"trunk",
     "4.1"=>"branches/gcc-4_1-branch",

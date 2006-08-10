@@ -151,8 +151,8 @@ class ChkBuild::Build
 
   def child_build_target(*branch_info)
     opts = @target.opts
-    @dir = @target_dir + @start_time
-    @log_filename = @dir + 'log'
+    @build_dir = @target_dir + @start_time
+    @log_filename = @build_dir + 'log'
     mkcd @target_dir
     raise "already exist: #{@start_time}" if File.exist? @start_time
     Dir.mkdir @start_time # fail if it is already exists.
@@ -168,7 +168,7 @@ class ChkBuild::Build
     err = catch_error { @target.build_proc.call(self, *branch_info) }
     output_status_section(err)
     @logfile.start_section 'end'
-    GDB.check_core(@dir)
+    GDB.check_core(@build_dir)
     force_link @current_txt, @public+'last.txt' if @current_txt.file?
     titlegen = ChkBuild::Title.new(@target, @logfile)
     title_err = catch_error('run_title_hooks') { titlegen.run_title_hooks }
@@ -217,7 +217,7 @@ class ChkBuild::Build
     show_backtrace err
   end
 
-  def work_dir() @dir end
+  def build_dir() @build_dir end
 
   def remove_old_build(current, num)
     dirs = build_time_sequence

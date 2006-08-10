@@ -13,7 +13,7 @@ def modify_file(filename)
 end
 
 Autoconf = Build.def_target("autoconf") {|b|
-  dir = b.work_dir
+  dir = b.build_dir
   Dir.chdir("..") {
     b.gnu_savannah_cvs('autoconf', 'autoconf', nil)
   }

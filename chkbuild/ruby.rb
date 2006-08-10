@@ -12,7 +12,7 @@ def def_build_ruby_internal(*args)
   opts = Hash === args.last ? args.last : {}
   separated_srcdir = opts[:separated_srcdir]
   t = Build.def_target("ruby", *args) {|b, *suffixes|
-    ruby_work_dir = b.work_dir
+    ruby_build_dir = b.build_dir
 
     ruby_branch = nil
     configure_flags = []
@@ -45,11 +45,11 @@ def def_build_ruby_internal(*args)
       end
     }
 
-    objdir = ruby_work_dir+'ruby'
+    objdir = ruby_build_dir+'ruby'
     if separated_srcdir
-      checkout_dir = ruby_work_dir.dirname
+      checkout_dir = ruby_build_dir.dirname
     else
-      checkout_dir = ruby_work_dir
+      checkout_dir = ruby_build_dir
     end
     srcdir = (checkout_dir+'ruby').relative_path_from(objdir)
 
@@ -65,9 +65,9 @@ def def_build_ruby_internal(*args)
     Dir.chdir("ruby")
     b.run(autoconf_command)
 
-    Dir.chdir(ruby_work_dir)
+    Dir.chdir(ruby_build_dir)
     b.mkcd("ruby")
-    b.run("#{srcdir}/configure", "--prefix=#{ruby_work_dir}", "CFLAGS=#{cflags.join(' ')}", *configure_flags)
+    b.run("#{srcdir}/configure", "--prefix=#{ruby_build_dir}", "CFLAGS=#{cflags.join(' ')}", *configure_flags)
     b.make(make_options)
     b.run("./ruby", "-v", :section=>"version")
     b.make("install")
