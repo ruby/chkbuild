@@ -6,6 +6,8 @@ class ChkBuild::Build
     url = svnroot + '/' + rep_dir
     opts = opts.dup
     opts[:section] ||= 'svn'
+    viewvc = opts[:viewvc]||opts[:viewcvs]
+    viewvc = viewvc+'/'+rep_dir if viewvc
     if File.exist?(working_dir) && File.exist?("#{working_dir}/.svn")
       Dir.chdir(working_dir) {
         self.run "svn", "cleanup", opts
@@ -13,15 +15,25 @@ class ChkBuild::Build
         h1 = svn_revisions
         self.run "svn", "update", "-q", opts
         h2 = svn_revisions
-        viewvc = opts[:viewvc]||opts[:viewcvs]
-        viewvc = viewvc+'/'+rep_dir if viewvc
         svn_print_revisions(h1, h2, viewvc)
       }
     else
       if File.exist?(working_dir)
         FileUtils.rm_rf(working_dir)
       end
+      h1 = h2 = nil
+      if File.identical?(self.build_dir, '.') &&
+         !(ts = self.build_time_sequence - [self.start_time]).empty? &&
+         File.directory?(old_working_dir = self.target_dir + ts.last + working_dir)
+        Dir.chdir(old_working_dir) {
+          h1 = svn_revisions
+        }
+      end
       self.run "svn", "checkout", "-q", url, working_dir, opts
+      Dir.chdir(working_dir) {
+        h2 = svn_revisions
+        svn_print_revisions(h1, h2, viewvc) if h1
+      }
     end
   end
 

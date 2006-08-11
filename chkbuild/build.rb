@@ -33,6 +33,7 @@ class ChkBuild::Build
     @current_txt = @public+"current.txt"
   end
   attr_reader :target, :suffixes, :depbuilds
+  attr_reader :target_dir
 
   def suffixed_name
     name = @target.target_name.dup
