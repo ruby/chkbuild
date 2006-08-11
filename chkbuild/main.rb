@@ -24,6 +24,14 @@ End
 
   @target_list = []
   def ChkBuild.main_build
+    begin
+        Process.setpriority(Process::PRIO_PROCESS, 0, 10)
+    rescue Errno::EACCES # already niced to 11 or more
+    end
+    File.umask(002)
+    STDIN.reopen("/dev/null", "r")
+    STDOUT.sync = true
+    ChkBuild.build_top.mkpath
     ChkBuild.lock_start
     @target_list.each {|t|
       t.make_result
