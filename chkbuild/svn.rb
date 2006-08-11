@@ -91,9 +91,9 @@ class ChkBuild::Build
         diff_url = viewcvs.dup
         diff_url << '/' << f if f != '.'
         if r1 == 'none'
-          diff_url << "?view=markup&revision=#{r2}"
+          diff_url << "?view=markup&pathrev=#{r2}"
         elsif r2 == 'none'
-          diff_url << "?view=markup&revision=#{r1}"
+          diff_url << "?view=markup&pathrev=#{r1}"
         else
           diff_url << "?r1=#{r1}&r2=#{r2}"
         end
