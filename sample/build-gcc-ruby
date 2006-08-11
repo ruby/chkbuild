@@ -3,7 +3,7 @@
 require 'build'
 require 'chkbuild/ruby'
 
-Build.limit(:data=>1024*1024*600, :as=>1024*1024*600)
+ChkBuild.limit(:data=>1024*1024*600, :as=>1024*1024*600)
 
 gcc = Build.def_target("gcc",
   ["trunk", "4.1", "4.0"],

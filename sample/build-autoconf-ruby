@@ -3,7 +3,7 @@
 require 'build'
 require 'chkbuild/ruby'
 
-Build.limit(:data=>1024*1024*300, :as=>1024*1024*300)
+ChkBuild.limit(:data=>1024*1024*300, :as=>1024*1024*300)
 
 def modify_file(filename)
   content = yield File.read(filename)
