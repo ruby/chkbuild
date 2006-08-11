@@ -13,4 +13,4 @@ Build.def_target("dep2",
   p b.suffixed_name
 }
 
-Build.main
+ChkBuild.main

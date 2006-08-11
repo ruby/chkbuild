@@ -11,4 +11,4 @@ Dep2 = Build.def_target("lib2", ["dev", "stable"]) {|b|
 Build.def_target("app", ["dev", "stable"], Dep1, Dep2) {|b, suffix, lib1, lib2|
 }
 
-Build.main
+ChkBuild.main

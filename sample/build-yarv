@@ -9,4 +9,4 @@ def_build_ruby(
   ["yarv"],
   :separated_srcdir => true)
 
-Build.main
+ChkBuild.main

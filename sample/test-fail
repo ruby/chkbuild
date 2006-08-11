@@ -15,4 +15,4 @@ t.add_title_hook(nil) {|title, log|
   title.update_title(:mark, mark)
 }
 
-Build.main
+ChkBuild.main

@@ -12,4 +12,4 @@ gcc_v.add_title_hook('version') {|title, log|
   end
 }
 
-Build.main
+ChkBuild.main

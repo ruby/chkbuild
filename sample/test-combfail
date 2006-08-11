@@ -18,4 +18,4 @@ Build.def_target("combfail2", COMBFAIL1) {|b, cf1|
   b.run(*%W(echo #{combfail1_dir} #{combfail2_dir}))
 }
 
-Build.main
+ChkBuild.main

@@ -6,4 +6,4 @@ Build.def_target("error") {|b|
   x
 }
 
-Build.main
+ChkBuild.main

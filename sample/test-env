@@ -6,4 +6,4 @@ Build.def_target("env") {|b|
   b.run("sh", "-c", "echo $AAA", "ENV:AAA"=>"foooo")
 }
 
-Build.main
+ChkBuild.main

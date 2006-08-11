@@ -10,4 +10,4 @@ def_build_ruby(
   [nil, "pth"],
   :separated_srcdir => true)
 
-Build.main
+ChkBuild.main

@@ -10,4 +10,4 @@ Build.def_target("uptest", ["dev", "stable"]) {|b,|
   b.run("echo", "uptest")
 }
 
-Build.main
+ChkBuild.main

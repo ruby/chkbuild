@@ -6,4 +6,4 @@ Build.def_target("echo") {|b|
   b.run("echo", "f&<>oo http://foo.example.net/bar?a=b&c=d baz")
 }
 
-Build.main
+ChkBuild.main

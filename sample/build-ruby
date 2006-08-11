@@ -9,4 +9,4 @@ def_build_ruby(
   ["trunk", "1.8"],
   [nil, "pth"])
 
-Build.main
+ChkBuild.main

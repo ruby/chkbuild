@@ -10,4 +10,4 @@ warn.add_title_hook('echo') {|title, log|
   title.update_title(:version, "foo") 
 }
 
-Build.main
+ChkBuild.main

@@ -11,4 +11,4 @@ Process.kill("SEGV", $$)
 End
 }
 
-Build.main
+ChkBuild.main

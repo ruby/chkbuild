@@ -43,4 +43,4 @@ def_build_ruby(
   Autoconf,
   :separated_srcdir => true)
 
-Build.main
+ChkBuild.main

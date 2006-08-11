@@ -6,4 +6,4 @@ Build.def_target("sleep") {|b|
   b.run("sleep", "60")
 }
 
-Build.main
+ChkBuild.main

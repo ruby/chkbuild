@@ -6,4 +6,4 @@ Build.def_target("make-failure") {|b|
   b.make("nonexisting-target")
 }
 
-Build.main
+ChkBuild.main
