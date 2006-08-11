@@ -11,7 +11,7 @@ end
 def def_build_ruby_internal(*args)
   opts = Hash === args.last ? args.last : {}
   separated_srcdir = opts[:separated_srcdir]
-  t = Build.def_target("ruby", *args) {|b, *suffixes|
+  t = ChkBuild.def_target("ruby", *args) {|b, *suffixes|
     ruby_build_dir = b.build_dir
 
     ruby_branch = nil

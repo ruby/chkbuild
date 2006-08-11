@@ -2,7 +2,7 @@
 
 require 'build'
 
-t = Build.def_target("fail") {|b|
+t = ChkBuild.def_target("fail") {|b|
   b.run("echo", "[bug]")
   b.run("false")
 }

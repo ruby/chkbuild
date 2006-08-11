@@ -2,7 +2,7 @@
 
 require 'build'
 
-Build.def_target("sleep") {|b|
+ChkBuild.def_target("sleep") {|b|
   b.run("sleep", "60")
 }
 

@@ -14,9 +14,5 @@ STDIN.reopen("/dev/null", "r")
 STDOUT.sync = true
 
 class Build
-  def Build.def_target(target_name, *args, &block)
-    ChkBuild.def_target(target_name, *args, &block)
-  end
-
   ChkBuild.build_top.mkpath
 end

@@ -2,7 +2,7 @@
 
 require 'build'
 
-gcc_v = Build.def_target("gcc-v") {|b|
+gcc_v = ChkBuild.def_target("gcc-v") {|b|
   b.run("gcc", '-v', :section=>'version')
 }
 

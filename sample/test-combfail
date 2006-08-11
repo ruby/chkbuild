@@ -2,7 +2,7 @@
 
 require 'build'
 
-COMBFAIL1 = Build.def_target("combfail1",
+COMBFAIL1 = ChkBuild.def_target("combfail1",
   ["succ", "fail"]) {|b, suffix|
   case suffix
   when "succ" then command = "true"
@@ -11,7 +11,7 @@ COMBFAIL1 = Build.def_target("combfail1",
   b.run(command)
 }
 
-Build.def_target("combfail2", COMBFAIL1) {|b, cf1|
+ChkBuild.def_target("combfail2", COMBFAIL1) {|b, cf1|
   combfail2_dir = b.build_dir
   /\Acombfail1=/ =~ cf1
   combfail1_dir = $'

@@ -2,7 +2,7 @@
 
 require 'build'
 
-t = Build.def_target("savannah") {|b|
+t = ChkBuild.def_target("savannah") {|b|
   b.gnu_savannah_cvs('config', 'config', nil)
   b.run("config/config.guess")
 }

@@ -2,7 +2,7 @@
 
 require 'build'
 
-Build.def_target("timeout", :timeout=>Time.now+4) {|b|
+ChkBuild.def_target("timeout", :timeout=>Time.now+4) {|b|
   b.run("sleep", "60")
 }
 
