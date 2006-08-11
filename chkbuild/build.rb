@@ -15,6 +15,7 @@ require "util"
 
 module ChkBuild
 end
+require 'chkbuild/options'
 require 'chkbuild/target'
 require 'chkbuild/title'
 require "chkbuild/logfile"
@@ -164,7 +165,7 @@ class ChkBuild::Build
     @public.mkpath
     @public_log.mkpath
     force_link "log", @current_txt
-    remove_old_build(@start_time, opts.fetch(:old, ::Build.num_oldbuilds))
+    remove_old_build(@start_time, opts.fetch(:old, ChkBuild.num_oldbuilds))
     @logfile.start_section 'start'
     err = catch_error { @target.build_proc.call(self, *branch_info) }
     output_status_section(err)
@@ -378,8 +379,8 @@ End
       }
       if Process.respond_to? :setrlimit
         resource_unlimit(:RLIMIT_CORE)
-	limit = ::Build::DefaultLimit.dup
-	opts.each {|k, v| limit[$'.intern] = v if /\Arlimit_/ =~ k.to_s }
+	limit = ChkBuild.get_limit
+	opts.each {|k, v| limit[$'.intern] = v if /\Ar?limit_/ =~ k.to_s }
         resource_limit(:RLIMIT_CPU, limit.fetch(:cpu))
         resource_limit(:RLIMIT_STACK, limit.fetch(:stack))
         resource_limit(:RLIMIT_DATA, limit.fetch(:data))

@@ -19,20 +19,8 @@ class Build
     ChkBuild.def_target(target_name, *args, &block)
   end
 
-  class << Build
-    attr_accessor :num_oldbuilds
-  end
-  Build.num_oldbuilds = 3
-
-  DefaultLimit = {
-    :cpu => 3600 * 4,
-    :stack => 1024 * 1024 * 40,
-    :data => 1024 * 1024 * 100,
-    :as => 1024 * 1024 * 100
-  }
-
   def self.limit(hash)
-    DefaultLimit.update(hash)
+    ChkBuild.limit(hash)
   end
 
   @upload_hook = []
