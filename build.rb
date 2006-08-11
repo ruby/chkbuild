@@ -23,20 +23,6 @@ class Build
     ChkBuild.limit(hash)
   end
 
-  @upload_hook = []
-  def self.add_upload_hook(&block)
-    @upload_hook << block
-  end
-  def self.run_upload_hooks(suffixed_name)
-    @upload_hook.reverse_each {|block|
-      begin
-        block.call suffixed_name
-      rescue Exception
-        p $!
-      end
-    }
-  end
-
   TOP_DIRECTORY = Dir.getwd
 
   ChkBuild.build_top.mkpath
