@@ -24,7 +24,7 @@ End
 
   @target_list = []
   def ChkBuild.main_build
-    ::Build.lock_start
+    ChkBuild.lock_start
     @target_list.each {|t|
       t.make_result
     }
