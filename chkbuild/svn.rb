@@ -69,6 +69,11 @@ class ChkBuild::Build
 
   def svn_print_revisions(h1, h2, viewcvs=nil)
     changes = "changes: #{h1['.']}->#{h2['.']}"
+    if viewcvs
+      rev_url = viewcvs.dup
+      rev_url << "?view=rev&revision=#{h2['.']}"
+      changes << "\t" << rev_url
+    end
     h1.delete '.'
     h2.delete '.'
     d1 = {}; h1.keys.each {|k| d1[$`] = true if %r{/[^/]*\z} =~ k }
@@ -97,7 +102,7 @@ class ChkBuild::Build
         else
           diff_url << "?r1=#{r1}&r2=#{r2}"
         end
-        line << " " << diff_url
+        line << "\t" << diff_url
       end
       puts line
     }
