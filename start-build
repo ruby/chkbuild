@@ -4,7 +4,7 @@
 
 require 'build'
 
-#Build.rsync_ssh_upload_target("akr@boron.rubyist.net::upload")
+#ChkBuild.rsync_ssh_upload_target("akr@boron.rubyist.net::upload")
 
 load "sample/build-ruby"
 

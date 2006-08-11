@@ -2,7 +2,7 @@
 
 require 'build'
 
-Build.add_upload_hook {|name|
+ChkBuild.add_upload_hook {|name|
   p "#{ChkBuild.public_top}/#{name}"
 }
 

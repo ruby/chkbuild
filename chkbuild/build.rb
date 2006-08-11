@@ -19,6 +19,7 @@ require 'chkbuild/options'
 require 'chkbuild/target'
 require 'chkbuild/title'
 require "chkbuild/logfile"
+require 'chkbuild/upload'
 
 class ChkBuild::Build
   include Util
@@ -183,7 +184,7 @@ class ChkBuild::Build
     update_summary(@start_time, title, has_diff)
     make_html_log(@log_filename, title, @public+"last.html")
     compress_file(@public+"last.html", @public+"last.html.gz")
-    ::Build.run_upload_hooks(self.suffixed_name)
+    ChkBuild.run_upload_hooks(self.suffixed_name)
     return err
   end
 
