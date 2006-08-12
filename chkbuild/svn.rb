@@ -7,7 +7,6 @@ class ChkBuild::Build
     opts = opts.dup
     opts[:section] ||= 'svn'
     viewvc = opts[:viewvc]||opts[:viewcvs]
-    viewvc = viewvc+'/'+rep_dir if viewvc
     if File.exist?(working_dir) && File.exist?("#{working_dir}/.svn")
       Dir.chdir(working_dir) {
         self.run "svn", "cleanup", opts
@@ -15,7 +14,7 @@ class ChkBuild::Build
         h1 = svn_revisions
         self.run "svn", "update", "-q", opts
         h2 = svn_revisions
-        svn_print_changes(h1, h2, viewvc)
+        svn_print_changes(h1, h2, viewvc, rep_dir)
       }
     else
       if File.exist?(working_dir)
@@ -32,7 +31,7 @@ class ChkBuild::Build
       self.run "svn", "checkout", "-q", url, working_dir, opts
       Dir.chdir(working_dir) {
         h2 = svn_revisions
-        svn_print_changes(h1, h2, viewvc) if h1
+        svn_print_changes(h1, h2, viewvc, rep_dir) if h1
       }
     end
   end
@@ -71,25 +70,26 @@ class ChkBuild::Build
     }
   end
 
-  def svn_uri(viewcvs, f, r1, r2)
+  def svn_uri(viewcvs, d, f, r1, r2)
     if f == '.'
       rev_url = viewcvs.dup
       rev_url << "?view=rev&revision=#{r2}"
       return rev_url
     end
+    df = d + '/' + f
     diff_url = viewcvs.dup
-    diff_url << '/' << f if f != '.'
+    diff_url << '/' << df
     if r1 == 'none'
       diff_url << "?view=markup&pathrev=#{r2}"
     elsif r2 == 'none'
       diff_url << "?view=markup&pathrev=#{r1}"
     else
-      diff_url << "?r1=#{r1}&r2=#{r2}&pathrev=#{r2}"
+      diff_url << "?p1=#{df}&r1=#{r1}&r2=#{r2}&pathrev=#{r2}"
     end
     diff_url
   end
 
-  def svn_print_changes(h1, h2, viewcvs=nil)
+  def svn_print_changes(h1, h2, viewcvs=nil, rep_dir=nil)
     d1 = {}; h1.keys.each {|k| d1[$`] = true if %r{/[^/]*\z} =~ k }
     d2 = {}; h2.keys.each {|k| d2[$`] = true if %r{/[^/]*\z} =~ k }
     d1.each_key {|k|
@@ -109,7 +109,7 @@ class ChkBuild::Build
         line = "CHG"
       end
       line << " #{f}\t#{r1}->#{r2}"
-      line << "\t" << svn_uri(viewcvs, f, r1, r2) if viewcvs
+      line << "\t" << svn_uri(viewcvs, rep_dir, f, r1, r2) if viewcvs
       puts line
     }
   end
