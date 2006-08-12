@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'build'
+require 'chkbuild'
 
 Dep1 = ChkBuild.def_target("lib1", ["dev", "stable"]) {|b|
 }

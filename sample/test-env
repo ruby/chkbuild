@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'build'
+require 'chkbuild'
 
 ChkBuild.def_target("env") {|b|
   b.run("sh", "-c", "echo $AAA", "ENV:AAA"=>"foooo")

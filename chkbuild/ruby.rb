@@ -1,4 +1,4 @@
-require 'build'
+require 'chkbuild'
 
 def def_build_ruby(*args)
   opts = Hash === args.last ? args.pop : {}

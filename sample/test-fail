@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'build'
+require 'chkbuild'
 
 t = ChkBuild.def_target("fail") {|b|
   b.run("echo", "[bug]")

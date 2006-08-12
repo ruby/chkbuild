@@ -125,8 +125,8 @@ chkbuild は、定期的にソフトウェアをビルドし、
 == 設定
 
 chkbuild の設定は、Ruby で記述されます。
-実際のところ、chkbuild の本体は build.rb という Ruby のライブラリであり、
-build.rb を利用するスクリプトを記述することが設定となります。
+実際のところ、chkbuild の本体は chkbuild.rb という Ruby のライブラリであり、
+chkbuild.rb を利用するスクリプトを記述することが設定となります。
 
 == セキュリティ
 

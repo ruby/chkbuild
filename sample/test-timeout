@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'build'
+require 'chkbuild'
 
 ChkBuild.def_target("timeout", :timeout=>Time.now+4) {|b|
   b.run("sleep", "60")

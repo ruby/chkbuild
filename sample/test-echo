@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'build'
+require 'chkbuild'
 
 ChkBuild.def_target("echo") {|b|
   b.run("echo", "f&<>oo http://foo.example.net/bar?a=b&c=d baz")

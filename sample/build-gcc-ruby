@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'build'
+require 'chkbuild'
 require 'chkbuild/ruby'
 
 ChkBuild.limit(:data=>1024*1024*600, :as=>1024*1024*600)
