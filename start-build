@@ -2,7 +2,7 @@
 
 #ENV['PATH'] = "/usr/local/bin:#{ENV['PATH']}"
 
-require 'build'
+require 'chkbuild'
 
 #ChkBuild.rsync_ssh_upload_target("akr@boron.rubyist.net::upload")
 
