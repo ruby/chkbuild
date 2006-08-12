@@ -25,7 +25,7 @@ End
   @target_list = []
   def ChkBuild.main_build
     begin
-        Process.setpriority(Process::PRIO_PROCESS, 0, 10)
+      Process.setpriority(Process::PRIO_PROCESS, 0, 10)
     rescue Errno::EACCES # already niced to 11 or more
     end
     File.umask(002)

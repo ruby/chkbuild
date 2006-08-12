@@ -187,8 +187,3 @@ class ChkBuild::Build
     end
   end
 end
-
-class Build
-  include Util
-  extend Util
-end
