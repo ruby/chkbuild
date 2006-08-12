@@ -15,7 +15,7 @@ class ChkBuild::Build
         h1 = svn_revisions
         self.run "svn", "update", "-q", opts
         h2 = svn_revisions
-        svn_print_revisions(h1, h2, viewvc)
+        svn_print_changes(h1, h2, viewvc)
       }
     else
       if File.exist?(working_dir)
@@ -32,7 +32,7 @@ class ChkBuild::Build
       self.run "svn", "checkout", "-q", url, working_dir, opts
       Dir.chdir(working_dir) {
         h2 = svn_revisions
-        svn_print_revisions(h1, h2, viewvc) if h1
+        svn_print_changes(h1, h2, viewvc) if h1
       }
     end
   end
@@ -59,23 +59,37 @@ class ChkBuild::Build
     ary.sort_by {|path|
       path.gsub(%r{([^/]+)(/|\z)}) {
         if $2 == ""
-          "A#{$1}"
+          if $1 == '.'
+            "A"
+          else
+            "B#{$1}"
+          end
         else
-          "B#{$1}\0"
+          "C#{$1}\0"
         end
       }
     }
   end
 
-  def svn_print_revisions(h1, h2, viewcvs=nil)
-    changes = "changes: #{h1['.']}->#{h2['.']}"
-    if viewcvs
+  def svn_uri(viewcvs, f, r1, r2)
+    if f == '.'
       rev_url = viewcvs.dup
-      rev_url << "?view=rev&revision=#{h2['.']}"
-      changes << "\t" << rev_url
+      rev_url << "?view=rev&revision=#{r2}"
+      return rev_url
     end
-    h1.delete '.'
-    h2.delete '.'
+    diff_url = viewcvs.dup
+    diff_url << '/' << f if f != '.'
+    if r1 == 'none'
+      diff_url << "?view=markup&pathrev=#{r2}"
+    elsif r2 == 'none'
+      diff_url << "?view=markup&pathrev=#{r1}"
+    else
+      diff_url << "?r1=#{r1}&r2=#{r2}"
+    end
+    diff_url
+  end
+
+  def svn_print_changes(h1, h2, viewcvs=nil)
     d1 = {}; h1.keys.each {|k| d1[$`] = true if %r{/[^/]*\z} =~ k }
     d2 = {}; h2.keys.each {|k| d2[$`] = true if %r{/[^/]*\z} =~ k }
     d1.each_key {|k|
@@ -87,23 +101,15 @@ class ChkBuild::Build
       r1 = h1[f] || 'none'
       r2 = h2[f] || 'none'
       next if r1 == r2
-      if changes
-        puts changes
-        changes = nil
+      if r1 == 'none'
+        line = "ADD"
+      elsif r2 == 'none'
+        line = "DEL"
+      else
+        line = "CHG"
       end
-      line = "#{f}\t#{r1}->#{r2}"
-      if viewcvs
-        diff_url = viewcvs.dup
-        diff_url << '/' << f if f != '.'
-        if r1 == 'none'
-          diff_url << "?view=markup&pathrev=#{r2}"
-        elsif r2 == 'none'
-          diff_url << "?view=markup&pathrev=#{r1}"
-        else
-          diff_url << "?r1=#{r1}&r2=#{r2}"
-        end
-        line << "\t" << diff_url
-      end
+      line << " #{f}\t#{r1}->#{r2}"
+      line << "\t" << svn_uri(viewcvs, f, r1, r2) if viewcvs
       puts line
     }
   end
