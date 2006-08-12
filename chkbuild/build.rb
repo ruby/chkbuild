@@ -67,6 +67,16 @@ class ChkBuild::Build
     dirs
   end
 
+  def log_time_sequence
+    names = @public_log.entries.map {|e| e.to_s }
+    result = []
+    names.each {|n|
+      result << $1 if /\A(\d{8}T\d{6})\.txt\.gz\z/ =~ n
+    }
+    result.sort!
+    result
+  end
+
   ################
 
   def build

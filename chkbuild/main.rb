@@ -67,6 +67,24 @@ End
     }
   end
 
+  def ChkBuild.main_logdiff
+    @target_list.each {|t|
+      t.each_build_obj {|build|
+        next if !ARGV.empty? && !ARGV.include?(build.depsuffixed_name)
+        ts = build.log_time_sequence
+        if ts.length < 2
+          puts "#{build.depsuffixed_name}: less than 2 logs"
+        end
+        t1, t2 = ts[-2, 2]
+        tmp1 = build.make_diff_content(t1)
+        tmp2 = build.make_diff_content(t2)
+        puts "#{build.depsuffixed_name}: #{t1}->#{t2}"
+        UDiff.diff(tmp1.path, tmp2.path, STDOUT)
+        puts
+      }
+    }
+  end
+
   def ChkBuild.main
     subcommand = ARGV.shift || 'build'
     case subcommand
@@ -74,6 +92,7 @@ End
     when 'build' then ChkBuild.main_build
     when 'list' then ChkBuild.main_list
     when 'title' then ChkBuild.main_title
+    when 'logdiff' then ChkBuild.main_logdiff
     else
       puts "unexpected subcommand: #{subcommand}"
       exit 1
