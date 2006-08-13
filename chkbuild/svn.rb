@@ -70,7 +70,7 @@ class ChkBuild::Build
     }
   end
 
-  def svn_uri(viewcvs, d, f, r1, r2)
+  def svn_uri(viewcvs, d, f, r1, top_r1, r2)
     if f == '.'
       rev_url = viewcvs.dup
       rev_url << "?view=rev&revision=#{r2}"
@@ -84,7 +84,7 @@ class ChkBuild::Build
     elsif r2 == 'none'
       diff_url << "?view=markup&pathrev=#{r1}"
     else
-      diff_url << "?p1=#{df}&r1=#{r1}&r2=#{r2}&pathrev=#{r2}"
+      diff_url << "?p1=#{df}&r1=#{top_r1}&r2=#{r2}&pathrev=#{r2}"
     end
     diff_url
   end
@@ -97,6 +97,7 @@ class ChkBuild::Build
       h1.delete k
       h2.delete k
     }
+    top_r1 = h1['.']
     svn_path_sort(h1.keys|h2.keys).each {|f|
       r1 = h1[f] || 'none'
       r2 = h2[f] || 'none'
@@ -109,7 +110,7 @@ class ChkBuild::Build
         line = "CHG"
       end
       line << " #{f}\t#{r1}->#{r2}"
-      line << "\t" << svn_uri(viewcvs, rep_dir, f, r1, r2) if viewcvs
+      line << "\t" << svn_uri(viewcvs, rep_dir, f, r1, top_r1, r2) if viewcvs
       puts line
     }
   end
