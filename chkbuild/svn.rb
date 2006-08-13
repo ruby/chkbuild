@@ -84,7 +84,11 @@ class ChkBuild::Build
     elsif r2 == 'none'
       diff_url << "?view=markup&pathrev=#{r1}"
     else
-      diff_url << "?p1=#{df}&r1=#{top_r1}&r2=#{r2}&pathrev=#{r2}"
+      diff_url << "?" << Escape.html_form([
+        ["p1", df],
+        ["r1", top_r1.to_s],
+        ["r2", r2.to_s],
+        ["pathrev", r2.to_s]])
     end
     diff_url
   end
