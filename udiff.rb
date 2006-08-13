@@ -19,9 +19,6 @@ class UDiff
   end
 
   def puts_line(line)
-    if @beginning
-      @hunk << @header
-    end
     @hunk << line
     if /\n\z/ !~ line
       @hunk << "\n\\ No newline at end of file\n"
@@ -70,6 +67,10 @@ class UDiff
   end
 
   def output_hunk
+    if @header
+      @out.print @header
+      @header = nil
+    end
     l1_beg, l2_beg = @hunk_beg
     @out.print "@@ -#{l1_beg+1},#{@l1-l1_beg} +#{l2_beg+1},#{@l2-l2_beg} @@\n"
     @hunk.each {|s|
