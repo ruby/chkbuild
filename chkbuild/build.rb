@@ -377,7 +377,7 @@ End
     tmp1 = make_diff_content(t1)
     tmp2 = make_diff_content(t2)
     header = "--- #{t1}\n+++ #{t2}\n"
-    has_diff ||= UDiff.diff(tmp1.path, tmp2.path, out, header)
+    has_diff |= UDiff.diff(tmp1.path, tmp2.path, out, header)
     has_diff
   end
 
