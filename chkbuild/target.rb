@@ -58,13 +58,13 @@ class ChkBuild::Target
   def add_title_hook(secname, &block) @title_hook << [secname, block] end
   def each_title_hook(&block) @title_hook.each(&block) end
 
+  CHANGE_LINE_PAT = /^(ADD|DEL|CHG) .*\t.*->.*\n/
+
   def init_default_diff_preprocess_hooks
     add_diff_preprocess_gsub(/ # \d{4,}-\d\d-\d\dT\d\d:\d\d:\d\d[-+]\d\d:\d\d$/) {|match|
       ' # <time>'
     }
-    add_diff_preprocess_gsub(/^(ADD|DEL|CHG) .*\t.*->.*\n/) {|match|
-      ''
-    }
+    add_diff_preprocess_gsub(CHANGE_LINE_PAT) {|match| '' }
   end
 
   def add_diff_preprocess_gsub(pat, &block)

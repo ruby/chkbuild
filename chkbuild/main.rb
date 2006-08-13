@@ -76,10 +76,8 @@ End
           puts "#{build.depsuffixed_name}: less than 2 logs"
         end
         t1, t2 = ts[-2, 2]
-        tmp1 = build.make_diff_content(t1)
-        tmp2 = build.make_diff_content(t2)
         puts "#{build.depsuffixed_name}: #{t1}->#{t2}"
-        UDiff.diff(tmp1.path, tmp2.path, STDOUT)
+        build.output_diff(t1, t2, STDOUT)
         puts
       }
     }

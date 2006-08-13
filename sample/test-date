@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+require 'chkbuild'
+
+ChkBuild.def_target("date") {|b|
+  b.run("date")
+}
+
+ChkBuild.main

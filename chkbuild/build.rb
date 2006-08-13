@@ -304,10 +304,14 @@ End
     err.backtrace.each {|pos| puts "| #{pos}" }
   end
 
+  def open_gziped_log(time, &block)
+    Zlib::GzipReader.wrap(open(@public_log+"#{time}.txt.gz"), &block)
+  end
+
   def make_diff_content(time)
     times = [time]
     uncompressed = Tempfile.open("#{time}.u.")
-    Zlib::GzipReader.wrap(open(@public_log+"#{time}.txt.gz")) {|z|
+    open_gziped_log(time) {|z|
       FileUtils.copy_stream(z, uncompressed)
     }
     uncompressed.flush
@@ -343,22 +347,38 @@ End
     time_seq.delete time2
     return false if time_seq.empty?
     time1 = time_seq.last
-    tmp1 = make_diff_content(time1)
-    tmp2 = make_diff_content(time2)
-    pos1 = pos2 = nil
+    has_diff = false
     output_path = @public_log+"#{time2}.diff.txt.gz"
     Zlib::GzipWriter.wrap(open(output_path, "w")) {|z|
-      z.puts "--- #{time1}"
-      z.puts "+++ #{time2}"
-      pos1 = z.pos
-      UDiff.diff(tmp1.path, tmp2.path, z)
-      pos2 = z.pos
+      has_diff = output_diff(time1, time2, z)
     }
-    if pos1 == pos2
+    if !has_diff
       output_path.unlink
       return false
     end
     return true
+  end
+
+  def output_diff(t1, t2, out)
+    has_diff = false
+    open_gziped_log(t2) {|f|
+      has_change_line = false
+      f.each {|line|
+        if ChkBuild::Target::CHANGE_LINE_PAT =~ line
+          out.puts line
+          has_change_line = true
+        end
+      }
+      if has_change_line
+        out.puts
+        has_diff = true
+      end
+    }
+    tmp1 = make_diff_content(t1)
+    tmp2 = make_diff_content(t2)
+    header = "--- #{t1}\n+++ #{t2}\n"
+    has_diff ||= UDiff.diff(tmp1.path, tmp2.path, out, header)
+    has_diff
   end
 
   class CommandError < StandardError

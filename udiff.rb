@@ -1,14 +1,15 @@
 require 'escape'
 
 class UDiff
-  def UDiff.diff(path1, path2, out)
-    UDiff.new(path1, path2, out).diff
+  def UDiff.diff(path1, path2, out, header="--- #{path1}\n+++ #{path2}\n")
+    UDiff.new(path1, path2, out, header).diff
   end
 
-  def initialize(path1, path2, out)
+  def initialize(path1, path2, out, header)
     @path1 = path1
     @path2 = path2
     @out = out
+    @header = header
     @context = 3
     @beginning = true
     @l1 = 0
@@ -18,6 +19,9 @@ class UDiff
   end
 
   def puts_line(line)
+    if @beginning
+      @hunk << @header
+    end
     @hunk << line
     if /\n\z/ !~ line
       @hunk << "\n\\ No newline at end of file\n"
@@ -104,6 +108,7 @@ class UDiff
   end
 
   def process_commands(f1, f2, d)
+    has_diff = false
     l1 = 0
     while com = d.gets
       case com
@@ -115,6 +120,7 @@ class UDiff
           v = f1.gets
           @l1 += 1
           puts_del_line(v)
+          has_diff = true
         }
         l1 = line + num - 1
       when /\Aa(\d+) (\d+)/
@@ -132,22 +138,26 @@ class UDiff
           @l2 += 1
           v = v1
           puts_add_line(v)
+          has_diff = true
         }
       else
         raise "[bug] unexpected diff line: #{com.inspect}"
       end
     end
+    has_diff
   end
 
   def diff
+    has_diff = false
     open(@path1) {|f1|
       open(@path2) {|f2|
         IO.popen("diff -n #{Escape.shell_escape(@path1)} #{Escape.shell_escape(@path2)}") {|d|
-          process_commands(f1, f2, d)
+          has_diff = process_commands(f1, f2, d)
         }
         output_common_tail(f1, f2)
       }
     }
+    has_diff
   end
 end
 
