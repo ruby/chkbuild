@@ -6,3 +6,7 @@ require 'chkbuild/xforge'
 require "util"
 require 'chkbuild/target'
 require 'chkbuild/build'
+
+module ChkBuild
+  autoload :Ruby, 'chkbuild/ruby'
+end

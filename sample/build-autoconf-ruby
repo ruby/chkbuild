@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 
 require 'chkbuild'
-require 'chkbuild/ruby'
 
 ChkBuild.limit(:data=>1024*1024*300, :as=>1024*1024*300)
 
@@ -38,7 +37,7 @@ Autoconf.add_title_hook('version') {|title, log|
   end
 }
 
-def_build_ruby(
+ChkBuild::Ruby.def_target(
   ["trunk", "1.8"],
   Autoconf,
   :separated_srcdir => true)

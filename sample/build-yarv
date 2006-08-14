@@ -1,11 +1,10 @@
 #!/usr/bin/env ruby
 
 require 'chkbuild'
-require 'chkbuild/ruby'
 
 ChkBuild.limit(:data=>1024*1024*300, :as=>1024*1024*300)
 
-def_build_ruby(
+ChkBuild::Ruby.def_target(
   ["yarv"],
   :separated_srcdir => true)
 
