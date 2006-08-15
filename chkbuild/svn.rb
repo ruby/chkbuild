@@ -86,7 +86,7 @@ class ChkBuild::Build
     if r1 == 'none'
       query = Escape.html_form([['view', 'markup'], ['pathrev', r2.to_s]])
     elsif r2 == 'none'
-      query = Escape.html_form([['view', 'markup'], ['pathrev', r2.to_s]])
+      query = Escape.html_form([['view', 'markup'], ['pathrev', r1.to_s]])
     else
       query = Escape.html_form([
         ["p1", df],
