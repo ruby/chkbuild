@@ -1,0 +1,27 @@
+#!/usr/bin/env ruby
+
+require 'chkbuild'
+
+ChkBuild.limit(:data=>1024*1024*300, :as=>1024*1024*300)
+
+svn = ChkBuild.def_target("svn") {|b|
+  dir = b.build_dir
+  b.svn('http://svn.collab.net/repos/svn', 'trunk', 'subversion',
+       :viewvc=>"http://svn.collab.net/viewvc/svn?diff_format=u")
+  Dir.chdir("subversion") {
+    b.run("./autogen.sh")
+    b.run("./configure", "--prefix=#{dir}")
+    b.make
+    b.run("subversion/svn/svn", "--version", :section=>'version', "ENV:LC_ALL"=>"C")
+    b.run("subversion/svn/svn", "help", :section=>'help')
+    b.make("install")
+  }
+}
+
+svn.add_title_hook('help') {|title, log|
+  if /^Subversion command-line client, version (.*)\.$/ =~ log
+    title.update_title(:version, "Subversion #{$1}")
+  end
+}
+
+ChkBuild.main

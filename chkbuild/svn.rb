@@ -1,4 +1,5 @@
 require 'fileutils'
+require "uri"
 
 module ChkBuild; end # for testing
 class ChkBuild::Build
@@ -71,26 +72,31 @@ class ChkBuild::Build
   end
 
   def svn_uri(viewcvs, d, f, r1, top_r1, r2)
+    uri = URI.parse(viewcvs)
     if f == '.'
-      rev_url = viewcvs.dup
-      rev_url << "?view=rev&revision=#{r2}"
-      return rev_url
+      query = Escape.html_form([['view', 'rev'], ['revision', r2.to_s]])
+      (uri.query || '').split(/[;&]/).each {|param| query << ';' << param }
+      uri.query = query
+      return uri.to_s
     end
     df = d + '/' + f
-    diff_url = viewcvs.dup
-    diff_url << '/' << df
+    path = uri.path
+    path <<  '/' << df
+    uri.path = path
     if r1 == 'none'
-      diff_url << "?view=markup&pathrev=#{r2}"
+      query = Escape.html_form([['view', 'markup'], ['pathrev', r2.to_s]])
     elsif r2 == 'none'
-      diff_url << "?view=markup&pathrev=#{r1}"
+      query = Escape.html_form([['view', 'markup'], ['pathrev', r2.to_s]])
     else
-      diff_url << "?" << Escape.html_form([
+      query = Escape.html_form([
         ["p1", df],
         ["r1", top_r1.to_s],
         ["r2", r2.to_s],
         ["pathrev", r2.to_s]])
     end
-    diff_url
+    (uri.query || '').split(/[;&]/).each {|param| query << ';' << param }
+    uri.query = query
+    uri.to_s
   end
 
   def svn_print_changes(h1, h2, viewcvs=nil, rep_dir=nil)
