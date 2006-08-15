@@ -21,13 +21,15 @@ module Escape
 
   def html_form(pairs, sep=';')
     pairs.map {|k, v|
-      # unreserved: 0-9A-Za-z\-\._~
-      # gen-delims not used after query: :/?\[\]@
-      # sub-delims not used by application/x-www-form-urlencoded: !\$'()*,
-      k = k.gsub(%r{[^0-9A-Za-z\-\._~:/?\[\]@!\$'()*,]}) {
+      # query chars - x-www-form-urlencoded delimiters
+      # query chars: unreserved / sub-delims / "/" / ":" / "?" / "@"
+      # unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~"
+      # sub-delims = "!" / "$" / "&" / "'" / "(" / ")" / "*" / "+" / "," / ";" / "="
+      # x-www-form-urlencoded delimiters: "&" / "+" / ";" / "="
+      k = k.gsub(%r{[^0-9A-Za-z\-\._~:/?@!\$'()*,]}) {
         '%' + $&.unpack("H2")[0].upcase
       }
-      v = v.gsub(%r{[^0-9A-Za-z\-\._~:/?\[\]@!\$'()*,]}) {
+      v = v.gsub(%r{[^0-9A-Za-z\-\._~:/?@!\$'()*,]}) {
         '%' + $&.unpack("H2")[0].upcase
       }
       "#{k}=#{v}"
