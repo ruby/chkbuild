@@ -49,7 +49,8 @@ class ChkBuild::Build
       if /\d+\s+(\d+)\s+\S+\s+(\S+)/ =~ line
         rev = $1.to_i
         path = $2
-        h[path] = rev
+        dir = File.directory?(path)
+        h[path] = [rev, dir]
       end
     }
     h
@@ -71,57 +72,81 @@ class ChkBuild::Build
     }
   end
 
-  def svn_uri(viewcvs, d, f, r1, top_r1, r2)
-    uri = URI.parse(viewcvs)
-    if f == '.'
-      query = Escape.html_form([['view', 'rev'], ['revision', r2.to_s]])
-      (uri.query || '').split(/[;&]/).each {|param| query << ';' << param }
-      uri.query = query
-      return uri.to_s
-    end
-    df = d + '/' + f
-    path = uri.path
-    path <<  '/' << df
-    uri.path = path
-    if r1 == 'none'
-      query = Escape.html_form([['view', 'markup'], ['pathrev', r2.to_s]])
-    elsif r2 == 'none'
-      query = Escape.html_form([['view', 'markup'], ['pathrev', r1.to_s]])
-    else
-      query = Escape.html_form([
-        ["p1", df],
-        ["r1", top_r1.to_s],
-        ["r2", r2.to_s],
-        ["pathrev", r2.to_s]])
-    end
+  def svn_rev_uri(viewcvs, r)
+    return nil if !viewcvs
+    svn_extend_uri(URI.parse(viewcvs), "", [['view', 'rev'], ['revision', r.to_s]]).to_s
+  end
+
+  def svn_markup_uri(viewcvs, d, f, r)
+    return nil if !viewcvs
+    svn_extend_uri(URI.parse(viewcvs), "/#{d}/#{f}", [['view', 'markup'], ['pathrev', r.to_s]]).to_s
+  end
+
+  def svn_dir_uri(viewcvs, d, f, r)
+    return nil if !viewcvs
+    svn_extend_uri(URI.parse(viewcvs), "/#{d}/#{f}", [['pathrev', r.to_s]]).to_s
+  end
+
+  def svn_diff_uri(viewcvs, d, f, r1, r2)
+    return nil if !viewcvs
+    svn_extend_uri(URI.parse(viewcvs), "/#{d}/#{f}", [
+      ['p1', "#{d}/#{f}"],
+      ['r1', r1.to_s],
+      ['r2', r2.to_s],
+      ['pathrev', r2.to_s]]).to_s
+  end
+
+  def svn_extend_uri(uri, path, params)
+    path0 = uri.path
+    path0 << path
+    uri.path = path0
+    query = Escape.html_form(params)
     (uri.query || '').split(/[;&]/).each {|param| query << ';' << param }
     uri.query = query
-    uri.to_s
+    uri
   end
 
   def svn_print_changes(h1, h2, viewcvs=nil, rep_dir=nil)
-    d1 = {}; h1.keys.each {|k| d1[$`] = true if %r{/[^/]*\z} =~ k }
-    d2 = {}; h2.keys.each {|k| d2[$`] = true if %r{/[^/]*\z} =~ k }
-    d1.each_key {|k|
-      next if !d2.include?(k)
-      h1.delete k
-      h2.delete k
-    }
-    top_r1 = h1['.']
+    top_r1, _ = h1['.']
+    top_r2, _ = h2['.']
+    h1.delete '.'
+    h2.delete '.'
+    svn_print_chg_line('.', top_r1, top_r2, svn_rev_uri(viewcvs, top_r2))
     svn_path_sort(h1.keys|h2.keys).each {|f|
-      r1 = h1[f] || 'none'
-      r2 = h2[f] || 'none'
-      next if r1 == r2
-      if r1 == 'none'
-        line = "ADD"
-      elsif r2 == 'none'
-        line = "DEL"
+      r1, d1 = h1[f] || ['none', nil]
+      r2, d2 = h2[f] || ['none', nil]
+      next if r1 == r2 # no changes
+      next if d1 && d2 # skip directory changes
+      if !d1 && !d2 && r1 != 'none' && r2 != 'none'
+        svn_print_chg_line(f, r1, r2,
+          svn_diff_uri(viewcvs, rep_dir, f, top_r1, r2))
       else
-        line = "CHG"
+        svn_print_del_line(f, r1,
+          d1 ? svn_dir_uri(viewcvs, rep_dir, f, r1) :
+               svn_markup_uri(viewcvs, rep_dir, f, r1)) if r1 != 'none'
+        svn_print_add_line(f, r2,
+          d2 ? svn_dir_uri(viewcvs, rep_dir, f, r2) :
+               svn_markup_uri(viewcvs, rep_dir, f, r2)) if r2 != 'none'
       end
-      line << " #{f}\t#{r1}->#{r2}"
-      line << "\t" << svn_uri(viewcvs, rep_dir, f, r1, top_r1, r2) if viewcvs
-      puts line
     }
   end
+
+  def svn_print_chg_line(f, r1, r2, uri)
+    line = "CHG #{f}\t#{r1}->#{r2}"
+    line << "\t" << uri.to_s if uri
+    puts line
+  end
+
+  def svn_print_del_line(f, r, uri)
+    line = "DEL #{f}\t#{r}->none"
+    line << "\t" << uri.to_s if uri
+    puts line
+  end
+
+  def svn_print_add_line(f, r, uri)
+    line = "ADD #{f}\tnone->#{r}"
+    line << "\t" << uri.to_s if uri
+    puts line
+  end
+
 end
