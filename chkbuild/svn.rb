@@ -111,6 +111,7 @@ class ChkBuild::Build
     top_r2, _ = h2['.']
     h1.delete '.'
     h2.delete '.'
+    return if top_r1 == top_r2
     svn_print_chg_line('.', top_r1, top_r2, svn_rev_uri(viewcvs, top_r2))
     svn_path_sort(h1.keys|h2.keys).each {|f|
       r1, d1 = h1[f] || ['none', nil]
