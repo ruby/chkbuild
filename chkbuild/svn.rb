@@ -120,14 +120,14 @@ class ChkBuild::Build
       next if d1 && d2 # skip directory changes
       if !d1 && !d2 && r1 != 'none' && r2 != 'none'
         svn_print_chg_line(f, r1, r2,
-          svn_diff_uri(viewcvs, rep_dir, f, top_r1, r2))
+          svn_diff_uri(viewcvs, rep_dir, f, top_r1, top_r2))
       else
         svn_print_del_line(f, r1,
-          d1 ? svn_dir_uri(viewcvs, rep_dir, f, r1) :
-               svn_markup_uri(viewcvs, rep_dir, f, r1)) if r1 != 'none'
+          d1 ? svn_dir_uri(viewcvs, rep_dir, f, top_r1) :
+               svn_markup_uri(viewcvs, rep_dir, f, top_r1)) if r1 != 'none'
         svn_print_add_line(f, r2,
-          d2 ? svn_dir_uri(viewcvs, rep_dir, f, r2) :
-               svn_markup_uri(viewcvs, rep_dir, f, r2)) if r2 != 'none'
+          d2 ? svn_dir_uri(viewcvs, rep_dir, f, top_r2) :
+               svn_markup_uri(viewcvs, rep_dir, f, top_r2)) if r2 != 'none'
       end
     }
   end
