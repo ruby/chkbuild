@@ -4,28 +4,33 @@ require "uri"
 module ChkBuild; end # for testing
 
 class ChkBuild::ViewVC
-  def initialize(uri)
+  def initialize(uri, old=false)
     @uri = uri
+    @old = old
   end
 
   def rev_uri(r)
-    extend_uri("", [['view', 'rev'], ['revision', r.to_s]]).to_s
+    revision = @old ? 'rev' : 'revision'
+    extend_uri("", [['view', 'rev'], [revision, r.to_s]]).to_s
   end
 
   def markup_uri(d, f, r)
-    extend_uri("/#{d}/#{f}", [['view', 'markup'], ['pathrev', r.to_s]]).to_s
+    pathrev = @old ? 'rev' : 'pathrev'
+    extend_uri("/#{d}/#{f}", [['view', 'markup'], [pathrev, r.to_s]]).to_s
   end
 
   def dir_uri(d, f, r)
-    extend_uri("/#{d}/#{f}", [['pathrev', r.to_s]]).to_s
+    pathrev = @old ? 'rev' : 'pathrev'
+    extend_uri("/#{d}/#{f}", [[pathrev, r.to_s]]).to_s
   end
 
   def diff_uri(d, f, r1, r2)
+    pathrev = @old ? 'rev' : 'pathrev'
     extend_uri("/#{d}/#{f}", [
       ['p1', "#{d}/#{f}"],
       ['r1', r1.to_s],
       ['r2', r2.to_s],
-      ['pathrev', r2.to_s]]).to_s
+      [pathrev, r2.to_s]]).to_s
   end
 
   def extend_uri(path, params)
@@ -41,13 +46,12 @@ class ChkBuild::ViewVC
 end
 
 class ChkBuild::Build
-
   def svn(svnroot, rep_dir, working_dir, opts={})
     url = svnroot + '/' + rep_dir
     opts = opts.dup
     opts[:section] ||= 'svn'
     if opts[:viewvc]||opts[:viewcvs]
-      viewvc = ChkBuild::ViewVC.new(opts[:viewvc]||opts[:viewcvs])
+      viewvc = ChkBuild::ViewVC.new(opts[:viewvc]||opts[:viewcvs], opts[:viewcvs]!=nil)
     else
       viewvc = nil
     end

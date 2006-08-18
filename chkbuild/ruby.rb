@@ -55,7 +55,7 @@ module ChkBuild
         Dir.chdir(checkout_dir)
         if ruby_branch == 'yarv'
           b.svn("http://www.atdot.net/svn/yarv", "trunk", 'ruby',
-            :viewcvs=>'http://www.atdot.net/viewcvs/yarv')
+            :viewcvs=>'http://www.atdot.net/viewcvs/yarv?diff_format=u')
         else
           b.cvs(
             ":pserver:anonymous@cvs.ruby-lang.org:/src", "ruby", ruby_branch,

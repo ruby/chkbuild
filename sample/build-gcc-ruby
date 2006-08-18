@@ -15,9 +15,7 @@ gcc = ChkBuild.def_target("gcc",
   }[suffix]
   Dir.chdir("..") {
     b.svn("svn://gcc.gnu.org/svn/gcc", gcc_branch, 'gcc',
-      :viewcvs=>"http://gcc.gnu.org/viewcvs")
-    # svn://gcc.gnu.org/svn/gcc/trunk
-    # http://gcc.gnu.org/viewcvs/trunk/gcc/config/m68k/m68k.md?r1=115272&r2=115973
+      :viewvc=>"http://gcc.gnu.org/viewcvs")
   }
   b.mkcd("objdir")
   b.run("../../gcc/configure", "--prefix=#{gcc_dir}", "--enable-languages=c", "--disable-shared", "--disable-multilib")
