@@ -2,12 +2,55 @@ require 'fileutils'
 require "uri"
 
 module ChkBuild; end # for testing
+
+class ChkBuild::ViewVC
+  def initialize(uri)
+    @uri = uri
+  end
+
+  def rev_uri(r)
+    extend_uri("", [['view', 'rev'], ['revision', r.to_s]]).to_s
+  end
+
+  def markup_uri(d, f, r)
+    extend_uri("/#{d}/#{f}", [['view', 'markup'], ['pathrev', r.to_s]]).to_s
+  end
+
+  def dir_uri(d, f, r)
+    extend_uri("/#{d}/#{f}", [['pathrev', r.to_s]]).to_s
+  end
+
+  def diff_uri(d, f, r1, r2)
+    extend_uri("/#{d}/#{f}", [
+      ['p1', "#{d}/#{f}"],
+      ['r1', r1.to_s],
+      ['r2', r2.to_s],
+      ['pathrev', r2.to_s]]).to_s
+  end
+
+  def extend_uri(path, params)
+    uri = URI.parse(@uri)
+    path0 = uri.path
+    path0 << path
+    uri.path = path0
+    query = Escape.html_form(params)
+    (uri.query || '').split(/[;&]/).each {|param| query << ';' << param }
+    uri.query = query
+    uri
+  end
+end
+
 class ChkBuild::Build
+
   def svn(svnroot, rep_dir, working_dir, opts={})
     url = svnroot + '/' + rep_dir
     opts = opts.dup
     opts[:section] ||= 'svn'
-    viewvc = opts[:viewvc]||opts[:viewcvs]
+    if opts[:viewvc]||opts[:viewcvs]
+      viewvc = ChkBuild::ViewVC.new(opts[:viewvc]||opts[:viewcvs])
+    else
+      viewvc = nil
+    end
     if File.exist?(working_dir) && File.exist?("#{working_dir}/.svn")
       Dir.chdir(working_dir) {
         self.run "svn", "cleanup", opts
@@ -74,36 +117,22 @@ class ChkBuild::Build
 
   def svn_rev_uri(viewvc, r)
     return nil if !viewvc
-    svn_extend_uri(URI.parse(viewvc), "", [['view', 'rev'], ['revision', r.to_s]]).to_s
+    viewvc.rev_uri(r)
   end
 
   def svn_markup_uri(viewvc, d, f, r)
     return nil if !viewvc
-    svn_extend_uri(URI.parse(viewvc), "/#{d}/#{f}", [['view', 'markup'], ['pathrev', r.to_s]]).to_s
+    viewvc.markup_uri(d, f, r)
   end
 
   def svn_dir_uri(viewvc, d, f, r)
     return nil if !viewvc
-    svn_extend_uri(URI.parse(viewvc), "/#{d}/#{f}", [['pathrev', r.to_s]]).to_s
+    viewvc.dir_uri(d, f, r)
   end
 
   def svn_diff_uri(viewvc, d, f, r1, r2)
     return nil if !viewvc
-    svn_extend_uri(URI.parse(viewvc), "/#{d}/#{f}", [
-      ['p1', "#{d}/#{f}"],
-      ['r1', r1.to_s],
-      ['r2', r2.to_s],
-      ['pathrev', r2.to_s]]).to_s
-  end
-
-  def svn_extend_uri(uri, path, params)
-    path0 = uri.path
-    path0 << path
-    uri.path = path0
-    query = Escape.html_form(params)
-    (uri.query || '').split(/[;&]/).each {|param| query << ';' << param }
-    uri.query = query
-    uri
+    viewvc.diff_uri(d, f, r1, r2)
   end
 
   def svn_print_changes(h1, h2, viewvc=nil, rep_dir=nil)
