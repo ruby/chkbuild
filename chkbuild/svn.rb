@@ -72,24 +72,24 @@ class ChkBuild::Build
     }
   end
 
-  def svn_rev_uri(viewcvs, r)
-    return nil if !viewcvs
-    svn_extend_uri(URI.parse(viewcvs), "", [['view', 'rev'], ['revision', r.to_s]]).to_s
+  def svn_rev_uri(viewvc, r)
+    return nil if !viewvc
+    svn_extend_uri(URI.parse(viewvc), "", [['view', 'rev'], ['revision', r.to_s]]).to_s
   end
 
-  def svn_markup_uri(viewcvs, d, f, r)
-    return nil if !viewcvs
-    svn_extend_uri(URI.parse(viewcvs), "/#{d}/#{f}", [['view', 'markup'], ['pathrev', r.to_s]]).to_s
+  def svn_markup_uri(viewvc, d, f, r)
+    return nil if !viewvc
+    svn_extend_uri(URI.parse(viewvc), "/#{d}/#{f}", [['view', 'markup'], ['pathrev', r.to_s]]).to_s
   end
 
-  def svn_dir_uri(viewcvs, d, f, r)
-    return nil if !viewcvs
-    svn_extend_uri(URI.parse(viewcvs), "/#{d}/#{f}", [['pathrev', r.to_s]]).to_s
+  def svn_dir_uri(viewvc, d, f, r)
+    return nil if !viewvc
+    svn_extend_uri(URI.parse(viewvc), "/#{d}/#{f}", [['pathrev', r.to_s]]).to_s
   end
 
-  def svn_diff_uri(viewcvs, d, f, r1, r2)
-    return nil if !viewcvs
-    svn_extend_uri(URI.parse(viewcvs), "/#{d}/#{f}", [
+  def svn_diff_uri(viewvc, d, f, r1, r2)
+    return nil if !viewvc
+    svn_extend_uri(URI.parse(viewvc), "/#{d}/#{f}", [
       ['p1', "#{d}/#{f}"],
       ['r1', r1.to_s],
       ['r2', r2.to_s],
@@ -106,13 +106,13 @@ class ChkBuild::Build
     uri
   end
 
-  def svn_print_changes(h1, h2, viewcvs=nil, rep_dir=nil)
+  def svn_print_changes(h1, h2, viewvc=nil, rep_dir=nil)
     top_r1, _ = h1['.']
     top_r2, _ = h2['.']
     h1.delete '.'
     h2.delete '.'
     return if top_r1 == top_r2
-    svn_print_chg_line('.', top_r1, top_r2, svn_rev_uri(viewcvs, top_r2))
+    svn_print_chg_line('.', top_r1, top_r2, svn_rev_uri(viewvc, top_r2))
     svn_path_sort(h1.keys|h2.keys).each {|f|
       r1, d1 = h1[f] || ['none', nil]
       r2, d2 = h2[f] || ['none', nil]
@@ -120,14 +120,14 @@ class ChkBuild::Build
       next if d1 && d2 # skip directory changes
       if !d1 && !d2 && r1 != 'none' && r2 != 'none'
         svn_print_chg_line(f, r1, r2,
-          svn_diff_uri(viewcvs, rep_dir, f, top_r1, top_r2))
+          svn_diff_uri(viewvc, rep_dir, f, top_r1, top_r2))
       else
         svn_print_del_line(f, r1,
-          d1 ? svn_dir_uri(viewcvs, rep_dir, f, top_r1) :
-               svn_markup_uri(viewcvs, rep_dir, f, top_r1)) if r1 != 'none'
+          d1 ? svn_dir_uri(viewvc, rep_dir, f, top_r1) :
+               svn_markup_uri(viewvc, rep_dir, f, top_r1)) if r1 != 'none'
         svn_print_add_line(f, r2,
-          d2 ? svn_dir_uri(viewcvs, rep_dir, f, top_r2) :
-               svn_markup_uri(viewcvs, rep_dir, f, top_r2)) if r2 != 'none'
+          d2 ? svn_dir_uri(viewvc, rep_dir, f, top_r2) :
+               svn_markup_uri(viewvc, rep_dir, f, top_r2)) if r2 != 'none'
       end
     }
   end
