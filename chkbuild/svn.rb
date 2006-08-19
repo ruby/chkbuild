@@ -91,7 +91,7 @@ class ChkBuild::Build
   def svn_parse_status(f)
     h = {}
     f.each {|line|
-      if /\d+\s+(\d+)\s+\S+\s+(\S+)/ =~ line
+      if /\d+\s+(\d+)\s+\S+\s+(.+)/ =~ line
         rev = $1.to_i
         path = $2
         dir = File.directory?(path)
