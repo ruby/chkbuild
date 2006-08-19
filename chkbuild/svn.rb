@@ -97,6 +97,7 @@ class ChkBuild::Build
         rev = $1.to_i
         path = $2
         dir = File.directory?(path)
+        path << '/' if dir && path != '.'
         h[path] = [rev, dir]
       end
     }
