@@ -35,9 +35,7 @@ class ChkBuild::ViewVC
 
   def extend_uri(path, params)
     uri = URI.parse(@uri)
-    path0 = uri.path
-    path0 << path
-    uri.path = path0
+    uri.path = uri.path + Escape.uri_path(path)
     query = Escape.html_form(params)
     (uri.query || '').split(/[;&]/).each {|param| query << ';' << param }
     uri.query = query

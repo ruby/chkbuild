@@ -19,6 +19,16 @@ module Escape
     end
   end
 
+  def uri_segment(str)
+    str.gsub(%r{[^A-Za-z0-9\-._~!$&'()*+,;=:@]}) {
+      '%' + $&.unpack("H2")[0].upcase
+    }
+  end
+
+  def uri_path(str)
+    str.gsub(%r{[^/]+}) { uri_segment($&) }
+  end
+
   def html_form(pairs, sep=';')
     pairs.map {|k, v|
       # query chars - x-www-form-urlencoded delimiters
