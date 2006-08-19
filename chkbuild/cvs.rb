@@ -52,8 +52,8 @@ class ChkBuild::Build
   def cvs_uri(viewcvs, repository, filename, r1, r2)
     uri = URI.parse(viewcvs)
     path = uri.path.dup
-    path << "/" << repository if repository != '.'
-    path << "/#{filename}"
+    path << "/" << Escape.uri_path(repository) if repository != '.'
+    path << "/" << Escape.uri_path(filename)
     uri.path = path
     query = (uri.query || '').split(/[;&]/)
     if r1 == 'none'

@@ -20,6 +20,9 @@ module Escape
   end
 
   def uri_segment(str)
+    # pchar : unreserved / sub-delims / ":" / "@"
+    # unreserved = ALPHA / DIGIT / "-" / "." / "_" / "~"
+    # sub-delims = "!" / "$" / "&" / "'" / "(" / ")" / "*" / "+" / "," / ";" / "="
     str.gsub(%r{[^A-Za-z0-9\-._~!$&'()*+,;=:@]}) {
       '%' + $&.unpack("H2")[0].upcase
     }
