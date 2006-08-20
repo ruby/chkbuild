@@ -24,4 +24,8 @@ svn.add_title_hook('help') {|title, log|
   end
 }
 
+svn.add_diff_preprocess_gsub(/^   compiled .*, \d\d:\d\d:\d\d$/) {
+  '   compiled <time>'
+}
+
 ChkBuild.main
