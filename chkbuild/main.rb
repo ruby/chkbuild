@@ -16,8 +16,9 @@ module ChkBuild
     print <<"End"
 usage:
   #{command} [build]
-  #{command} list [depsuffixed_name...]
-  #{command} title
+  #{command} list
+  #{command} title [depsuffixed_name...]
+  #{command} logdiff [depsuffixed_name...]
 End
     exit status
   end
