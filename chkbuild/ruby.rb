@@ -70,6 +70,22 @@ module ChkBuild
         b.make(make_options)
         b.run("./ruby", "-v", :section=>"version")
         b.make("install")
+        b.run("./ruby", '-e', <<'End', :section=>"method-list")
+mods = []
+ObjectSpace.each_object(Module) {|m| mods << m }
+mods = mods.sort_by {|m| m.name }
+mods.each {|mod|
+  puts "#{mod.name} #{(mod.ancestors - [mod]).inspect}"
+  mod.singleton_methods(false).sort.each {|methname|
+    meth = mod.method(methname)
+    puts "#{mod.name}.#{methname} #{meth.arity}"
+  }
+  mod.instance_methods(false).sort.each {|methname|
+    meth = mod.instance_method(methname)
+    puts "#{mod.name}\##{methname} #{meth.arity}"
+  }
+}
+End
         b.run("./ruby", "#{srcdir+'sample/test.rb'}", :section=>"test.rb")
         b.run("./ruby", "#{srcdir+'test/runner.rb'}", "-v", :section=>"test-all")
       }
