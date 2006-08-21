@@ -167,23 +167,3 @@ module Util
     Socket.gethostname.sub(/\..*/, '')
   end
 end
-
-class ChkBuild::Build
-  def make(*targets)
-    opts = {}
-    opts = targets.pop if Hash === targets.last
-    opts = opts.dup
-    opts[:alt_commands] = ['make']
-    if targets.empty?
-      opts[:section] ||= 'make'
-      self.run("gmake", opts)
-    else
-      targets.each {|target|
-	h = opts.dup
-	h[:reason] = target
-        h[:section] = target
-        self.run("gmake", target, h)
-      }
-    end
-  end
-end
