@@ -9,4 +9,5 @@ require 'chkbuild/build'
 
 module ChkBuild
   autoload :Ruby, 'chkbuild/ruby'
+  autoload :GCC, 'chkbuild/gcc'
 end
