@@ -35,9 +35,11 @@ module ChkBuild
           end
         }
         b.mkcd("objdir")
-        configure_flags = %w[--enable-languages=c --disable-shared --disable-multilib]
+        configure_flags = %w[--enable-languages=c]
         if odcctools_dir
           configure_flags.concat %W[--disable-checking --with-as=#{odcctools_dir}/bin/as --with-ld=#{odcctools_dir}/bin/ld]
+        else
+          configure_flags.concat %W[--disable-shared --disable-multilib]
         end
         b.run("../../gcc/configure", "--prefix=#{gcc_dir}", *configure_flags)
         b.make("bootstrap", "install", :timeout=>'5h')
