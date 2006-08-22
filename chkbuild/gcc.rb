@@ -61,6 +61,10 @@ module ChkBuild
         match[0].gsub(/[0-9.]+/, '<t>')
       }
 
+      gcc.add_diff_preprocess_gsub(%r{^/tmp/cc[A-Za-z0-9]+\.s:}) {
+        '/tmp/cc<tmpnam>.s:'
+      }
+
       gcc
     end
   end
