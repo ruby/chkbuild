@@ -2,8 +2,8 @@ class ChkBuild::Target
   def initialize(target_name, *args, &block)
     @target_name = target_name
     @build_proc = block
-    @opts = {}
-    @opts = args.pop if Hash === args.last
+    @opts = ChkBuild.get_options
+    @opts.update args.pop if Hash === args.last
     init_target(*args)
     @title_hook = []
     init_default_title_hooks
@@ -77,6 +77,10 @@ class ChkBuild::Target
     @branches.each {|suffixes|
       yield suffixes
     }
+  end
+
+  def update_option(hash)
+    @opts.update(hash)
   end
 
   def make_build_objs

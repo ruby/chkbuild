@@ -1,4 +1,5 @@
 require 'pathname'
+require 'optparse'
 
 module ChkBuild
   TOP_DIRECTORY = Pathname.getwd
@@ -15,7 +16,7 @@ module ChkBuild
     end
     print <<"End"
 usage:
-  #{command} [build]
+  #{command} [build [--procmemsize]]
   #{command} list
   #{command} title [depsuffixed_name...]
   #{command} logdiff [depsuffixed_name...]
@@ -25,6 +26,13 @@ End
 
   @target_list = []
   def ChkBuild.main_build
+    o = OptionParser.new
+    o.def_option('--procmemsize') {
+      @target_list.each {|t|
+        t.update_option(:procmemsize => true)
+      }
+    }
+    o.parse!
     begin
       Process.setpriority(Process::PRIO_PROCESS, 0, 10)
     rescue Errno::EACCES # already niced to 11 or more
@@ -85,7 +93,8 @@ End
   end
 
   def ChkBuild.main
-    subcommand = ARGV.shift || 'build'
+    ARGV.unshift 'build' if ARGV.empty?
+    subcommand = ARGV.shift
     case subcommand
     when 'help', '-h' then ChkBuild.main_help
     when 'build' then ChkBuild.main_build

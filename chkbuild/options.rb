@@ -7,6 +7,10 @@ module ChkBuild
     :limit_as => 1024 * 1024 * 100
   }
 
+  def self.get_options
+    @default_options.dup
+  end
+
   def self.num_oldbuilds
     @default_options[:num_oldbuilds]
   end

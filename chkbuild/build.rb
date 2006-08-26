@@ -170,7 +170,6 @@ class ChkBuild::Build
     raise "already exist: #{@start_time}" if File.exist? @start_time
     Dir.mkdir @start_time # fail if it is already exists.
     Dir.chdir @start_time
-
     @logfile = ChkBuild::LogFile.write_open(@log_filename, self)
     @logfile.change_default_output
     @public.mkpath
@@ -178,8 +177,11 @@ class ChkBuild::Build
     force_link "log", @current_txt
     remove_old_build(@start_time, opts.fetch(:old, ChkBuild.num_oldbuilds))
     @logfile.start_section 'start'
-    err = catch_error { @target.build_proc.call(self, *branch_info) }
-    output_status_section(err)
+    err = nil
+    with_procmemsize(opts) {
+      err = catch_error { @target.build_proc.call(self, *branch_info) }
+      output_status_section(err)
+    }
     @logfile.start_section 'end'
     GDB.check_core(@build_dir)
     force_link @current_txt, @public+'last.txt' if @current_txt.file?
@@ -196,6 +198,19 @@ class ChkBuild::Build
     compress_file(@public+"last.html", @public+"last.html.gz")
     ChkBuild.run_upload_hooks(self.suffixed_name)
     return err
+  end
+
+  def with_procmemsize(opts)
+    if opts[:procmemsize]
+      current_pid = $$
+      procmemsize_pid = fork { exec *%W[procmemsize -p #{current_pid}] }
+      ret = yield
+      Process.kill :TERM, procmemsize_pid
+      Process.wait procmemsize_pid
+    else
+      ret = yield
+    end
+    ret
   end
 
   def output_status_section(err)
