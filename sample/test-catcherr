@@ -1,0 +1,23 @@
+#!/usr/bin/env ruby
+
+require 'chkbuild'
+
+ChkBuild.def_target("catcherr-fails",
+  %w[true false],
+  %w[true false]) {|b, *commands|
+  b.catch_error { b.run(commands[0]) }
+  b.catch_error { b.run(commands[1]) }
+}
+
+ChkBuild.def_target("catcherr-branch",
+  %w[true false],
+  %w[true false],
+  %w[true false],
+  %w[true false]) {|b, *commands|
+  r1 = b.catch_error { b.run(commands[0]) }
+  r1 && b.catch_error { b.run(commands[1]) }
+  r1 && b.catch_error { b.run(commands[2]) }
+  r1 && b.catch_error { b.run(commands[3]) }
+}
+
+ChkBuild.main

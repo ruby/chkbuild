@@ -102,11 +102,10 @@ class ChkBuild::Build
     w.close_on_exec = true
     pid = fork {
       r.close
-      err = child_build_wrapper(w, *branch_info)
-      if err
-        exit 1
-      else
+      if child_build_wrapper(w, *branch_info)
         exit 0
+      else
+        exit 1
       end
     }
     w.close
@@ -160,7 +159,9 @@ class ChkBuild::Build
   def child_build_wrapper(parent_pipe, *branch_info)
     ChkBuild.lock_puts self.depsuffixed_name
     @parent_pipe = parent_pipe
+    @errors = []
     child_build_target(*branch_info)
+    @errors.empty?
   end
 
   def child_build_target(*branch_info)
@@ -178,18 +179,17 @@ class ChkBuild::Build
     force_link "log", @current_txt
     remove_old_build(@start_time, opts.fetch(:old, ChkBuild.num_oldbuilds))
     @logfile.start_section 'start'
-    err = nil
     with_procmemsize(opts) {
-      err = catch_error { @target.build_proc.call(self, *branch_info) }
-      output_status_section(err)
+      catch_error { @target.build_proc.call(self, *branch_info) }
+      output_status_section
     }
     @logfile.start_section 'end'
     GDB.check_core(@build_dir)
     force_link @current_txt, @public+'last.txt' if @current_txt.file?
     titlegen = ChkBuild::Title.new(@target, @logfile)
-    title_err = catch_error('run_title_hooks') { titlegen.run_title_hooks }
+    title_succ = catch_error('run_title_hooks') { titlegen.run_title_hooks }
     title = titlegen.make_title
-    title << " (run_title_hooks error)" if title_err
+    title << " (run_title_hooks error)" if !title_succ
     Marshal.dump(titlegen.version, @parent_pipe)
     @parent_pipe.close
     compress_file(@log_filename, @public_log+"#{@start_time}.txt.gz")
@@ -198,7 +198,6 @@ class ChkBuild::Build
     make_html_log(@log_filename, title, @public+"last.html")
     compress_file(@public+"last.html", @public+"last.html.gz")
     ChkBuild.run_upload_hooks(self.suffixed_name)
-    return err
   end
 
   def with_procmemsize(opts)
@@ -214,17 +213,13 @@ class ChkBuild::Build
     ret
   end
 
-  def output_status_section(err)
-    if !err
+  def output_status_section
+    if @errors.empty?
       @logfile.start_section 'success'
     else
       @logfile.start_section 'failure'
-      if CommandError === err
-        puts "failed(#{err.reason})"
-      else
-        puts "failed(#{err.class}:#{err.message})"
-        show_backtrace err
-      end
+      reasons = @errors.map {|err| CommandError === err ? err.reason : "#{err.class}:#{err.message}" }
+      puts "failed(#{reasons.join(',')})"
     end
   end
 
@@ -234,16 +229,17 @@ class ChkBuild::Build
       yield
     rescue Exception => err
     end
-    if err && name
-      output_error_section("#{name} error", err)
+    if err
+      output_error_section("#{name} error", err) if name
+      show_backtrace err unless CommandError === err
     end
-    return err
+    @errors << err if err
+    return err == nil
   end
 
   def output_error_section(secname, err)
     @logfile.start_section secname
     puts "#{err.class}:#{err.message}"
-    show_backtrace err
   end
 
   def build_dir() @build_dir end
