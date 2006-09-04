@@ -68,6 +68,7 @@ class ChkBuild::Build
   end
 
   def log_time_sequence
+    return [] if !@public_log.directory?
     names = @public_log.entries.map {|e| e.to_s }
     result = []
     names.each {|n|

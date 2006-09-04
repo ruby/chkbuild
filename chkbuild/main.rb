@@ -19,7 +19,7 @@ usage:
   #{command} [build [--procmemsize]]
   #{command} list
   #{command} title [depsuffixed_name...]
-  #{command} logdiff [depsuffixed_name...]
+  #{command} logdiff [depsuffixed_name [date1 [date2]]]
 End
     exit status
   end
@@ -77,14 +77,19 @@ End
   end
 
   def ChkBuild.main_logdiff
+    depsuffixed_name, t1, t2 = ARGV
     @target_list.each {|t|
       t.each_build_obj {|build|
-        next if !ARGV.empty? && !ARGV.include?(build.depsuffixed_name)
+        next if depsuffixed_name && build.depsuffixed_name != depsuffixed_name
         ts = build.log_time_sequence
+        raise "no log: #{depsuffixed_name}/#{t1}" if t1 and !ts.include?(t1)
+        raise "no log: #{depsuffixed_name}/#{t2}" if t2 and !ts.include?(t2)
         if ts.length < 2
           puts "#{build.depsuffixed_name}: less than 2 logs"
+          next
         end
-        t1, t2 = ts[-2, 2]
+        t1 = ts[-2] if !t1
+        t2 = ts[-1] if !t2
         puts "#{build.depsuffixed_name}: #{t1}->#{t2}"
         build.output_diff(t1, t2, STDOUT)
         puts
