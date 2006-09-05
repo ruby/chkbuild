@@ -2,6 +2,23 @@ require 'chkbuild'
 
 module ChkBuild
   module Ruby
+    METHOD_LIST_SCRIPT = <<'End'
+mods = []
+ObjectSpace.each_object(Module) {|m| mods << m }
+mods = mods.sort_by {|m| m.name }
+mods.each {|mod|
+  puts "#{mod.name} #{(mod.ancestors - [mod]).inspect}"
+  mod.singleton_methods(false).sort.each {|methname|
+    meth = mod.method(methname)
+    puts "#{mod.name}.#{methname} #{meth.arity}"
+  }
+  mod.instance_methods(false).sort.each {|methname|
+    meth = mod.instance_method(methname)
+    puts "#{mod.name}\##{methname} #{meth.arity}"
+  }
+}
+End
+
     module_function
     def def_target(*args)
       opts = Hash === args.last ? args.pop : {}
@@ -67,30 +84,16 @@ module ChkBuild
         Dir.chdir(ruby_build_dir)
         b.mkcd("ruby")
         b.run("#{srcdir}/configure", "--prefix=#{ruby_build_dir}", "CFLAGS=#{cflags.join(' ')}", *configure_flags)
+        b.make("miniruby", make_options)
+        b.run("./miniruby", "-v", :section=>"version")
+        b.catch_error {
+          b.run("./miniruby", "#{srcdir+'sample/test.rb'}", :section=>"test.rb")
+        }
+        b.catch_error {
+          b.run("./miniruby", '-e', METHOD_LIST_SCRIPT, :section=>"method-list")
+        }
         b.make(make_options)
-        b.run("./ruby", "-v", :section=>"version")
         b.make("install")
-        b.catch_error {
-          b.run("./ruby", '-e', <<'End', :section=>"method-list")
-mods = []
-ObjectSpace.each_object(Module) {|m| mods << m }
-mods = mods.sort_by {|m| m.name }
-mods.each {|mod|
-  puts "#{mod.name} #{(mod.ancestors - [mod]).inspect}"
-  mod.singleton_methods(false).sort.each {|methname|
-    meth = mod.method(methname)
-    puts "#{mod.name}.#{methname} #{meth.arity}"
-  }
-  mod.instance_methods(false).sort.each {|methname|
-    meth = mod.instance_method(methname)
-    puts "#{mod.name}\##{methname} #{meth.arity}"
-  }
-}
-End
-        }
-        b.catch_error {
-          b.run("./ruby", "#{srcdir+'sample/test.rb'}", :section=>"test.rb")
-        }
         b.catch_error {
           b.run("./ruby", "#{srcdir+'test/runner.rb'}", "-v", :section=>"test-all")
         }
