@@ -7,6 +7,7 @@ class ChkBuild::Target
     init_target(*args)
     @title_hook = []
     init_default_title_hooks
+    @failure_hook = []
     @diff_preprocess_hook = []
     init_default_diff_preprocess_hooks
   end
@@ -57,6 +58,9 @@ class ChkBuild::Target
 
   def add_title_hook(secname, &block) @title_hook << [secname, block] end
   def each_title_hook(&block) @title_hook.each(&block) end
+
+  def add_failure_hook(secname, &block) @failure_hook << [secname, block] end
+  def each_failure_hook(&block) @failure_hook.each(&block) end
 
   CHANGE_LINE_PAT = /^(ADD|DEL|CHG) .*\t.*->.*\n/
 

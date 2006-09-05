@@ -53,6 +53,19 @@ class TestLogFile < Test::Unit::TestCase
     }
   end
 
+  def test_each_secname
+    with_logfile {|l|
+      secname1 = l.start_section("a")
+      secname2 = l.start_section("b")
+      secname3 = l.start_section("c")
+      ss = []
+      l.each_secname {|v|
+        ss << v
+      }
+      assert_equal(%w[a b c], ss)
+    }
+  end
+
   def test_modify_section
     with_logfile {|l|
       secname1 = secname2 = nil

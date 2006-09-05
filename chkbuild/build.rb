@@ -187,9 +187,9 @@ class ChkBuild::Build
     GDB.check_core(@build_dir)
     force_link @current_txt, @public+'last.txt' if @current_txt.file?
     titlegen = ChkBuild::Title.new(@target, @logfile)
-    title_succ = catch_error('run_title_hooks') { titlegen.run_title_hooks }
+    title_succ = catch_error('run_hooks') { titlegen.run_hooks }
     title = titlegen.make_title
-    title << " (run_title_hooks error)" if !title_succ
+    title << " (titlegen.run_hooks error)" if !title_succ
     Marshal.dump(titlegen.version, @parent_pipe)
     @parent_pipe.close
     compress_file(@log_filename, @public_log+"#{@start_time}.txt.gz")
@@ -214,13 +214,7 @@ class ChkBuild::Build
   end
 
   def output_status_section
-    if @errors.empty?
-      @logfile.start_section 'success'
-    else
-      @logfile.start_section 'failure'
-      reasons = @errors.map {|err| CommandError === err ? err.reason : "#{err.class}:#{err.message}" }
-      puts "failed(#{reasons.join(',')})"
-    end
+    @logfile.start_section 'success' if @errors.empty?
   end
 
   def catch_error(name=nil)
@@ -229,17 +223,16 @@ class ChkBuild::Build
       yield
     rescue Exception => err
     end
-    if err
-      output_error_section("#{name} error", err) if name
-      show_backtrace err unless CommandError === err
+    return true unless err
+    @errors << err
+    @logfile.start_section("#{name} error") if name
+    show_backtrace err unless CommandError === err
+    if CommandError === err
+      puts "failed(#{err.reason})"
+    else
+      puts "failed(#{err.class}:#{err.message}})"
     end
-    @errors << err if err
-    return err == nil
-  end
-
-  def output_error_section(secname, err)
-    @logfile.start_section secname
-    puts "#{err.class}:#{err.message}"
+    return false
   end
 
   def build_dir() @build_dir end

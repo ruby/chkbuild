@@ -111,26 +111,22 @@ End
         end
       }
         
-      t.add_title_hook("test.rb") {|title, log|
-        title.update_title(:status) {|val|
-          if /^end of test/ !~ log
-            if /^test: \d+ failed (\d+)/ =~ log
-              "#{$1}NotOK"
-            end
+      t.add_failure_hook("test.rb") {|log|
+        if /^end of test/ !~ log
+          if /^test: \d+ failed (\d+)/ =~ log
+            "#{$1}NotOK"
           end
-        }
+        end
       }
 
-      t.add_title_hook("test-all") {|title, log|
-        title.update_title(:status) {|val|
-          if /^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors$/ =~ log
-            failures = $1.to_i
-            errors = $2.to_i
-            if failures != 0 || errors != 0
-              "#{failures}F#{errors}E"
-            end
+      t.add_failure_hook("test-all") {|log|
+        if /^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors$/ =~ log
+          failures = $1.to_i
+          errors = $2.to_i
+          if failures != 0 || errors != 0
+            "#{failures}F#{errors}E"
           end
-        }
+        end
       }
 
       t.add_title_hook(nil) {|title, log|

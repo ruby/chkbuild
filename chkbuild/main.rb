@@ -69,7 +69,7 @@ End
         if last_txt.exist?
           logfile = ChkBuild::LogFile.read_open(last_txt)
           title = ChkBuild::Title.new(t, logfile)
-          title.run_title_hooks
+          title.run_hooks
           puts "#{build.depsuffixed_name}:\t#{title.make_title}"
         end
       }
