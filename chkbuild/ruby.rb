@@ -85,18 +85,12 @@ End
         b.mkcd("ruby")
         b.run("#{srcdir}/configure", "--prefix=#{ruby_build_dir}", "CFLAGS=#{cflags.join(' ')}", *configure_flags)
         b.make("miniruby", make_options)
-        b.run("./miniruby", "-v", :section=>"version")
-        b.catch_error {
-          b.run("./miniruby", "#{srcdir+'sample/test.rb'}", :section=>"test.rb")
-        }
-        b.catch_error {
-          b.run("./miniruby", '-e', METHOD_LIST_SCRIPT, :section=>"method-list")
-        }
+        b.catch_error { b.run("./miniruby", "-v", :section=>"version") }
+        b.catch_error { b.run("./miniruby", "#{srcdir+'sample/test.rb'}", :section=>"test.rb") }
+        b.catch_error { b.run("./miniruby", '-e', METHOD_LIST_SCRIPT, :section=>"method-list") }
         b.make(make_options)
         b.make("install")
-        b.catch_error {
-          b.run("./ruby", "#{srcdir+'test/runner.rb'}", "-v", :section=>"test-all")
-        }
+        b.catch_error { b.run("./ruby", "#{srcdir+'test/runner.rb'}", "-v", :section=>"test-all") }
       }
 
       t.add_title_hook("configure") {|title, log|
