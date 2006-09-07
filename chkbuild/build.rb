@@ -182,8 +182,8 @@ class ChkBuild::Build
     with_procmemsize(opts) {
       catch_error { @target.build_proc.call(self, *branch_info) }
       output_status_section
+      @logfile.start_section 'end'
     }
-    @logfile.start_section 'end'
     GDB.check_core(@build_dir)
     force_link @current_txt, @public+'last.txt' if @current_txt.file?
     titlegen = ChkBuild::Title.new(@target, @logfile)
