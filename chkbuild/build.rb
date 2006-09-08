@@ -406,7 +406,7 @@ End
     end
     @logfile.start_section(secname) if secname
 
-    puts "+ #{[command, *args].map {|s| Escape.shell_escape s }.join(' ')}"
+    puts "+ #{Escape.shell_command [command, *args]}"
     pos = STDOUT.pos
     TimeoutCommand.timeout_command(opts.fetch(:timeout, '1h')) {
       opts.each {|k, v|

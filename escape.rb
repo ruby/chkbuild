@@ -1,7 +1,11 @@
 module Escape
   module_function
 
-  def shell_escape(str)
+  def shell_command(command)
+    command.map {|word| shell_single_word(word) }.join(' ')
+  end
+
+  def shell_single_word(str)
     if str.empty?
       "''"
     elsif %r{\A[0-9A-Za-z+,./:=@_-]+\z} =~ str
