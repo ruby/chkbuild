@@ -22,6 +22,7 @@ module GDB
     gdb_command = nil
     core_info.each {|core_path, binary|
       next unless binary_path = binaries[binary]
+      core_path = rename_core(core_path)
       unless gdb_command
         gdb_command = Tempfile.new("gdb-bt")
         gdb_command.puts "bt"
@@ -33,16 +34,16 @@ module GDB
       gdb_output = `gdb -batch -n -x #{Escape.shell_escape gdb_command.path} #{Escape.shell_escape binary_path} #{Escape.shell_escape core_path}`
       puts gdb_output
       puts "gdb status: #{$?}"
-      rename_core(core_path)
     }
   end
 
   def rename_core(core_path)
     suffix = ".chkbuild."
     n = 1
-    while File.exist?("#{core_path}.chkbuild.#{n}")
+    while File.exist?(new_path = "#{core_path}.chkbuild.#{n}")
       n += 1
     end
-    File.rename(core_path, "#{core_path}.chkbuild.#{n}")
+    File.rename(core_path, new_path)
+    new_path
   end
 end
