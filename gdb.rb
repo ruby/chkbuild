@@ -14,6 +14,7 @@ module GDB
       basename = File.basename(f)
       binaries[basename] = f if stat.file? && stat.executable?
       next if /\bcore\b/ !~ basename
+      next if /\.chkbuild\.\d+\z/ =~ basename
       guess = `file #{f}`
       next if /\bcore\b.*from '(.*?)'/ !~ guess.sub(/\A.*?:/, '')
       core_info << [f, $1]
@@ -32,6 +33,16 @@ module GDB
       gdb_output = `gdb -batch -n -x #{Escape.shell_escape gdb_command.path} #{Escape.shell_escape binary_path} #{Escape.shell_escape core_path}`
       puts gdb_output
       puts "gdb status: #{$?}"
+      rename_core(core_path)
     }
+  end
+
+  def rename_core(core_path)
+    suffix = ".chkbuild."
+    n = 1
+    while File.exist?("#{core_path}.chkbuild.#{n}")
+      n += 1
+    end
+    File.rename(core_path, "#{core_path}.chkbuild.#{n}")
   end
 end

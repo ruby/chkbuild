@@ -184,7 +184,6 @@ class ChkBuild::Build
       output_status_section
       @logfile.start_section 'end'
     }
-    GDB.check_core(@build_dir)
     force_link @current_txt, @public+'last.txt' if @current_txt.file?
     titlegen = ChkBuild::Title.new(@target, @logfile)
     title_succ = catch_error('run_hooks') { titlegen.run_hooks }
@@ -227,6 +226,7 @@ class ChkBuild::Build
     @errors << err
     @logfile.start_section("#{name} error") if name
     show_backtrace err unless CommandError === err
+    GDB.check_core(@build_dir)
     if CommandError === err
       puts "failed(#{err.reason})"
     else
