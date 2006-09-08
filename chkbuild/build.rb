@@ -230,7 +230,7 @@ class ChkBuild::Build
     if CommandError === err
       puts "failed(#{err.reason})"
     else
-      puts "failed(#{err.class}:#{err.message}})"
+      puts "failed(#{err.class}:#{err.message})"
     end
     return false
   end
