@@ -31,10 +31,7 @@ module GDB
       puts
       puts "binary: #{binary_path}"
       puts "core: #{core_path}"
-      command = %w[gdb -batch -n -x]
-      command << gdb_command.path
-      command << binary_path
-      command << core_path
+      command = %W[gdb -batch -n -x #{gdb_command.path} #{binary_path} #{core_path}]
       gdb_output = `#{Escape.shell_command command}`
       puts gdb_output
       puts "gdb status: #{$?}"

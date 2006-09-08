@@ -152,7 +152,7 @@ class UDiff
     has_diff = false
     open(@path1) {|f1|
       open(@path2) {|f2|
-        IO.popen(Escape.shell_command(%W[diff -n] + [@path1, @path2])) {|d|
+        IO.popen(Escape.shell_command(%W[diff -n #@path1 #@path2])) {|d|
           has_diff = process_commands(f1, f2, d)
         }
         output_common_tail(f1, f2)
