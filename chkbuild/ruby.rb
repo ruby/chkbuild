@@ -3,20 +3,25 @@ require 'chkbuild'
 module ChkBuild
   module Ruby
     METHOD_LIST_SCRIPT = <<'End'
+nummodule = nummethod = 0
 mods = []
 ObjectSpace.each_object(Module) {|m| mods << m }
 mods = mods.sort_by {|m| m.name }
 mods.each {|mod|
+  nummodule += 1
   puts "#{mod.name} #{(mod.ancestors - [mod]).inspect}"
   mod.singleton_methods(false).sort.each {|methname|
+    nummethod += 1
     meth = mod.method(methname)
     puts "#{mod.name}.#{methname} #{meth.arity}"
   }
   mod.instance_methods(false).sort.each {|methname|
+    nummethod += 1
     meth = mod.instance_method(methname)
     puts "#{mod.name}\##{methname} #{meth.arity}"
   }
 }
+puts "#{nummodule} modules, #{nummethod} methods"
 End
 
     module_function
