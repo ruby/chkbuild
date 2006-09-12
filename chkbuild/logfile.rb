@@ -157,6 +157,14 @@ class ChkBuild::LogFile
     @sections.keys.sort_by {|secname| @sections[secname] }.each(&block)
   end
 
+  def section_size(secname)
+    spos = @sections[secname]
+    raise ArgumentError, "no section : #{secname.inspect}" if !spos
+    epos = @sections.values.reject {|pos| pos <= spos }.min
+    epos = @io.stat.size if !epos
+    epos - spos
+  end
+
   def get_section(secname)
     spos = @sections[secname]
     return nil if !spos

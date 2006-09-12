@@ -66,6 +66,24 @@ class TestLogFile < Test::Unit::TestCase
     }
   end
 
+  def test_section_size
+    with_logfile {|l|
+      l.with_default_output {
+        secname1 = l.start_section("a")
+        puts "A"
+        secname2 = l.start_section("b")
+        puts "BB"
+        secname3 = l.start_section("c")
+        puts "CCC"
+      }
+      secseize_a = l.section_size("a")
+      secseize_b = l.section_size("b")
+      secseize_c = l.section_size("c")
+      assert_equal(secseize_b, secseize_a+1)
+      assert_equal(secseize_c, secseize_b+1)
+    }
+  end
+
   def test_modify_section
     with_logfile {|l|
       secname1 = secname2 = nil
