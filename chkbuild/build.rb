@@ -192,8 +192,8 @@ class ChkBuild::Build
     Marshal.dump(titlegen.version, @parent_pipe)
     @parent_pipe.close
     compress_file(@log_filename, @public_log+"#{@start_time}.txt.gz")
-    has_diff = make_diff
-    update_summary(@start_time, title, has_diff)
+    different_sections = make_diff
+    update_summary(@start_time, title, different_sections)
     make_html_log(@log_filename, title, @public+"last.html")
     compress_file(@public+"last.html", @public+"last.html.gz")
     ChkBuild.run_upload_hooks(self.suffixed_name)
@@ -247,8 +247,19 @@ class ChkBuild::Build
     }
   end
 
-  def update_summary(start_time, title, has_diff)
-    open(@public+"summary.txt", "a") {|f| f.puts "#{start_time} #{title}" }
+  def update_summary(start_time, title, different_sections)
+    if different_sections
+      if different_sections.empty?
+        diff_txt = "diff"
+      else
+        diff_txt = "diff:#{different_sections.join(',')}"
+      end
+    end
+    open(@public+"summary.txt", "a") {|f|
+      f.print "#{start_time} #{title}"
+      f.print " (#{diff_txt})" if diff_txt
+      f.puts
+    }
     open(@public+"summary.html", "a") {|f|
       if f.stat.size == 0
         f.puts "<title>#{h self.depsuffixed_name} build summary</title>"
@@ -256,7 +267,7 @@ class ChkBuild::Build
         f.puts "<p><a href=\"../\">chkbuild</a></p>"
       end
       f.print "<a href=\"log/#{start_time}.txt.gz\" name=\"#{start_time}\">#{h start_time}</a> #{h title}"
-      f.print " (<a href=\"log/#{start_time}.diff.txt.gz\">diff</a>)" if has_diff
+      f.print " (<a href=\"log/#{start_time}.diff.txt.gz\">#{h diff_txt}</a>)" if diff_txt
       f.puts "<br>"
     }
   end
@@ -320,18 +331,18 @@ End
     }
     time_seq.sort!
     time_seq.delete time2
-    return false if time_seq.empty?
+    return nil if time_seq.empty?
     time1 = time_seq.last
-    has_diff = false
+    different_sections = nil
     output_path = @public_log+"#{time2}.diff.txt.gz"
     Zlib::GzipWriter.wrap(open(output_path, "w")) {|z|
-      has_diff = output_diff(time1, time2, z)
+      different_sections = output_diff(time1, time2, z)
     }
-    if !has_diff
+    if !different_sections
       output_path.unlink
-      return false
+      return nil
     end
-    return true
+    return different_sections
   end
 
   def output_diff(t1, t2, out)
@@ -353,7 +364,25 @@ End
     tmp2 = make_diff_content(t2)
     header = "--- #{t1}\n+++ #{t2}\n"
     has_diff |= UDiff.diff(tmp1.path, tmp2.path, out, header)
-    has_diff
+    return nil if !has_diff
+    different_sections(tmp1, tmp2)
+  end
+
+  def different_sections(tmp1, tmp2)
+    logfile1 = ChkBuild::LogFile.read_open(tmp1.path)
+    logfile2 = ChkBuild::LogFile.read_open(tmp2.path)
+    secnames1 = logfile1.secnames
+    secnames2 = logfile2.secnames
+    common_sections = secnames1 & secnames2
+    different_sections = (secnames1 - common_sections) + (secnames2 - common_sections)
+    common_sections.each {|secname|
+      if logfile1.section_size(secname) != logfile2.section_size(secname)
+        different_sections << secname
+      elsif logfile1.get_section(secname) != logfile2.get_section(secname)
+        different_sections << secname
+      end
+    }
+    different_sections
   end
 
   def make_diff_content(time)
@@ -369,7 +398,7 @@ End
     }
     pat = Regexp.union(*times.uniq)
     tmp = Tempfile.open("#{time}.d.")
-    Zlib::GzipReader.wrap(open(@public_log+"#{time}.txt.gz")) {|z|
+    open_gziped_log(time) {|z|
       z.each_line {|line|
         line = line.gsub(pat, '<buildtime>')
         @target.each_diff_preprocess_hook {|block|

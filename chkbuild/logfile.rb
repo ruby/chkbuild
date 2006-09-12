@@ -153,6 +153,10 @@ class ChkBuild::LogFile
     secname
   end
 
+  def secnames
+    @sections.keys.sort_by {|secname| @sections[secname] }
+  end
+
   def each_secname(&block)
     @sections.keys.sort_by {|secname| @sections[secname] }.each(&block)
   end
