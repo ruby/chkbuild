@@ -346,6 +346,16 @@ End
   end
 
   def output_diff(t1, t2, out)
+    has_diff = output_change_lines(t2, out)
+    tmp1 = make_diff_content(t1)
+    tmp2 = make_diff_content(t2)
+    header = "--- #{t1}\n+++ #{t2}\n"
+    has_diff |= UDiff.diff(tmp1.path, tmp2.path, out, header)
+    return nil if !has_diff
+    different_sections(tmp1, tmp2)
+  end
+
+  def output_change_lines(t2, out)
     has_diff = false
     open_gziped_log(t2) {|f|
       has_change_line = false
@@ -360,12 +370,7 @@ End
         has_diff = true
       end
     }
-    tmp1 = make_diff_content(t1)
-    tmp2 = make_diff_content(t2)
-    header = "--- #{t1}\n+++ #{t2}\n"
-    has_diff |= UDiff.diff(tmp1.path, tmp2.path, out, header)
-    return nil if !has_diff
-    different_sections(tmp1, tmp2)
+    has_diff
   end
 
   def different_sections(tmp1, tmp2)
