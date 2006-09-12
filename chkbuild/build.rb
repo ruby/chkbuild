@@ -309,36 +309,6 @@ End
     err.backtrace.each {|pos| puts "| #{pos}" }
   end
 
-  def open_gziped_log(time, &block)
-    Zlib::GzipReader.wrap(open(@public_log+"#{time}.txt.gz"), &block)
-  end
-
-  def make_diff_content(time)
-    times = [time]
-    uncompressed = Tempfile.open("#{time}.u.")
-    open_gziped_log(time) {|z|
-      FileUtils.copy_stream(z, uncompressed)
-    }
-    uncompressed.flush
-    logfile = ChkBuild::LogFile.read_open(uncompressed.path)
-    logfile.dependencies.each {|dep_suffixed_name, dep_time, dep_version|
-      times << dep_time
-    }
-    pat = Regexp.union(*times.uniq)
-    tmp = Tempfile.open("#{time}.d.")
-    Zlib::GzipReader.wrap(open(@public_log+"#{time}.txt.gz")) {|z|
-      z.each_line {|line|
-        line = line.gsub(pat, '<buildtime>')
-        @target.each_diff_preprocess_hook {|block|
-          catch_error(block.to_s) { line = block.call(line) }
-        }
-        tmp << line
-      }
-    }
-    tmp.flush
-    tmp
-  end
-
   def make_diff
     time2 = @start_time
     entries = Dir.entries(@public_log)
@@ -384,6 +354,36 @@ End
     header = "--- #{t1}\n+++ #{t2}\n"
     has_diff |= UDiff.diff(tmp1.path, tmp2.path, out, header)
     has_diff
+  end
+
+  def make_diff_content(time)
+    times = [time]
+    uncompressed = Tempfile.open("#{time}.u.")
+    open_gziped_log(time) {|z|
+      FileUtils.copy_stream(z, uncompressed)
+    }
+    uncompressed.flush
+    logfile = ChkBuild::LogFile.read_open(uncompressed.path)
+    logfile.dependencies.each {|dep_suffixed_name, dep_time, dep_version|
+      times << dep_time
+    }
+    pat = Regexp.union(*times.uniq)
+    tmp = Tempfile.open("#{time}.d.")
+    Zlib::GzipReader.wrap(open(@public_log+"#{time}.txt.gz")) {|z|
+      z.each_line {|line|
+        line = line.gsub(pat, '<buildtime>')
+        @target.each_diff_preprocess_hook {|block|
+          catch_error(block.to_s) { line = block.call(line) }
+        }
+        tmp << line
+      }
+    }
+    tmp.flush
+    tmp
+  end
+
+  def open_gziped_log(time, &block)
+    Zlib::GzipReader.wrap(open(@public_log+"#{time}.txt.gz"), &block)
   end
 
   class CommandError < StandardError
