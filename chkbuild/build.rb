@@ -373,10 +373,11 @@ End
     logfile2 = ChkBuild::LogFile.read_open(tmp2.path)
     secnames1 = logfile1.secnames
     secnames2 = logfile2.secnames
-    common_sections = secnames1 & secnames2
-    different_sections = (secnames1 - common_sections) + (secnames2 - common_sections)
-    common_sections.each {|secname|
-      if logfile1.section_size(secname) != logfile2.section_size(secname)
+    different_sections = secnames1 - secnames2
+    secnames2.each {|secname|
+      if !secnames1.include?(secname)
+        different_sections << secname
+      elsif logfile1.section_size(secname) != logfile2.section_size(secname)
         different_sections << secname
       elsif logfile1.get_section(secname) != logfile2.get_section(secname)
         different_sections << secname
