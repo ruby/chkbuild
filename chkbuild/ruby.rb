@@ -24,6 +24,10 @@ mods.each {|mod|
 puts "#{nummodule} modules, #{nummethod} methods"
 End
 
+    # not strictly RFC 1034.
+    DOMAINLABEL = /[A-Za-z0-9-]+/
+    DOMAINPAT = /#{DOMAINLABEL}(\.#{DOMAINLABEL})*/
+
     module_function
     def def_target(*args)
       opts = Hash === args.last ? args.pop : {}
@@ -144,8 +148,8 @@ End
         " <n>) #{match[1]}"
       }
 
-      t.add_diff_preprocess_gsub(%r{\(druby://localhost:\d+\)}) {|match|
-        "(druby://localhost:<port>)"
+      t.add_diff_preprocess_gsub(%r{\(druby://(#{DOMAINPAT}):\d+\)}o) {|match|
+        "(druby://#{match[1]}:<port>)"
       }
 
       t.add_diff_preprocess_gsub(/^Elapsed: [0-9.]+s/) {|match|
