@@ -98,7 +98,8 @@ End
         b.catch_error { b.run("./miniruby", "#{srcdir+'sample/test.rb'}", :section=>"test.rb") }
         b.catch_error { b.run("./miniruby", '-e', METHOD_LIST_SCRIPT, :section=>"method-list") }
         b.make(make_options)
-        b.make("install")
+        b.make("install-nodoc")
+        b.catch_error { b.make("install-doc") }
         b.catch_error { b.run("./ruby", "#{srcdir+'test/runner.rb'}", "-v", :section=>"test-all") }
       }
 
