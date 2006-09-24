@@ -159,8 +159,8 @@ End
       }
 
       # [2006-09-24T12:48:49.245737 #6902] ERROR -- : undefined method `each' for #<String:0x447fc5e4> (NoMethodError)
-      t.add_diff_preprocess_gsub(%r{\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d\.(\d+)}o) {|match|
-        "YYYY-MM-DDThh:mm:ss." + 's' * match[1].length
+      t.add_diff_preprocess_gsub(%r{\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)}o) {|match|
+        "YYYY-MM-DDThh:mm:ss" + match[1].gsub(/\d/, 's')
       }
 
       # #<String:0x4455ae94
