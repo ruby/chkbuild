@@ -95,7 +95,12 @@ End
         b.run("#{srcdir}/configure", "--prefix=#{ruby_build_dir}", "CFLAGS=#{cflags.join(' ')}", *configure_flags)
         b.make("miniruby", make_options)
         b.catch_error { b.run("./miniruby", "-v", :section=>"version") }
-        b.catch_error { b.run("./miniruby", "#{srcdir+'sample/test.rb'}", :section=>"test.rb") }
+        b.catch_error {
+          b.run("./miniruby", "#{srcdir+'sample/test.rb'}", :section=>"test.rb")
+          if /^end of test/ !~ b.logfile.get_section('test.rb')
+            raise ChkBuild::Build::CommandError.new(0, "test.rb")
+          end
+        }
         b.catch_error { b.run("./miniruby", '-e', METHOD_LIST_SCRIPT, :section=>"method-list") }
         b.make(make_options)
         b.make("install-nodoc")

@@ -199,6 +199,8 @@ class ChkBuild::Build
     ChkBuild.run_upload_hooks(self.suffixed_name)
   end
 
+  attr_reader :logfile
+
   def with_procmemsize(opts)
     if opts[:procmemsize]
       current_pid = $$
