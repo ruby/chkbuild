@@ -154,8 +154,8 @@ End
         " <n>) #{match[1]}"
       }
 
-      t.add_diff_preprocess_gsub(%r{\(druby://(#{DOMAINPAT}):\d+\)}o) {|match|
-        "(druby://#{match[1]}:<port>)"
+      t.add_diff_preprocess_gsub(%r{\((druby|drbssl)://(#{DOMAINPAT}):\d+\)}o) {|match|
+        "(#{match[1]}://#{match[2]}:<port>)"
       }
 
       # [2006-09-24T12:48:49.245737 #6902] ERROR -- : undefined method `each' for #<String:0x447fc5e4> (NoMethodError)
