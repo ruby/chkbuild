@@ -77,19 +77,19 @@ End
   end
 
   def ChkBuild.main_logdiff
-    depsuffixed_name, t1, t2 = ARGV
+    depsuffixed_name, arg_t1, arg_t2 = ARGV
     @target_list.each {|t|
       t.each_build_obj {|build|
         next if depsuffixed_name && build.depsuffixed_name != depsuffixed_name
         ts = build.log_time_sequence
-        raise "no log: #{depsuffixed_name}/#{t1}" if t1 and !ts.include?(t1)
-        raise "no log: #{depsuffixed_name}/#{t2}" if t2 and !ts.include?(t2)
+        raise "no log: #{build.depsuffixed_name}/#{arg_t1}" if arg_t1 and !ts.include?(arg_t1)
+        raise "no log: #{build.depsuffixed_name}/#{arg_t2}" if arg_t2 and !ts.include?(arg_t2)
         if ts.length < 2
           puts "#{build.depsuffixed_name}: less than 2 logs"
           next
         end
-        t1 = ts[-2] if !t1
-        t2 = ts[-1] if !t2
+        t1 = arg_t1 || ts[-2]
+        t2 = arg_t2 || ts[-1]
         puts "#{build.depsuffixed_name}: #{t1}->#{t2}"
         build.output_diff(t1, t2, STDOUT)
         puts
