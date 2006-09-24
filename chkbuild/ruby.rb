@@ -158,6 +158,16 @@ End
         "(druby://#{match[1]}:<port>)"
       }
 
+      # [2006-09-24T12:48:49.245737 #6902] ERROR -- : undefined method `each' for #<String:0x447fc5e4> (NoMethodError)
+      t.add_diff_preprocess_gsub(%r{\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d\.(\d+)}o) {|match|
+        "YYYY-MM-DDThh:mm:ss." + 's' * match[1].length
+      }
+
+      # #<String:0x4455ae94
+      t.add_diff_preprocess_gsub(%r{\#<[A-Z][A-Za-z0-9_]*(?:::[A-Z][A-Za-z0-9_]*)*:0x[0-9a-f]+}o) {|match|
+        match[0].sub(/[0-9a-f]+\z/) { 'X' * $&.length }
+      }
+
       t.add_diff_preprocess_gsub(/^Elapsed: [0-9.]+s/) {|match|
         "Elapsed: <t>s"
       }
