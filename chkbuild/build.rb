@@ -488,8 +488,8 @@ End
     end
   end
 
-  SignalNum2Name = Signal.list.invert
-  SignalNum2Name.default = 'unknown signal'
+  SignalNum2Name = Hash.new('unknown signal')
+  Signal.list.each {|name, num| SignalNum2Name[num] = "SIG#{name}" }
 
   def make(*targets)
     opts = {}
