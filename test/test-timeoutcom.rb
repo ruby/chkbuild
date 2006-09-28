@@ -14,4 +14,10 @@ class TestTimeoutCommand < Test::Unit::TestCase
       }
     }
   end
+
+  def test_past_time
+    assert_raise(TimeoutError) {
+      TimeoutCommand.timeout_command(Time.now-1, nil) {}
+    }
+  end
 end

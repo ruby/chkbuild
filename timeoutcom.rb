@@ -26,7 +26,7 @@ module TimeoutCommand
   def kill_processgroup(pgid, msgout)
     begin
       Process.kill('INT', -pgid)
-      msgout.puts "timeout: INT signal sent."
+      msgout.puts "timeout: INT signal sent." if msgout
       signals = ['TERM', 'KILL']
       signals.each {|sig|
         Process.kill(0, -pgid); sleep 0.1
@@ -39,7 +39,7 @@ module TimeoutCommand
           Process.kill(0, -pgid)
         }
         Process.kill(sig, -pgid)
-        msgout.puts "timeout: #{sig} signal sent."
+        msgout.puts "timeout: #{sig} signal sent." if msgout
       }
     rescue Errno::ESRCH # no process i.e. success to kill
     end
@@ -62,11 +62,11 @@ module TimeoutCommand
     begin
       timeout(secs) { Process.wait pid }
     rescue TimeoutError
-      msgout.puts "timeout: #{secs} seconds exceeds."
+      msgout.puts "timeout: #{secs} seconds exceeds." if msgout
       Thread.new { Process.wait pid }
       begin
         Process.kill(0, -pid)
-        msgout.puts "timeout: the process group is alive."
+        msgout.puts "timeout: the process group is alive." if msgout
         kill_processgroup(pid, msgout)
       rescue Errno::ESRCH # no process
       end
