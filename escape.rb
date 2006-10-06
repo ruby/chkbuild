@@ -54,4 +54,24 @@ module Escape
       "#{k}=#{v}"
     }.join(sep)
   end
+
+  HTML_TEXT_ESCAPE_HASH = {
+    '&' => '&amp;',
+    '<' => '&lt;',
+    '>' => '&gt;',
+  }
+  def html_text(str)
+    str.gsub(/[&<>]/) {|ch| HTML_TEXT_ESCAPE_HASH[ch] }
+  end
+
+  HTML_ATTR_ESCAPE_HASH = {
+    '&' => '&amp;',
+    '<' => '&lt;',
+    '>' => '&gt;',
+    '"' => '&quot;',
+  }
+  def html_attr(str)
+    str.gsub(/[&<>"]/) {|ch| HTML_ATTR_ESCAPE_HASH[ch] }
+  end
+
 end
