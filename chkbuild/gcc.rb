@@ -15,6 +15,7 @@ module ChkBuild
         suffixes.each {|s|
           case s
           when "trunk" then gcc_branch = "trunk"
+          when "4.2" then gcc_branch = "branches/gcc-4_2-branch"
           when "4.1" then gcc_branch = "branches/gcc-4_1-branch"
           when "4.0" then gcc_branch = "branches/gcc-4_0-branch"
           when /\Aodcctools_dir=/
