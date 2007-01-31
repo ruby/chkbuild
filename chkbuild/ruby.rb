@@ -47,8 +47,8 @@ End
         make_options = {}
         suffixes.each {|s|
           case s
-          when "trunk" then ruby_branch = nil
-          when "1.8" then ruby_branch = 'ruby_1_8'
+          when "trunk" then ruby_branch = 'trunk'
+          when "1.8" then ruby_branch = 'branches/ruby_1_8'
           when "yarv" then ruby_branch = 'yarv'
           when "o0"
             cflags.delete_if {|arg| /\A-O\d\z/ =~ arg }
@@ -83,9 +83,7 @@ End
           b.svn("http://www.atdot.net/svn/yarv", "trunk", 'ruby',
             :viewcvs=>'http://www.atdot.net/viewcvs/yarv?diff_format=u')
         else
-          b.cvs(
-            ":pserver:anonymous@cvs.ruby-lang.org:/src", "ruby", ruby_branch,
-            :cvsweb => "http://www.ruby-lang.org/cgi-bin/cvsweb.cgi")
+          b.svn("http://svn.ruby-lang.org/repos/ruby", ruby_branch, 'ruby')
         end
         Dir.chdir("ruby")
         b.run(autoconf_command)
