@@ -83,7 +83,8 @@ End
           b.svn("http://www.atdot.net/svn/yarv", "trunk", 'ruby',
             :viewcvs=>'http://www.atdot.net/viewcvs/yarv?diff_format=u')
         else
-          b.svn("http://svn.ruby-lang.org/repos/ruby", ruby_branch, 'ruby')
+          b.svn("http://svn.ruby-lang.org/repos/ruby", ruby_branch, 'ruby',
+            :viewvc=>'http://svn.ruby-lang.org/cgi-bin/viewvc.cgi?diff_format=u')
         end
         Dir.chdir("ruby")
         b.run(autoconf_command)
