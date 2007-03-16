@@ -50,6 +50,9 @@ end
 module Util
   extend Util # similar to module_function but instance methods are public.
 
+  # Util.rproduct(ary1, ary2, ...)
+  #
+  #  Util.rproduct([1,2],[3,4]) #=> [[1, 3], [2, 3], [1, 4], [2, 4]]
   def rproduct(*args)
     if block_given?
       product_each(*args.reverse) {|vs| yield vs.reverse }
