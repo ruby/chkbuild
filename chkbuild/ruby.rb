@@ -36,6 +36,8 @@ End
       true
     end
 
+    MaintainedBranches = %w[trunk half-baked-1.9 matzruby 1.8 1.8.5 1.8.6]
+
     def def_target(*args)
       opts = Hash === args.last ? args.pop : {}
       default_opts = {:separated_srcdir=>false}
@@ -57,7 +59,10 @@ End
           case s
           when "trunk" then ruby_branch = 'trunk'
           when "half-baked-1.9" then ruby_branch = 'branches/half-baked-1.9'
+          when "matzruby" then ruby_branch = 'branches/matzruby'
           when "1.8" then ruby_branch = 'branches/ruby_1_8'
+          when "1.8.5" then ruby_branch = 'branches/ruby_1_8_5'
+          when "1.8.6" then ruby_branch = 'branches/ruby_1_8_6'
           when "yarv" then ruby_branch = 'yarv'
           when "o0"
             cflags.delete_if {|arg| /\A-O\d\z/ =~ arg }
