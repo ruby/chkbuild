@@ -38,7 +38,7 @@ Autoconf.add_title_hook('version') {|title, log|
 }
 
 ChkBuild::Ruby.def_target(
-  ["trunk", "1.8"],
+  ["trunk", "half-baked-1.9", "1.8"],
   Autoconf,
   :separated_srcdir => true)
 

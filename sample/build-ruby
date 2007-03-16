@@ -5,7 +5,7 @@ require 'chkbuild'
 ChkBuild.limit(:data=>1024*1024*300, :as=>1024*1024*300)
 
 ChkBuild::Ruby.def_target(
-  ["trunk", "1.8"],
+  ["trunk", "half-baked-1.9", "1.8"],
   [nil, "pth"])
 
 ChkBuild.main

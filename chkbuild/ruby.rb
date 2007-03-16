@@ -29,10 +29,18 @@ End
     DOMAINPAT = /#{DOMAINLABEL}(\.#{DOMAINLABEL})*/
 
     module_function
+
+    def limit_combination(*suffixes)
+      return false if suffixes.include?("trunk") && suffixes.include?("pth")
+      return false if suffixes.include?("half-baked-1.9") && suffixes.include?("pth")
+      true
+    end
+
     def def_target(*args)
       opts = Hash === args.last ? args.pop : {}
       default_opts = {:separated_srcdir=>false}
       opts = default_opts.merge(opts)
+      opts[:limit_combination] = method(:limit_combination)
       args.push opts
       opts = Hash === args.last ? args.last : {}
       separated_srcdir = opts[:separated_srcdir]
@@ -48,6 +56,7 @@ End
         suffixes.each {|s|
           case s
           when "trunk" then ruby_branch = 'trunk'
+          when "half-baked-1.9" then ruby_branch = 'branches/half-baked-1.9'
           when "1.8" then ruby_branch = 'branches/ruby_1_8'
           when "yarv" then ruby_branch = 'yarv'
           when "o0"

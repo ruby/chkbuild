@@ -25,6 +25,9 @@ class ChkBuild::Target
     }
     @branches = []
     Util.rproduct(*suffixes_ary) {|suffixes|
+      if @opts[:limit_combination]
+        next if !@opts[:limit_combination].call(*suffixes)
+      end
       suffixes.compact!
       @branches << suffixes
     }

@@ -9,7 +9,7 @@ gcc = ChkBuild::GCC.def_target(
   :old => 1)
 
 ChkBuild::Ruby.def_target(
-  ["trunk", "1.8"],
+  ["trunk", "half-baked-1.9", "1.8"],
   ["o0", "o1", nil, "o3"],
   [nil, "pth"],
   gcc,
