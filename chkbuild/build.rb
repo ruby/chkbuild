@@ -348,13 +348,16 @@ End
   end
 
   def output_diff(t1, t2, out)
-    has_diff = output_change_lines(t2, out)
+    has_change_line = output_change_lines(t2, out)
     tmp1 = make_diff_content(t1)
     tmp2 = make_diff_content(t2)
     header = "--- #{t1}\n+++ #{t2}\n"
-    has_diff |= UDiff.diff(tmp1.path, tmp2.path, out, header)
+    has_diff = has_change_line | UDiff.diff(tmp1.path, tmp2.path, out, header)
     return nil if !has_diff
-    different_sections(tmp1, tmp2)
+    ret = []
+    ret << 'src' if has_change_line
+    ret.concat different_sections(tmp1, tmp2)
+    ret 
   end
 
   def output_change_lines(t2, out)
