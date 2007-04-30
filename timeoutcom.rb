@@ -9,13 +9,13 @@ module TimeoutCommand
       timeout = arg
     when Time
       timeout = arg - Time.now
-    when /\A\d+(\.\d+)?s?\z/
+    when /\A\d+(\.\d+)?(?:s|sec)?\z/
       timeout = $&.to_f
-    when /\A\d+(\.\d+)?m\z/
+    when /\A\d+(\.\d+)?(?:m|min)\z/
       timeout = $&.to_f * 60
-    when /\A\d+(\.\d+)?h\z/
+    when /\A\d+(\.\d+)?(?:h|hour)\z/
       timeout = $&.to_f * 60 * 60
-    when /\A\d+(\.\d+)?d\z/
+    when /\A\d+(\.\d+)?(?:d|day)\z/
       timeout = $&.to_f * 60 * 60 * 24
     else
       raise ArgumentError, "invalid time: #{arg.inspect}"
