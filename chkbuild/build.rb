@@ -160,8 +160,8 @@ class ChkBuild::Build
     ChkBuild.lock_puts self.depsuffixed_name
     @parent_pipe = parent_pipe
     @errors = []
-    child_build_target(*branch_info)
-    @errors.empty?
+    ret = child_build_target(*branch_info)
+    ret
   end
 
   def child_build_target(*branch_info)
@@ -179,8 +179,9 @@ class ChkBuild::Build
     force_link "log", @current_txt
     remove_old_build(@start_time, opts.fetch(:old, ChkBuild.num_oldbuilds))
     @logfile.start_section 'start'
+    ret = nil
     with_procmemsize(opts) {
-      catch_error { @target.build_proc.call(self, *branch_info) }
+      ret = catch_error { @target.build_proc.call(self, *branch_info) }
       output_status_section
       @logfile.start_section 'end'
     }
@@ -197,6 +198,7 @@ class ChkBuild::Build
     make_html_log(@log_filename, title, @public+"last.html")
     compress_file(@public+"last.html", @public+"last.html.gz")
     ChkBuild.run_upload_hooks(self.suffixed_name)
+    ret
   end
 
   attr_reader :logfile
