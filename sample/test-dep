@@ -4,6 +4,7 @@ require 'chkbuild'
 
 Dep1 = ChkBuild.def_target("dep1",
   ["dev", "stable"]) {|b, suffix|
+  b.catch_error { raise "foo error" }
 }
 
 ChkBuild.def_target("dep2",
