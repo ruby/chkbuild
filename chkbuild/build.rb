@@ -496,20 +496,22 @@ End
   SignalNum2Name = Hash.new('unknown signal')
   Signal.list.each {|name, num| SignalNum2Name[num] = "SIG#{name}" }
 
-  def make(*targets)
+  def make(*args)
     opts = {}
-    opts = targets.pop if Hash === targets.last
+    opts = args.pop if Hash === args.last
     opts = opts.dup
     opts[:alt_commands] = ['make']
+
+    make_opts, targets = args.partition {|a| /=/ =~ a }
     if targets.empty?
       opts[:section] ||= 'make'
-      self.run("gmake", opts)
+      self.run("gmake", *(make_opts + [opts]))
     else
       targets.each {|target|
         h = opts.dup
         h[:reason] = target
         h[:section] = target
-        self.run("gmake", target, h)
+        self.run("gmake", target, *(make_opts + [h]))
       }
     end
   end
