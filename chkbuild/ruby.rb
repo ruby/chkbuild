@@ -138,7 +138,13 @@ End
           title.update_title(:version, ver)
         end
       }
-        
+
+      t.add_failure_hook("btest") {|log|
+        if /^FAIL (\d+)\/\d+ tests failed/ =~ log
+          "#{$1}BFail"
+        end
+      }
+
       t.add_failure_hook("test.rb") {|log|
         if /^end of test/ !~ log
           if /^test: \d+ failed (\d+)/ =~ log || %r{^not ok/test: \d+ failed (\d+)} =~ log
