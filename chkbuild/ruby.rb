@@ -107,7 +107,7 @@ End
         b.mkcd("ruby")
         b.run("#{srcdir}/configure", "--prefix=#{ruby_build_dir}", "CFLAGS=#{cflags.join(' ')}", *configure_flags)
         b.make("miniruby", make_options)
-        if (File.directory? "bootstraptest")
+        if (File.directory? "#{srcdir}/bootstraptest")
           b.catch_error { b.make("btest", "OPTS=-v", :section=>"btest") }
         end
         b.catch_error { b.run("./miniruby", "-v", :section=>"version") }
