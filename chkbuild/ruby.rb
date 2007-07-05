@@ -36,7 +36,7 @@ End
       true
     end
 
-    MaintainedBranches = %w[trunk half-baked-1.9 matzruby 1.8 1.8.5 1.8.6]
+    MaintainedBranches = %w[trunk matzruby 1.8 1.8.5 1.8.6]
 
     def def_target(*args)
       opts = Hash === args.last ? args.pop : {}
@@ -107,10 +107,10 @@ End
         b.mkcd("ruby")
         b.run("#{srcdir}/configure", "--prefix=#{ruby_build_dir}", "CFLAGS=#{cflags.join(' ')}", *configure_flags)
         b.make("miniruby", make_options)
+        b.catch_error { b.run("./miniruby", "-v", :section=>"version") }
         if (File.directory? "#{srcdir}/bootstraptest")
           b.catch_error { b.make("btest", "OPTS=-v", :section=>"btest") }
         end
-        b.catch_error { b.run("./miniruby", "-v", :section=>"version") }
         b.catch_error {
           b.run("./miniruby", "#{srcdir+'sample/test.rb'}", :section=>"test.rb")
           if /^end of test/ !~ b.logfile.get_section('test.rb')
