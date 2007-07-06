@@ -109,7 +109,7 @@ End
         b.make("miniruby", make_options)
         b.catch_error { b.run("./miniruby", "-v", :section=>"version") }
         if (File.directory? "#{srcdir}/bootstraptest")
-          b.catch_error { b.make("btest", "OPTS=-v", :section=>"btest") }
+          b.catch_error { b.make("btest", "OPTS=-v -q", :section=>"btest") }
         end
         b.catch_error {
           b.run("./miniruby", "#{srcdir+'sample/test.rb'}", :section=>"test.rb")
