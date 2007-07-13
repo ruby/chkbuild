@@ -172,6 +172,11 @@ End
         title.update_title(:mark, mark)
       }
 
+      # test_exception.rb #1 test_exception.rb:1
+      t.add_diff_preprocess_gsub(/\#\d+ test_/) {|match|
+        "#<n> test_"
+      }
+
       t.add_diff_preprocess_gsub(/^ *\d+\) (Error:|Failure:)/) {|match|
         " <n>) #{match[1]}"
       }
