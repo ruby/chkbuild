@@ -50,8 +50,8 @@ End
         ruby_build_dir = b.build_dir
 
         ruby_branch = nil
-        configure_flags = []
-        cflags = %w{-Wall -Wformat=2 -Wno-parentheses -g -O2 -DRUBY_DEBUG_ENV}
+        configure_flags = %w[--with-valgrind]
+        cflags = %w[-Wall -Wformat=2 -Wno-parentheses -g -O2 -DRUBY_DEBUG_ENV]
         gcc_dir = nil
         autoconf_command = 'autoconf'
         make_options = {}
