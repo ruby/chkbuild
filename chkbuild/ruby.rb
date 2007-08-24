@@ -165,10 +165,12 @@ End
 
       t.add_title_hook(nil) {|title, log|
         mark = ''
-        mark << "[BUG]" if /\[BUG\]/i =~ log
-        mark << "[SEGV]" if /segmentation fault|signal segv/i =~
-          log.sub(/combination may cause frequent hang or segmentation fault/, '') # skip tk message.
-        mark << "[FATAL]" if /\[FATAL\]/i =~ log
+        numbugs = count_prefix(/\[BUG\]/i, log) and mark << "#{numbugs}[BUG]"
+        numsegv = count_prefix(
+          /segmentation fault|signal segv/i,
+          log.sub(/combination may cause frequent hang or segmentation fault/, '')) and # skip tk message.
+          mark << "#{numsegv}[SEGV]"
+        numfatal = count_prefix(/\[FATAL\]/i, log) and mark << "#{numfatal}[FATAL]" 
         title.update_title(:mark, mark)
       }
 
@@ -212,6 +214,19 @@ End
       }
 
       t
+    end
+
+    def count_prefix(pat, str)
+      n = 0
+      str.scan(pat) { n += 1 }
+      case n
+      when 0
+        nil
+      when 1
+        ""
+      else
+        n.to_s
+      end
     end
   end
 end
