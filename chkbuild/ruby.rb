@@ -170,6 +170,8 @@ End
           /segmentation fault|signal segv/i,
           log.sub(/combination may cause frequent hang or segmentation fault/, '')) and # skip tk message.
           mark << " #{numsegv}[SEGV]"
+        numsigbus = count_prefix(/signal SIGBUS/i, log) and mark << " #{numsigbus}[SIGBUS]"
+        numsigill = count_prefix(/signal SIGILL/i, log) and mark << " #{numsigill}[SIGILL]"
         numfatal = count_prefix(/\[FATAL\]/i, log) and mark << " #{numfatal}[FATAL]" 
         mark.sub!(/\A /, '')
         title.update_title(:mark, mark)
