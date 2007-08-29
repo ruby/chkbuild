@@ -172,6 +172,7 @@ End
           mark << " #{numsegv}[SEGV]"
         numsigbus = count_prefix(/signal SIGBUS/i, log) and mark << " #{numsigbus}[SIGBUS]"
         numsigill = count_prefix(/signal SIGILL/i, log) and mark << " #{numsigill}[SIGILL]"
+        numsigabrt = count_prefix(/signal SIGABRT/i, log) and mark << " #{numsigabrt}[SIGABRT]"
         numfatal = count_prefix(/\[FATAL\]/i, log) and mark << " #{numfatal}[FATAL]" 
         mark.sub!(/\A /, '')
         title.update_title(:mark, mark)
