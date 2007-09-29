@@ -51,7 +51,7 @@ End
 
         ruby_branch = nil
         configure_flags = %w[--with-valgrind]
-        cflags = %w[-Wall -Wformat=2 -Wno-parentheses -g -O2 -DRUBY_DEBUG_ENV]
+        cflags = %w[-Wall -Wformat=2 -Wundef -Wno-parentheses -g -O2 -DRUBY_DEBUG_ENV]
         gcc_dir = nil
         autoconf_command = 'autoconf'
         make_options = {}
