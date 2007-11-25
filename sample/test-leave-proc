@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+require 'chkbuild'
+
+ChkBuild.def_target("leave-proc") {|b|
+  b.run("sleep 1000 &")
+}
+
+ChkBuild.main

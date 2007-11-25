@@ -27,7 +27,7 @@ module TimeoutCommand
     begin
       Process.kill('INT', -pgid)
       msgout.puts "timeout: INT signal sent." if msgout
-      signals = ['TERM', 'KILL']
+      signals = ['INT', 'TERM', 'TERM', 'KILL']
       signals.each {|sig|
         Process.kill(0, -pgid); sleep 0.1
         Process.kill(0, -pgid); sleep 0.2
@@ -45,6 +45,19 @@ module TimeoutCommand
     end
   end
 
+  def process_alive?(pid)
+    begin
+      Process.kill(0, pid)
+    rescue Errno::ESRCH # no process
+      return false
+    end
+    return true
+  end
+
+  def processgroup_alive?(pgid)
+    process_alive?(-pgid)
+  end
+
   def timeout_command(secs, msgout=STDERR)
     secs = parse_timeout(secs)
     if secs < 0
@@ -60,23 +73,30 @@ module TimeoutCommand
     rescue Errno::ESRCH # already exited. (setpgid for a zombie fails on OpenBSD)
     end
     begin
-      timeout(secs) { Process.wait pid }
-    rescue TimeoutError
-      msgout.puts "timeout: #{secs} seconds exceeds." if msgout
-      Thread.new { Process.wait pid }
       begin
-        Process.kill(0, -pid)
-        msgout.puts "timeout: the process group is alive." if msgout
-        kill_processgroup(pid, msgout)
-      rescue Errno::ESRCH # no process
+        timeout(secs) { Process.wait pid }
+      rescue TimeoutError
+        msgout.puts "timeout: #{secs} seconds exceeds." if msgout
+        Thread.new { Process.wait pid }
+        begin
+          Process.kill(0, -pid)
+          msgout.puts "timeout: the process group is alive." if msgout
+          kill_processgroup(pid, msgout)
+        rescue Errno::ESRCH # no process
+        end
+        raise
+      rescue Interrupt
+        Process.kill("INT", -pid)
+        raise
+      rescue SignalException
+        Process.kill($!.message, -pid)
+        raise
       end
-      raise
-    rescue Interrupt
-      Process.kill("INT", -pid)
-      raise
-    rescue SignalException
-      Process.kill($!.message, -pid)
-      raise
+    ensure
+      if processgroup_alive?(pid)
+        msgout.puts "process finished but some descendants leaves." if msgout
+        kill_processgroup(pid, msgout)
+      end
     end
   end
 end
