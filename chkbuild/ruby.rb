@@ -121,7 +121,8 @@ End
         b.make(make_options)
         b.make("install-nodoc")
         b.catch_error { b.make("install-doc") }
-        b.catch_error { b.run("./ruby", "#{srcdir+'test/runner.rb'}", "-v", :section=>"test-all") }
+        #b.catch_error { b.run("./ruby", "#{srcdir+'test/runner.rb'}", "-v", :section=>"test-all") }
+        b.catch_error { b.make("test-all", "TESTS=-v", :section=>"test-all") }
       }
 
       t.add_title_hook("configure") {|title, log|
