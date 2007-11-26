@@ -94,7 +94,7 @@ module TimeoutCommand
       end
     ensure
       if processgroup_alive?(pid)
-        msgout.puts "process finished but some descendants leaves." if msgout
+        msgout.puts "process finished but some descendants remain." if msgout
         kill_processgroup(pid, msgout)
       end
     end
