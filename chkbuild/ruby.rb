@@ -52,6 +52,7 @@ End
         ruby_branch = nil
         configure_flags = %w[--with-valgrind]
         cflags = %w[-Wall -Wformat=2 -Wundef -Wno-parentheses -g -O2 -DRUBY_DEBUG_ENV]
+	dldflags = %w[]
         gcc_dir = nil
         autoconf_command = 'autoconf'
         make_options = {}
@@ -74,6 +75,16 @@ End
             cflags.delete_if {|arg| /\A-O\d\z/ =~ arg }
             cflags << '-O3'
           when "pth" then configure_flags << '--enable-pthread'
+          when "m32"
+            cflags.delete_if {|arg| /\A-m(32|64)\z/ =~ arg }
+            cflags << '-m32'
+            dldflags.delete_if {|arg| /\A-m(32|64)\z/ =~ arg }
+            dldflags << '-m32'
+          when "m64"
+            cflags.delete_if {|arg| /\A-m(32|64)\z/ =~ arg }
+            cflags << '-m64'
+            dldflags.delete_if {|arg| /\A-m(32|64)\z/ =~ arg }
+            dldflags << '-m64'
           when /\Agcc=/
             configure_flags << "CC=#{$'}/bin/gcc"
             make_options["ENV:LD_RUN_PATH"] = "#{$'}/lib"
@@ -105,7 +116,12 @@ End
 
         Dir.chdir(ruby_build_dir)
         b.mkcd("ruby")
-        b.run("#{srcdir}/configure", "--prefix=#{ruby_build_dir}", "CFLAGS=#{cflags.join(' ')}", *configure_flags)
+	args = []
+	args << "--prefix=#{ruby_build_dir}"
+	args << "CFLAGS=#{cflags.join(' ')}"
+	args << "DLDFLAGS=#{dldflags.join(' ')}" unless dldflags.empty?
+	args.concat configure_flags
+        b.run("#{srcdir}/configure", *args)
         b.make("miniruby", make_options)
         b.catch_error { b.run("./miniruby", "-v", :section=>"version") }
         if (File.directory? "#{srcdir}/bootstraptest")

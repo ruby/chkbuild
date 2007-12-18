@@ -5,7 +5,8 @@ require 'chkbuild'
 ChkBuild.limit(:data=>1024*1024*300, :as=>1024*1024*300)
 
 ChkBuild::Ruby.def_target(
-  ChkBuild::Ruby::MaintainedBranches,
+  ChkBuild::Ruby::MaintainedBranches, # 'trunk',
+  # ['m32', 'm64'],
   [nil, "pth"])
 
 ChkBuild.main
