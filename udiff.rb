@@ -35,7 +35,12 @@ class UDiff
   end
 
   def encdump(str)
-    "#{str.dump}.force_encoding(#{str.encoding.name.dump})"
+    d = str.dump
+    if str.respond_to? :encoding
+      "#{d}.force_encoding(#{str.encoding.name.dump})"
+    else
+      d
+    end
   end
 
   def gets_common_line(f1, f2)
