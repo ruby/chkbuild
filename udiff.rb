@@ -34,11 +34,15 @@ class UDiff
     puts_line "+#{line}"
   end
 
+  def encdump(str)
+    "#{str.dump}.force_encoding(#{str.encoding.name.dump})"
+  end
+
   def gets_common_line(f1, f2)
     v1 = f1.gets
     v2 = f2.gets
     if v1 != v2
-      raise "[bug] diff error"
+      raise "[bug] diff error: #{encdump v1} != #{encdump v2}"
     end
     if v1
       @l1 += 1
@@ -134,7 +138,7 @@ class UDiff
           v1 = d.gets
           v2 = f2.gets
           if v1 != v2
-            raise "[bug] diff error"
+            raise "[bug] diff error: #{encdump v1} != #{encdump v2}"
           end
           @l2 += 1
           v = v1
