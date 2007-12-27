@@ -234,6 +234,11 @@ End
         "Finished in <t> seconds."
       }
 
+      # /tmp/test_rubygems_18634
+      t.add_diff_preprocess_gsub(%r{/tmp/test_rubygems_\d+}o) {|match|
+        '/tmp/test_rubygems_<pid>'
+      }
+
       t
     end
 
