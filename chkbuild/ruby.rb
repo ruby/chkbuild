@@ -148,7 +148,7 @@ End
       }
 
       t.add_title_hook("version") {|title, log|
-        if /^ruby [0-9.]+ \([0-9\-]+\) \[\S+\]$/ =~ log
+        if /^ruby [0-9.]+ \([0-9a-z \-]+\) \[\S+\]$/ =~ log
           ver = $&
           ss = title.suffixed_name.split(/-/)[1..-1].reject {|s| /\A(trunk|1\.8|yarv)\z/ =~ s }
           ver << " [#{ss.join(',')}]" if !ss.empty?
