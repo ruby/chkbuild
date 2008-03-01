@@ -218,6 +218,12 @@ End
         match[0].sub(/[0-9a-f]+\z/) { 'X' * $&.length }
       }
 
+      # #<#<Class:0xXXXXXXX>:0x0e87dd00
+      # order sensitive.  this should be applied after the above.
+      t.add_diff_preprocess_gsub(%r{(\#<\#<Class:0xX+>:0x)([0-9a-f]+)}o) {|match|
+        match[1] + 'X' * match[2].length
+      }
+
       # XSD::ValueSpaceError: {http://www.w3.org/2001/XMLSchema}dateTime: cannot accept '2007-02-01T23:44:2682967.846399999994901+09:00'.
       t.add_diff_preprocess_gsub(%r{\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\d+\.\d+}o) {|match|
         s = match[0]
