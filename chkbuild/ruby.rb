@@ -5,7 +5,7 @@ module ChkBuild
     METHOD_LIST_SCRIPT = <<'End'
 nummodule = nummethod = 0
 mods = []
-ObjectSpace.each_object(Module) {|m| mods << m }
+ObjectSpace.each_object(Module) {|m| mods << m if m.name }
 mods = mods.sort_by {|m| m.name }
 mods.each {|mod|
   nummodule += 1
