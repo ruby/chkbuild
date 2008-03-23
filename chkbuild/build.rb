@@ -307,6 +307,7 @@ End
 
   def make_html_log(log_filename, title, dst)
     log = File.read(log_filename)
+    log.force_encoding("ascii-8bit") if log.respond_to? :force_encoding
     content = ERB.new(HTMLTemplate).result(binding)
     atomic_make_file(dst, content)
   end

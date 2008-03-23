@@ -160,10 +160,13 @@ class UDiff
   def diff
     has_diff = false
     open(@path1) {|f1|
+      f1.set_encoding "ascii-8bit" if f1.respond_to? :set_encoding
       open(@path2) {|f2|
+        f2.set_encoding "ascii-8bit" if f2.respond_to? :set_encoding
         command = Escape.shell_command(%W[diff -n #@path1 #@path2]).to_s
 	command = "LC_ALL='C' LANG='C' #{command}"
         IO.popen(command) {|d|
+          d.set_encoding "ascii-8bit" if d.respond_to? :set_encoding
           has_diff = process_commands(f1, f2, d)
         }
         output_common_tail(f1, f2)

@@ -77,6 +77,7 @@ class ChkBuild::LogFile
     mode = writemode ? File::RDWR|File::CREAT|File::APPEND : File::RDONLY
     @filename = filename
     @io = File.open(filename, mode)
+    @io.set_encoding("ascii-8bit") if @io.respond_to? :set_encoding
     @io.sync = true
     @mark = read_separator
     @sections = detect_sections
