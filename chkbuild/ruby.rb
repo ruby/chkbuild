@@ -36,7 +36,7 @@ End
       true
     end
 
-    MaintainedBranches = %w[trunk 1.8 1.8.5 1.8.6]
+    MaintainedBranches = %w[trunk 1.8 1.8.5 1.8.6 1.8.7]
 
     def def_target(*args)
       opts = Hash === args.last ? args.pop : {}
@@ -64,6 +64,7 @@ End
           when "1.8" then ruby_branch = 'branches/ruby_1_8'
           when "1.8.5" then ruby_branch = 'branches/ruby_1_8_5'
           when "1.8.6" then ruby_branch = 'branches/ruby_1_8_6'
+          when "1.8.7" then ruby_branch = 'branches/ruby_1_8_7'
           when "yarv" then ruby_branch = 'yarv'
           when "o0"
             cflags.delete_if {|arg| /\A-O\d\z/ =~ arg }
