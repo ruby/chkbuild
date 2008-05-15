@@ -95,6 +95,12 @@ End
           end
         }
 
+        use_rubyspec = false
+        if %r{branches/ruby_1_8} =~ ruby_branch &&
+           ENV['PATH'].split(/:/).any? {|d| File.executable?("#{d}/git") }
+          use_rubyspec = true
+        end
+
         objdir = ruby_build_dir+'ruby'
         if separated_srcdir
           checkout_dir = ruby_build_dir.dirname
@@ -110,6 +116,14 @@ End
         b.run(autoconf_command)
 
         Dir.chdir(ruby_build_dir)
+
+        use_rubyspec &&= b.catch_error {
+          b.run("git", "clone", "-q", "git://github.com/brixen/mspec.git")
+        }
+        use_rubyspec &&= b.catch_error {
+          b.run("git", "clone", "-q", "git://github.com/brixen/rubyspec.git", "spec/rubyspec")
+        }
+
         b.mkcd("ruby")
 	args = []
 	args << "--prefix=#{ruby_build_dir}"
@@ -134,6 +148,11 @@ End
         b.catch_error { b.make("install-doc") }
         #b.catch_error { b.run("./ruby", "#{srcdir+'test/runner.rb'}", "-v", :section=>"test-all") }
         b.catch_error { b.make("test-all", "TESTS=-v", :section=>"test-all") }
+
+        Dir.chdir(ruby_build_dir)
+        use_rubyspec &&= b.catch_error {
+          b.run("/usr/bin/ruby", "mspec/bin/mspec", "--verbose", "-t", "bin/ruby", "spec/rubyspec/1.8", :section=>"rubyspec")
+        }
       }
 
       t.add_title_hook("configure") {|title, log|
