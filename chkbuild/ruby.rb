@@ -65,7 +65,6 @@ End
           when "1.8.5" then ruby_branch = 'branches/ruby_1_8_5'
           when "1.8.6" then ruby_branch = 'branches/ruby_1_8_6'
           when "1.8.7" then ruby_branch = 'branches/ruby_1_8_7'
-          when "yarv" then ruby_branch = 'yarv'
           when "o0"
             cflags.delete_if {|arg| /\A-O\d\z/ =~ arg }
             cflags << '-O0'
@@ -105,13 +104,8 @@ End
         srcdir = (checkout_dir+'ruby').relative_path_from(objdir)
 
         Dir.chdir(checkout_dir)
-        if ruby_branch == 'yarv'
-          b.svn("http://www.atdot.net/svn/yarv", "trunk", 'ruby',
-            :viewcvs=>'http://www.atdot.net/viewcvs/yarv?diff_format=u')
-        else
-          b.svn("http://svn.ruby-lang.org/repos/ruby", ruby_branch, 'ruby',
-            :viewvc=>'http://svn.ruby-lang.org/cgi-bin/viewvc.cgi?diff_format=u')
-        end
+        b.svn("http://svn.ruby-lang.org/repos/ruby", ruby_branch, 'ruby',
+          :viewvc=>'http://svn.ruby-lang.org/cgi-bin/viewvc.cgi?diff_format=u')
         Dir.chdir("ruby")
         b.run(autoconf_command)
 
@@ -151,7 +145,7 @@ End
       t.add_title_hook("version") {|title, log|
         if /^ruby [0-9.]+ \([0-9a-z \-]+\) \[\S+\]$/ =~ log
           ver = $&
-          ss = title.suffixed_name.split(/-/)[1..-1].reject {|s| /\A(trunk|1\.8|yarv)\z/ =~ s }
+          ss = title.suffixed_name.split(/-/)[1..-1].reject {|s| /\A(trunk|1\.8)\z/ =~ s }
           ver << " [#{ss.join(',')}]" if !ss.empty?
           title.update_title(:version, ver)
         end
