@@ -278,6 +278,11 @@ End
         '/tmp/test_rubygems_<pid>'
       }
 
+      # git progress
+      t.add_diff_preprocess_gsub(%r{^(remote: )?Compressing objects:.*done\.$}o) {|match|
+        ''
+      }
+
       t
     end
 
