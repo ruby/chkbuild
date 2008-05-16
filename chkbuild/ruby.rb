@@ -151,7 +151,7 @@ End
 
         Dir.chdir(ruby_build_dir)
         use_rubyspec &&= b.catch_error {
-          b.run("/usr/bin/ruby", "mspec/bin/mspec", "--verbose", "-t", "bin/ruby", "spec/rubyspec/1.8", :section=>"rubyspec")
+          b.run("bin/ruby", "mspec/bin/mspec", "--verbose", "-t", "bin/ruby", "spec/rubyspec/1.8", :section=>"rubyspec")
         }
       }
 
@@ -224,7 +224,12 @@ End
         "#<n> test_"
       }
 
-      t.add_diff_preprocess_gsub(/^ *\d+\) (Error:|Failure:)/) {|match|
+      # test/unit:
+      #  28) Error:
+      #  33) Failure:
+      # rubyspec:
+      # 61)
+      t.add_diff_preprocess_gsub(/^ *\d+\)( Error:| Failure:|$)/) {|match|
         " <n>) #{match[1]}"
       }
 
@@ -260,8 +265,12 @@ End
         "Elapsed: <t>s"
       }
 
-      t.add_diff_preprocess_gsub(/^Finished in [0-9.]+ seconds\./) {|match|
-        "Finished in <t> seconds."
+      # test/unit:
+      # Finished in 139.785699 seconds.
+      # rubyspec:
+      # Finished in 31.648244 seconds
+      t.add_diff_preprocess_gsub(/^Finished in [0-9.]+ seconds/) {|match|
+        "Finished in <t> seconds"
       }
 
       # /tmp/test_rubygems_18634
