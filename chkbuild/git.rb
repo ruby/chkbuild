@@ -27,8 +27,10 @@ class ChkBuild::Build
       opts2[:stderr] = errfile
       yield opts2
     }
-    errcontent.gsub!(/^(remote: )?Compressing objects:.*\n/, "")
-    puts errcontent
+    if errcontent
+      errcontent.gsub!(/^(remote: )?Compressing objects:.*\n/, "")
+      puts errcontent if !errcontent.empty?
+    end
   end
 
   def git(cloneurl, working_dir, opts={})
