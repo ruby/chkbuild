@@ -467,8 +467,14 @@ End
 	#system('sh', '-c', "ulimit -a")
       end
       alt_commands = opts.fetch(:alt_commands, [])
+      if opts.include?(:stdout)
+        STDOUT.reopen(opts[:stdout], "w")
+      end
+      if opts.include?(:stderr)
+        STDERR.reopen(opts[:stderr], "w")
+      end
       begin
-        exec command, *args
+        exec [command, command], *args
       rescue Errno::ENOENT
         if !alt_commands.empty?
           command = alt_commands.shift

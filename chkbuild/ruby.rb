@@ -118,10 +118,10 @@ End
         Dir.chdir(ruby_build_dir)
 
         use_rubyspec &&= b.catch_error {
-          b.run("git", "clone", "-q", "git://github.com/brixen/mspec.git")
+          b.github("brixen", "mspec", "mspec")
         }
         use_rubyspec &&= b.catch_error {
-          b.run("git", "clone", "-q", "git://github.com/brixen/rubyspec.git", "spec/rubyspec")
+          b.github("brixen", "rubyspec", "spec/rubyspec")
         }
 
         b.mkcd("ruby")

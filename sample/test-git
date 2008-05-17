@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+
+require 'chkbuild'
+
+ChkBuild.def_target("git") {|b,|
+  #Dir.chdir("..") {
+    #b.git("git://github.com/brixen/rubyspec.git", 'rubyspec')
+    b.github("brixen", "rubyspec", "rubyspec")
+  #}
+}
+
+ChkBuild.main
