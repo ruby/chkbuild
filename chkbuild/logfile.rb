@@ -144,10 +144,10 @@ class ChkBuild::LogFile
     secname = secname.strip
     if @sections[secname]
       i = 2
-      while @sections["#{secname} (#{i})"]
+      while @sections["#{secname}(#{i})"]
         i += 1
       end
-      secname = "#{secname} (#{i})"
+      secname = "#{secname}(#{i})"
     end
     @sections[secname] = spos
     @io.write "#{@mark} #{secname} \# #{Time.now.iso8601}\n"
