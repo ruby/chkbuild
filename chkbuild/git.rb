@@ -77,7 +77,8 @@ class ChkBuild::Build
 
   def github(user, project, working_dir, opts={})
     opts = opts.dup
-    git("git://github.com/#{user}/#{project}.git", working_dir, :github=>[user, project])
+    opts[:github] = [user, project]
+    git("git://github.com/#{user}/#{project}.git", working_dir, opts)
   end
 
   def git_revisions

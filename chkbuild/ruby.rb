@@ -118,10 +118,10 @@ End
         Dir.chdir(ruby_build_dir)
 
         use_rubyspec &&= b.catch_error {
-          b.github("brixen", "mspec", "mspec")
+          b.github("brixen", "mspec", "mspec", :section=>"git-mspec")
         }
         use_rubyspec &&= b.catch_error {
-          b.github("brixen", "rubyspec", "spec/rubyspec")
+          b.github("brixen", "rubyspec", "spec/rubyspec", :section=>"git-rubyspec")
         }
 
         b.mkcd("ruby")
