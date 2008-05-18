@@ -85,10 +85,10 @@ class ChkBuild::Build
     h = IO.popen("git ls-tree -z -r HEAD") {|f|
       git_parse_status(f)
     }
-    IO.popen("git-log --pretty=oneline --max-count=1") {|f|
-      # <sha1><SP><title-line>
-      # 4db0223676a371da8c4247d9a853529ef50a3b01 use send(cmd).
-      commit_hash = f.read[/\A[0-9a-fA-F]*/]
+    IO.popen("git rev-list --max-count=1 HEAD") {|f|
+      # <sha1><LF>
+      # 4db0223676a371da8c4247d9a853529ef50a3b01
+      commit_hash = f.read.chomp
       h[nil] = commit_hash
     }
     h
