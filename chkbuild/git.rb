@@ -42,35 +42,31 @@ class ChkBuild::Build
     end
     if File.exist?(working_dir) && File.exist?("#{working_dir}/.git")
       Dir.chdir(working_dir) {
-        h1 = git_revisions
-        #pp h1
+        old_head = git_head_commit
         git_errfile(opts) {|opts2|
           self.run "git", "pull", opts2
         }
-        h2 = git_revisions
-        #pp h2
-        git_print_changes(h1, h2, urigen)
+        logs = git_oneline_logs(old_head)
+        git_print_logs(old_head, logs, urigen)
       }
     else
       if File.exist?(working_dir)
         FileUtils.rm_rf(working_dir)
       end
-      h1 = h2 = nil
+      old_head = nil
       if File.identical?(self.build_dir, '.') &&
          !(ts = self.build_time_sequence - [self.start_time]).empty? &&
          File.directory?(old_working_dir = self.target_dir + ts.last + working_dir)
         Dir.chdir(old_working_dir) {
-          h1 = git_revisions
-          #pp h1
+          old_head = git_head_commit
         }
       end
       git_errfile(opts) {|opts2|
         self.run "git", "clone", "-q", cloneurl, working_dir, opts2
       }
       Dir.chdir(working_dir) {
-        h2 = git_revisions
-        #pp h2
-        git_print_changes(h1, h2, urigen) if h1
+        logs = git_oneline_logs(old_head)
+        git_print_logs(old_head, logs, urigen)
       }
     end
   end
@@ -79,6 +75,32 @@ class ChkBuild::Build
     opts = opts.dup
     opts[:github] = [user, project]
     git("git://github.com/#{user}/#{project}.git", working_dir, opts)
+  end
+
+  def git_oneline_logs(old_head=nil)
+    result = []
+    if old_head
+      command = "git log --pretty=oneline #{old_head}..HEAD"
+    else
+      command = "git log --pretty=oneline --max-count=1"
+    end
+    IO.popen(command) {|f|
+      f.each_line {|line|
+        # <sha1><sp><title line>
+        if /\A([0-9a-fA-F]+)\s+(.*)/ =~ line
+          result << [$1, $2]
+        end
+      }
+    }
+    result
+  end
+
+  def git_head_commit
+    IO.popen("git rev-list --max-count=1 HEAD") {|f|
+      # <sha1><LF>
+      # 4db0223676a371da8c4247d9a853529ef50a3b01
+      f.read.chomp
+    }
   end
 
   def git_revisions
@@ -136,40 +158,18 @@ class ChkBuild::Build
     end
   end
 
-  def git_print_changes(h1, h2, urigen=nil)
-    commit_hash_old = h1[nil]
-    commit_hash_new = h2[nil]
-    h1.delete nil
-    h2.delete nil
-    if urigen
-      puts "last commit: #{urigen.commit_uri(commit_hash_new)}"
+  def git_print_logs(old_head, logs, urigen=nil)
+    if !old_head
+      puts "last commit:"
     end
-    git_path_sort(h1.keys|h2.keys).each {|f|
-      r1 = h1[f] || ['none', nil]
-      r2 = h2[f] || ['none', nil]
-      next if r1 == r2 # no changes
-      if r1 != 'none' && r2 != 'none'
-        git_print_chg_line(f, r1, r2)
+    logs.each {|commit_hash, title_line|
+      if urigen
+        commit = urigen.commit_uri(commit_hash)
       else
-        git_print_del_line(f, r1) if r1 != 'none'
-        git_print_add_line(f, r2) if r2 != 'none'
+        commit = commit_hash
       end
+      line = "COMMIT #{title_line} #{commit}"
+      puts line
     }
   end
-
-  def git_print_chg_line(f, r1, r2)
-    line = "CHG #{f}\t#{r1}->#{r2}"
-    puts line
-  end
-
-  def git_print_del_line(f, r)
-    line = "DEL #{f}\t#{r}->none"
-    puts line
-  end
-
-  def git_print_add_line(f, r)
-    line = "ADD #{f}\tnone->#{r}"
-    puts line
-  end
-
 end
