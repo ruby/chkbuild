@@ -168,7 +168,7 @@ class ChkBuild::Build
       else
         commit = commit_hash
       end
-      line = "COMMIT #{title_line} #{commit}"
+      line = "COMMIT #{title_line}\t#{commit}"
       puts line
     }
   end
