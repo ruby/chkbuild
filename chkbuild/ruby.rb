@@ -40,7 +40,7 @@ End
 
     def def_target(*args)
       opts = Hash === args.last ? args.pop : {}
-      default_opts = {:separated_srcdir=>false}
+      default_opts = {:separated_srcdir=>false, :shared_gitdir=>ChkBuild.build_top}
       opts = default_opts.merge(opts)
       opts[:limit_combination] = method(:limit_combination)
       args.push opts
@@ -118,10 +118,14 @@ End
         Dir.chdir(ruby_build_dir)
 
         use_rubyspec &&= b.catch_error {
-          b.github("brixen", "mspec", "mspec", :section=>"git-mspec")
+          opts2 = opts.dup
+          opts2[:section] = "git-mspec"
+          b.github("brixen", "mspec", "mspec", opts2)
         }
         use_rubyspec &&= b.catch_error {
-          b.github("brixen", "rubyspec", "spec/rubyspec", :section=>"git-rubyspec")
+          opts2 = opts.dup
+          opts2[:section] = "git-rubyspec"
+          b.github("brixen", "rubyspec", "spec/rubyspec", opts2)
         }
 
         b.mkcd("ruby")

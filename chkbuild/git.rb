@@ -29,6 +29,7 @@ class ChkBuild::Build
     }
     if errcontent
       errcontent.gsub!(/^(remote: )?Compressing objects:.*\n/, "")
+      errcontent.gsub!(/^.*done\r.*\n/, "")
       puts errcontent if !errcontent.empty?
     end
   end
@@ -39,6 +40,25 @@ class ChkBuild::Build
     opts[:section] ||= 'git'
     if opts[:github]
       urigen = GitHub.new(*opts[:github])
+    end
+    if shared_dir = opts[:shared_gitdir]
+      opts_shared = opts.dup
+      opts_shared[:section] += "(shared)"
+      Dir.chdir(shared_dir) {
+        if File.directory?(working_dir) && File.exist?("#{working_dir}/.git")
+	  Dir.chdir(working_dir) {
+	    git_errfile(opts_shared) {|opts2|
+	      self.run("git", "pull", opts2)
+	    }
+	  }
+	else
+	  FileUtils.rm_rf(working_dir) if File.exist?(working_dir)
+	  git_errfile(opts_shared) {|opts2|
+	    self.run "git", "clone", "-q", cloneurl, working_dir, opts2
+	  }
+	end
+	cloneurl = "#{shared_dir}/#{working_dir}"
+      }
     end
     if File.exist?(working_dir) && File.exist?("#{working_dir}/.git")
       Dir.chdir(working_dir) {
