@@ -120,12 +120,12 @@ End
         use_rubyspec &&= b.catch_error {
           opts2 = opts.dup
           opts2[:section] = "git-mspec"
-          b.github("brixen", "mspec", "mspec", opts2)
+          b.github("rubyspec", "mspec", "mspec", opts2)
         }
         use_rubyspec &&= b.catch_error {
           opts2 = opts.dup
           opts2[:section] = "git-rubyspec"
-          b.github("brixen", "rubyspec", "spec/rubyspec", opts2)
+          b.github("rubyspec", "rubyspec", "spec/rubyspec", opts2)
         }
 
         b.mkcd("ruby")
