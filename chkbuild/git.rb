@@ -29,7 +29,7 @@ class ChkBuild::Build
     }
     if errcontent
       errcontent.gsub!(/^(remote: )?Compressing objects:.*\n/, "")
-      errcontent.gsub!(/^.*done\r.*\n/, "")
+      errcontent.gsub!(/^.*\r.*\n/, "")
       puts errcontent if !errcontent.empty?
     end
   end
