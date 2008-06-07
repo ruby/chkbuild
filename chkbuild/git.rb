@@ -6,30 +6,28 @@ require "pp"
 module ChkBuild; end # for testing
 
 class ChkBuild::Build
-  def git_with_file(prefix)
+  def git_with_file(basename)
     n = 1
-    until !File.exist?(name = "#{prefix}#{n}")
+    until !File.exist?(name = "#{self.build_dir}/#{basename}#{n}")
       n += 1
     end
     yield name
     if File.exist?(name)
       content = File.read(name)
-      File.unlink name
     else
       content = nil
     end
     content
   end
 
-  def git_errfile(opts)
-    errcontent = git_with_file("git.err.") {|errfile|
+  def git_logfile(opts)
+    errcontent = git_with_file("git.log.") {|errfile|
       opts2 = opts.dup
       opts2[:stderr] = errfile
       yield opts2
     }
     if errcontent
-      errcontent.gsub!(/^(remote: )?Compressing objects:.*\n/, "")
-      errcontent.gsub!(/^.*\r.*\n/, "")
+      errcontent.gsub!(/^.*[\r\e].*\n/, "")
       puts errcontent if !errcontent.empty?
     end
   end
@@ -47,13 +45,13 @@ class ChkBuild::Build
       Dir.chdir(shared_dir) {
         if File.directory?(working_dir) && File.exist?("#{working_dir}/.git")
 	  Dir.chdir(working_dir) {
-	    git_errfile(opts_shared) {|opts2|
+	    git_logfile(opts_shared) {|opts2|
 	      self.run("git", "pull", opts2)
 	    }
 	  }
 	else
 	  FileUtils.rm_rf(working_dir) if File.exist?(working_dir)
-	  git_errfile(opts_shared) {|opts2|
+	  git_logfile(opts_shared) {|opts2|
 	    self.run "git", "clone", "-q", cloneurl, working_dir, opts2
 	  }
 	end
@@ -63,7 +61,7 @@ class ChkBuild::Build
     if File.exist?(working_dir) && File.exist?("#{working_dir}/.git")
       Dir.chdir(working_dir) {
         old_head = git_head_commit
-        git_errfile(opts) {|opts2|
+        git_logfile(opts) {|opts2|
           self.run "git", "pull", opts2
         }
         logs = git_oneline_logs(old_head)
@@ -81,7 +79,7 @@ class ChkBuild::Build
           old_head = git_head_commit
         }
       end
-      git_errfile(opts) {|opts2|
+      git_logfile(opts) {|opts2|
         self.run "git", "clone", "-q", cloneurl, working_dir, opts2
       }
       Dir.chdir(working_dir) {
