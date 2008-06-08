@@ -164,6 +164,12 @@ class ChkBuild::Build
     ret
   end
 
+  def make_local_tmpdir
+    tmpdir = @build_dir + 'tmp'
+    tmpdir.mkpath
+    ENV['TMPDIR'] = tmpdir.to_s
+  end
+
   def child_build_target(*branch_info)
     opts = @target.opts
     @build_dir = @target_dir + @start_time
@@ -177,6 +183,7 @@ class ChkBuild::Build
     @public.mkpath
     @public_log.mkpath
     force_link "log", @current_txt
+    make_local_tmpdir
     remove_old_build(@start_time, opts.fetch(:old, ChkBuild.num_oldbuilds))
     @logfile.start_section 'start'
     ret = nil
