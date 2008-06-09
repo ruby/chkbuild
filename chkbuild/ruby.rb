@@ -287,11 +287,6 @@ End
         '/tmp/test_rubygems_<pid>'
       }
 
-      # git progress
-      t.add_diff_preprocess_gsub(%r{^(remote: )?Compressing objects:.*done\.$}o) {|match|
-        ''
-      }
-
       # <buildtime>/mspec/lib/mspec/mocks/mock.rb:128:in `__ms_70044980_respond_to?__'
       t.add_diff_preprocess_gsub(%r{__ms_-?\d+_}) {|match|
 	'__ms_<object_id>_'
