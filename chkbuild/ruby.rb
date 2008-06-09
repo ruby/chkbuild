@@ -151,7 +151,7 @@ End
         b.make("install-nodoc")
         b.catch_error { b.make("install-doc") }
         if File.file? "#{srcdir}/KNOWNBUGS.rb"
-          b.catch_error { b.make("test-knownbug", "OPTS=-v -q", :section=>"knownbugs") }
+          b.catch_error { b.make("test-knownbug", "OPTS=-v -q") }
         end
         #b.catch_error { b.run("./ruby", "#{srcdir+'test/runner.rb'}", "-v", :section=>"test-all") }
         b.catch_error { b.make("test-all", "TESTS=-v", :section=>"test-all") }
@@ -180,6 +180,12 @@ End
       t.add_failure_hook("btest") {|log|
         if /^FAIL (\d+)\/\d+ tests failed/ =~ log
           "#{$1}BFail"
+        end
+      }
+
+      t.add_failure_hook("test-knownbug") {|log|
+        if /^FAIL (\d+)\/\d+ tests failed/ =~ log
+          "#{$1}KB"
         end
       }
 

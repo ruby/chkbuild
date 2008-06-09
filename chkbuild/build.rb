@@ -524,7 +524,7 @@ End
       targets.each {|target|
         h = opts.dup
         h[:reason] = target
-        h[:section] = target
+        h[:section] ||= target
         self.run("gmake", target, *(make_opts + [h]))
       }
     end
