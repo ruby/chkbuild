@@ -137,7 +137,7 @@ End
         b.run("#{srcdir}/configure", *args)
         b.make("miniruby", make_options)
         b.catch_error { b.run("./miniruby", "-v", :section=>"version") }
-        if (File.directory? "#{srcdir}/bootstraptest")
+        if File.directory? "#{srcdir}/bootstraptest"
           b.catch_error { b.make("btest", "OPTS=-v -q", :section=>"btest") }
         end
         b.catch_error {
@@ -150,6 +150,9 @@ End
         b.make(make_options)
         b.make("install-nodoc")
         b.catch_error { b.make("install-doc") }
+        if File.file? "#{srcdir}/KNOWNBUGS.rb"
+          b.catch_error { b.make("test-knownbug", "OPTS=-v -q", :section=>"knownbugs") }
+        end
         #b.catch_error { b.run("./ruby", "#{srcdir+'test/runner.rb'}", "-v", :section=>"test-all") }
         b.catch_error { b.make("test-all", "TESTS=-v", :section=>"test-all") }
 
