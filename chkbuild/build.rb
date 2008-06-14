@@ -241,7 +241,11 @@ class ChkBuild::Build
     if CommandError === err
       puts "failed(#{err.reason})"
     else
-      puts "failed(#{err.class}:#{err.message})"
+      if err.respond_to? :reason
+        puts "failed(#{err.reason} #{err.class}: #{err.message})"
+      else
+        puts "failed(#{err.class}: #{err.message})"
+      end
     end
     return false
   end
@@ -458,39 +462,19 @@ End
 
     puts "+ #{Escape.shell_command [command, *args]}"
     pos = STDOUT.pos
-    TimeoutCommand.timeout_command(opts.fetch(:timeout, '1h')) {
-      opts.each {|k, v|
-        next if /\AENV:/ !~ k.to_s
-        ENV[$'] = v
+    begin
+      TimeoutCommand.timeout_command(opts.fetch(:timeout, '1h')) {
+        run_in_child(opts, command, *args)
       }
-      if Process.respond_to? :setrlimit
-        resource_unlimit(:RLIMIT_CORE)
-	limit = ChkBuild.get_limit
-	opts.each {|k, v| limit[$'.intern] = v if /\Ar?limit_/ =~ k.to_s }
-        resource_limit(:RLIMIT_CPU, limit.fetch(:cpu))
-        resource_limit(:RLIMIT_STACK, limit.fetch(:stack))
-        resource_limit(:RLIMIT_DATA, limit.fetch(:data))
-        resource_limit(:RLIMIT_AS, limit.fetch(:as))
-	#system('sh', '-c', "ulimit -a")
-      end
-      alt_commands = opts.fetch(:alt_commands, [])
-      if opts.include?(:stdout)
-        STDOUT.reopen(opts[:stdout], "w")
-      end
-      if opts.include?(:stderr)
-        STDERR.reopen(opts[:stderr], "w")
-      end
-      begin
-        exec [command, command], *args
-      rescue Errno::ENOENT
-        if !alt_commands.empty?
-          command = alt_commands.shift
-          retry
-        else
-          raise
+    ensure
+      exc = $!
+      if exc && secname
+        class << exc
+          attr_accessor :reason
         end
+        exc.reason = secname
       end
-    }
+    end
     begin
       if $?.exitstatus != 0
         if $?.exited?
@@ -503,6 +487,40 @@ End
           p $?
         end
         raise CommandError.new($?, opts.fetch(:section, command))
+      end
+    end
+  end
+
+  def run_in_child(opts, command, *args)
+    opts.each {|k, v|
+      next if /\AENV:/ !~ k.to_s
+      ENV[$'] = v
+    }
+    if Process.respond_to? :setrlimit
+      resource_unlimit(:RLIMIT_CORE)
+      limit = ChkBuild.get_limit
+      opts.each {|k, v| limit[$'.intern] = v if /\Ar?limit_/ =~ k.to_s }
+      resource_limit(:RLIMIT_CPU, limit.fetch(:cpu))
+      resource_limit(:RLIMIT_STACK, limit.fetch(:stack))
+      resource_limit(:RLIMIT_DATA, limit.fetch(:data))
+      resource_limit(:RLIMIT_AS, limit.fetch(:as))
+      #system('sh', '-c', "ulimit -a")
+    end
+    alt_commands = opts.fetch(:alt_commands, [])
+    if opts.include?(:stdout)
+      STDOUT.reopen(opts[:stdout], "w")
+    end
+    if opts.include?(:stderr)
+      STDERR.reopen(opts[:stderr], "w")
+    end
+    begin
+      exec [command, command], *args
+    rescue Errno::ENOENT
+      if !alt_commands.empty?
+        command = alt_commands.shift
+        retry
+      else
+        raise
       end
     end
   end

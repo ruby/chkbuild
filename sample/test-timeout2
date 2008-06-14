@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+
+require 'chkbuild'
+
+ChkBuild.def_target("timeout2", :timeout=>'3s') {|b|
+  b.catch_error { b.run("sleep", "60") }
+  b.catch_error { b.run("sleep", "60") }
+}
+
+ChkBuild.main
