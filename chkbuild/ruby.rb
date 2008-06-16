@@ -186,6 +186,12 @@ End
       t.add_failure_hook("test-knownbug") {|log|
         if /^FAIL (\d+)\/\d+ tests failed/ =~ log
           "#{$1}KB"
+        elsif /^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors$/ =~ log
+          failures = $1.to_i
+          errors = $2.to_i
+          if failures != 0 || errors != 0
+            "KB#{failures}F#{errors}E"
+          end
         end
       }
 
