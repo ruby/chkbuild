@@ -214,7 +214,7 @@ End
       }
 
       t.add_failure_hook("rubyspec") {|log|
-        if /^\d+ files, \d+ examples, \d+ expectations, (\d+) failures, (\d+) errors$/ =~ log
+        if /^\d+ files?, \d+ examples?, \d+ expectations?, (\d+) failures?, (\d+) errors?$/ =~ log
           failures = $1.to_i
           errors = $2.to_i
           if failures != 0 || errors != 0
