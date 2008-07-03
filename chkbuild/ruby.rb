@@ -36,7 +36,7 @@ End
       true
     end
 
-    MaintainedBranches = %w[trunk 1.8 1.8.7 1.8.6 1.8.5]
+    MaintainedBranches = %w[trunk 1.8 1.8.7 1.8.6]
 
     def def_target(*args)
       opts = Hash === args.last ? args.pop : {}
