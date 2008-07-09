@@ -111,8 +111,7 @@ class ChkBuild::Build
     w.close
     str = r.read
     r.close
-    Process.wait(pid)
-    status = $?
+    status = Process.wait2(pid)[1]
     begin
       version = Marshal.load(str)
     rescue ArgumentError
@@ -463,7 +462,7 @@ End
     puts "+ #{Escape.shell_command [command, *args]}"
     pos = STDOUT.pos
     begin
-      TimeoutCommand.timeout_command(opts.fetch(:timeout, '1h')) {
+      command_status = TimeoutCommand.timeout_command(opts.fetch(:timeout, '1h'), opts) {
         run_in_child(opts, command, *args)
       }
     ensure
@@ -476,17 +475,17 @@ End
       end
     end
     begin
-      if $?.exitstatus != 0
-        if $?.exited?
-          puts "exit #{$?.exitstatus}"
-        elsif $?.signaled?
-          puts "signal #{SignalNum2Name[$?.termsig]} (#{$?.termsig})"
-        elsif $?.stopped?
-          puts "stop #{SignalNum2Name[$?.stopsig]} (#{$?.stopsig})"
+      if command_status.exitstatus != 0
+        if command_status.exited?
+          puts "exit #{command_status.exitstatus}"
+        elsif command_status.signaled?
+          puts "signal #{SignalNum2Name[command_status.termsig]} (#{command_status.termsig})"
+        elsif command_status.stopped?
+          puts "stop #{SignalNum2Name[command_status.stopsig]} (#{command_status.stopsig})"
         else
-          p $?
+          p command_status
         end
-        raise CommandError.new($?, opts.fetch(:section, command))
+        raise CommandError.new(command_status, opts.fetch(:section, command))
       end
     end
   end
