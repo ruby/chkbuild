@@ -51,6 +51,8 @@ class ChkBuild::Build
 	  }
 	else
 	  FileUtils.rm_rf(working_dir) if File.exist?(working_dir)
+	  pdir = File.dirname(working_dir)
+	  FileUtils.mkdir_p(pdir) if !File.directory?(pdir)
 	  git_logfile(opts_shared) {|opts2|
 	    self.run "git", "clone", "-q", cloneurl, working_dir, opts2
 	  }
@@ -68,9 +70,9 @@ class ChkBuild::Build
         git_print_logs(old_head, logs, urigen)
       }
     else
-      if File.exist?(working_dir)
-        FileUtils.rm_rf(working_dir)
-      end
+      FileUtils.rm_rf(working_dir) if File.exist?(working_dir)
+      pdir = File.dirname(working_dir)
+      FileUtils.mkdir_p(pdir) if !File.directory?(pdir)
       old_head = nil
       if File.identical?(self.build_dir, '.') &&
          !(ts = self.build_time_sequence - [self.start_time]).empty? &&
