@@ -459,10 +459,14 @@ End
     end
     @logfile.start_section(secname) if secname
 
+    if !opts.include?(:output_interval_timeout)
+      opts[:output_interval_timeout] = '10min'
+    end
+
     puts "+ #{Escape.shell_command [command, *args]}"
     pos = STDOUT.pos
     begin
-      command_status = TimeoutCommand.timeout_command(opts.fetch(:timeout, '1h'), opts) {
+      command_status = TimeoutCommand.timeout_command(opts.fetch(:timeout, '1h'), STDERR, opts) {
         run_in_child(opts, command, *args)
       }
     ensure

@@ -1,6 +1,7 @@
-require 'timeout'
-
 module TimeoutCommand
+  class CommandTimeoutError < StandardError
+  end
+
   module_function
 
   def parse_timespan(arg)
@@ -74,15 +75,14 @@ module TimeoutCommand
     end
   end
 
-  def timeout_command(command_timeout, opts={})
-    msgout = STDERR
+  def timeout_command(command_timeout, msgout=STDERR, opts={})
     command_timeout = parse_timespan(command_timeout)
     output_interval_timeout = nil
     if opts[:output_interval_timeout]
       output_interval_timeout = parse_timespan(opts[:output_interval_timeout])
     end
     if command_timeout < 0
-      raise TimeoutError, 'no time to run a command'
+      raise CommandTimeoutError, 'no time to run a command'
     end
     pid = fork {
       Process.setpgid($$, $$)
@@ -123,14 +123,14 @@ module TimeoutCommand
       if command_status
         return command_status
       else
-        msgout.puts "timeout: #{timeout_reason}." if msgout
+        msgout.puts "timeout: #{timeout_reason}" if msgout
         begin
           Process.kill(0, -pid)
           msgout.puts "timeout: the process group is alive." if msgout
           kill_processgroup(pid, msgout)
         rescue Errno::ESRCH # no process
         end
-        raise TimeoutError
+        raise CommandTimeoutError, timeout_reason
       end
     rescue Interrupt
       Process.kill("INT", -pid)
