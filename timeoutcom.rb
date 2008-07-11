@@ -1,6 +1,7 @@
+class CommandTimeoutError < StandardError
+end
+
 module TimeoutCommand
-  class CommandTimeoutError < StandardError
-  end
 
   module_function
 
