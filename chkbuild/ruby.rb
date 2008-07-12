@@ -33,6 +33,7 @@ End
     def limit_combination(*suffixes)
       return false if suffixes.include?("trunk") && suffixes.include?("pth")
       return false if suffixes.include?("half-baked-1.9") && suffixes.include?("pth")
+      return false if suffixes.include?("mvm") && suffixes.include?("pth")
       true
     end
 
@@ -59,6 +60,8 @@ End
         suffixes.each {|s|
           case s
           when "trunk" then ruby_branch = 'trunk'
+          when "mvm" then ruby_branch = 'branches/mvm'
+            cflags.delete '-DRUBY_DEBUG_ENV'
           when "half-baked-1.9" then ruby_branch = 'branches/half-baked-1.9'
           when "matzruby" then ruby_branch = 'branches/matzruby'
           when "1.8" then ruby_branch = 'branches/ruby_1_8'
@@ -250,6 +253,13 @@ End
       # 61)
       t.add_diff_preprocess_gsub(/^ *\d+\)( Error:| Failure:|$)/) {|match|
         " <n>) #{match[1]}"
+      }
+
+      # rubyspec
+      # -- reports aborting on a killed thread (FAILED - 9)
+      # -- flattens self (ERROR - 21)
+      t.add_diff_preprocess_gsub(/\((FAILED|ERROR) - \d+\)$/) {|match|
+        "(#{match[1]} - <n>)"
       }
 
       t.add_diff_preprocess_gsub(%r{\((druby|drbssl)://(#{DOMAINPAT}):\d+\)}o) {|match|
