@@ -158,7 +158,7 @@ End
 
         Dir.chdir(ruby_build_dir)
         use_rubyspec &&= b.catch_error {
-          b.run("bin/ruby", "mspec/bin/mspec", "--verbose", "-t", "bin/ruby", "spec/rubyspec/1.8", :section=>"rubyspec")
+          b.run("bin/ruby", "mspec/bin/mspec", "-V", "-f", "s", "-t", "bin/ruby", "spec/rubyspec/1.8", :section=>"rubyspec")
         }
       }
 
