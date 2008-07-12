@@ -12,24 +12,22 @@ class ChkBuild::Build
       n += 1
     end
     yield name
-    if File.exist?(name)
-      content = File.read(name)
-    else
-      content = nil
-    end
-    content
   end
 
   def git_logfile(opts)
-    errcontent = git_with_file("git.log.") {|errfile|
+    git_with_file("git.log.") {|errfile|
       opts2 = opts.dup
       opts2[:stderr] = errfile
-      yield opts2
+      begin
+        yield opts2
+      ensure
+        if File.exist?(errfile)
+          errcontent = File.read(errfile)
+          errcontent.gsub!(/^.*[\r\e].*\n/, "")
+          puts errcontent if !errcontent.empty?
+        end
+      end
     }
-    if errcontent
-      errcontent.gsub!(/^.*[\r\e].*\n/, "")
-      puts errcontent if !errcontent.empty?
-    end
   end
 
   def git(cloneurl, working_dir, opts={})
