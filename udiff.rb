@@ -186,7 +186,7 @@ class UDiff
     t1 = Tempfile.new("udiff")
     File.foreach(@path1) {|l|
       if SAFE_LINE =~ l
-        l = "." + l
+        l = "_" + l
       else
         if !@lines_hash[l]
           @lines_ary[@lines_hash.size] = l
