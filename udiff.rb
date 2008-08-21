@@ -30,15 +30,18 @@ class UDiff
   end
 
   def puts_del_line(line)
-    puts_line "-#{@lines_ary[line.to_i]}"
+    line = /\A_/ =~ line ? $' : @lines_ary[line.to_i]
+    puts_line "-#{line}"
   end
 
   def puts_add_line(line)
-    puts_line "+#{@lines_ary[line.to_i]}"
+    line = /\A_/ =~ line ? $' : @lines_ary[line.to_i]
+    puts_line "+#{line}"
   end
 
   def puts_common_line(line)
-    puts_line " #{@lines_ary[line.to_i]}"
+    line = /\A_/ =~ line ? $' : @lines_ary[line.to_i]
+    puts_line " #{line}"
   end
 
   def encdump(str)
@@ -178,22 +181,33 @@ class UDiff
     has_diff
   end
 
+  SAFE_LINE = /\A[\t -~]*\n\z/
   def diff
     t1 = Tempfile.new("udiff")
     File.foreach(@path1) {|l|
-      if !@lines_hash[l]
-	@lines_ary[@lines_hash.size] = l
-	@lines_hash[l] = @lines_hash.size 
+      if SAFE_LINE =~ l
+        l = "." + l
+      else
+        if !@lines_hash[l]
+          @lines_ary[@lines_hash.size] = l
+          @lines_hash[l] = @lines_hash.size 
+        end
+        l = @lines_hash[l].to_s + "\n"
       end
-      t1.puts @lines_hash[l]
+      t1.puts l
     }
     t2 = Tempfile.new("udiff")
     File.foreach(@path2) {|l|
-      if !@lines_hash[l]
-	@lines_ary[@lines_hash.size] = l
-	@lines_hash[l] = @lines_hash.size 
+      if SAFE_LINE =~ l
+        l = "_" + l
+      else
+        if !@lines_hash[l]
+          @lines_ary[@lines_hash.size] = l
+          @lines_hash[l] = @lines_hash.size 
+        end
+        l = @lines_hash[l].to_s + "\n"
       end
-      t2.puts @lines_hash[l]
+      t2.puts l
     }
     t1.close
     t2.close
