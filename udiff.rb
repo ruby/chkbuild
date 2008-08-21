@@ -1,4 +1,5 @@
 require 'escape'
+require 'tempfile'
 
 class UDiff
   def UDiff.diff(path1, path2, out, header="--- #{path1}\n+++ #{path2}\n")
@@ -16,6 +17,8 @@ class UDiff
     @l2 = 0
     @hunk_beg = [@l1, @l2]
     @hunk = []
+    @lines_hash = {}
+    @lines_ary = []
   end
 
   def puts_line(line)
@@ -27,11 +30,15 @@ class UDiff
   end
 
   def puts_del_line(line)
-    puts_line "-#{line}"
+    puts_line "-#{@lines_ary[line.to_i]}"
   end
 
   def puts_add_line(line)
-    puts_line "+#{line}"
+    puts_line "+#{@lines_ary[line.to_i]}"
+  end
+
+  def puts_common_line(line)
+    puts_line " #{@lines_ary[line.to_i]}"
   end
 
   def encdump(str)
@@ -54,10 +61,6 @@ class UDiff
       @l2 += 1
     end
     return v1
-  end
-
-  def puts_common_line(line)
-    puts_line " #{line}"
   end
 
   def copy_common_part(f1, f2, n)
@@ -157,13 +160,13 @@ class UDiff
     has_diff
   end
 
-  def diff
+  def run_diff(path1, path2)
     has_diff = false
-    open(@path1) {|f1|
+    open(path1) {|f1|
       f1.set_encoding "ascii-8bit" if f1.respond_to? :set_encoding
-      open(@path2) {|f2|
+      open(path2) {|f2|
         f2.set_encoding "ascii-8bit" if f2.respond_to? :set_encoding
-        command = Escape.shell_command(%W[diff -n #@path1 #@path2]).to_s
+        command = Escape.shell_command(%W[diff -n #{path1} #{path2}]).to_s
 	command = "LC_ALL='C' LANG='C' #{command}"
         IO.popen(command) {|d|
           d.set_encoding "ascii-8bit" if d.respond_to? :set_encoding
@@ -173,6 +176,28 @@ class UDiff
       }
     }
     has_diff
+  end
+
+  def diff
+    t1 = Tempfile.new("udiff")
+    File.foreach(@path1) {|l|
+      if !@lines_hash[l]
+	@lines_ary[@lines_hash.size] = l
+	@lines_hash[l] = @lines_hash.size 
+      end
+      t1.puts @lines_hash[l]
+    }
+    t2 = Tempfile.new("udiff")
+    File.foreach(@path2) {|l|
+      if !@lines_hash[l]
+	@lines_ary[@lines_hash.size] = l
+	@lines_hash[l] = @lines_hash.size 
+      end
+      t2.puts @lines_hash[l]
+    }
+    t1.close
+    t2.close
+    run_diff(t1.path, t2.path)
   end
 end
 
