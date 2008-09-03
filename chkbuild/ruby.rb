@@ -101,15 +101,12 @@ End
           end
         }
 
-	if %r{branches/ruby_1_8_} =~ ruby_branch && $' < "7"
+	if %r{branches/ruby_1_8_} =~ ruby_branch && $' < "8"
 	  cflags.concat optflags
 	  cflags.concat debugflags
+	  cflags.concat warnflags
 	  optflags = nil
 	  debugflags = nil
-	end
-
-	if %r{branches/ruby_1_8_} =~ ruby_branch && $' < "8"
-	  cflags.concat warnflags
 	  warnflags = nil
 	end
 
