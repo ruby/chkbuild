@@ -52,7 +52,10 @@ End
 
         ruby_branch = nil
         configure_flags = %w[--with-valgrind]
-        cflags = %w[-Wall -Wformat=2 -Wundef -Wno-parentheses -g -O2 -DRUBY_DEBUG_ENV]
+        cflags = %w[-DRUBY_DEBUG_ENV]
+        optflags = %w[-O2]
+        debugflags = %w[-g]
+	warnflags = %w[-Wall -Wformat=2 -Wundef -Wno-parentheses]
 	dldflags = %w[]
         gcc_dir = nil
         autoconf_command = 'autoconf'
@@ -69,14 +72,14 @@ End
           when "1.8.6" then ruby_branch = 'branches/ruby_1_8_6'
           when "1.8.7" then ruby_branch = 'branches/ruby_1_8_7'
           when "o0"
-            cflags.delete_if {|arg| /\A-O\d\z/ =~ arg }
-            cflags << '-O0'
+            optflags.delete_if {|arg| /\A-O\d\z/ =~ arg }
+            optflags << '-O0'
           when "o1"
-            cflags.delete_if {|arg| /\A-O\d\z/ =~ arg }
-            cflags << '-O1'
+            optflags.delete_if {|arg| /\A-O\d\z/ =~ arg }
+            optflags << '-O1'
           when "o3"
-            cflags.delete_if {|arg| /\A-O\d\z/ =~ arg }
-            cflags << '-O3'
+            optflags.delete_if {|arg| /\A-O\d\z/ =~ arg }
+            optflags << '-O3'
           when "pth" then configure_flags << '--enable-pthread'
           when "m32"
             cflags.delete_if {|arg| /\A-m(32|64)\z/ =~ arg }
@@ -97,6 +100,18 @@ End
             raise "unexpected suffix: #{s.inspect}"
           end
         }
+
+	if %r{branches/ruby_1_8_} =~ ruby_branch && $' < "7"
+	  cflags.concat optflags
+	  cflags.concat debugflags
+	  optflags = nil
+	  debugflags = nil
+	end
+
+	if %r{branches/ruby_1_8_} =~ ruby_branch && $' < "8"
+	  cflags.concat warnflags
+	  warnflags = nil
+	end
 
         use_rubyspec = false
         if %r{branches/ruby_1_8} =~ ruby_branch &&
@@ -135,6 +150,9 @@ End
 	args = []
 	args << "--prefix=#{ruby_build_dir}"
 	args << "CFLAGS=#{cflags.join(' ')}"
+	args << "optflags=#{optflags.join(' ')}" if optflags
+	args << "debugflags=#{debugflags.join(' ')}" if debugflags
+	args << "warnflags=#{warnflags.join(' ')}" if warnflags
 	args << "DLDFLAGS=#{dldflags.join(' ')}" unless dldflags.empty?
 	args.concat configure_flags
         b.run("#{srcdir}/configure", *args)
