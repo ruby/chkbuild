@@ -336,6 +336,12 @@ End
 	'__ms_<object_id>_'
       }
 
+      # miniunit:
+      # Complex_Test#test_parse: 0.01 s: .
+      t.add_diff_preprocess_gsub(%r{\d+\.\d\d s: }) {|match|
+	'<elapsed> s: '
+      }
+
       t
     end
 
