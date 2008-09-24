@@ -101,6 +101,10 @@ End
           end
         }
 
+	if opts["--with-opt-dir"]
+	  configure_flags << "--with-opt-dir=#{opts['--with-opt-dir']}"
+	end
+
 	if %r{branches/ruby_1_8_} =~ ruby_branch && $' < "8"
 	  cflags.concat optflags
 	  cflags.concat debugflags
