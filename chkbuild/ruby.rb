@@ -31,9 +31,9 @@ End
     module_function
 
     def limit_combination(*suffixes)
-      return false if suffixes.include?("trunk") && suffixes.include?("pth")
-      return false if suffixes.include?("half-baked-1.9") && suffixes.include?("pth")
-      return false if suffixes.include?("mvm") && suffixes.include?("pth")
+      if suffixes.include?("pth")
+        return false if suffixes.grep(/\A1\.8/).empty? && !suffixes.include?("matzruby")
+      end
       true
     end
 
