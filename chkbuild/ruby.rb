@@ -238,7 +238,11 @@ End
           errors = $2.to_i
           skips = $3.to_i
           if failures != 0 || errors != 0 || skips != 0
-            "#{failures}F#{errors}E#{skips}S"
+	    if skips == 0
+	      "#{failures}F#{errors}E"
+	    else
+	      "#{failures}F#{errors}E#{skips}S"
+	    end
           end
         end
       }
