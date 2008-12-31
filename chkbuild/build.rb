@@ -198,9 +198,11 @@ class ChkBuild::Build
     title << " (titlegen.run_hooks error)" if !title_succ
     Marshal.dump(titlegen.version, @parent_pipe)
     @parent_pipe.close
-    compress_file(@log_filename, @public_log+"#{@start_time}.txt.gz")
+    @compressed_log_basename = "#{@start_time}.log.txt.gz"
+    @compressed_diff_basename = "#{@start_time}.diff.txt.gz"
+    compress_file(@log_filename, @public_log+@compressed_log_basename)
     different_sections = make_diff
-    update_summary(@start_time, title, different_sections)
+    update_summary(title, different_sections)
     make_html_log(@log_filename, title, @public+"last.html")
     compress_file(@public+"last.html", @public+"last.html.gz")
     ChkBuild.run_upload_hooks(self.suffixed_name)
@@ -261,7 +263,8 @@ class ChkBuild::Build
     }
   end
 
-  def update_summary(start_time, title, different_sections)
+  def update_summary(title, different_sections)
+    start_time = @start_time
     if different_sections
       if different_sections.empty?
         diff_txt = "diff"
@@ -280,8 +283,8 @@ class ChkBuild::Build
         f.puts "<h1>#{h self.depsuffixed_name} build summary</h1>"
         f.puts "<p><a href=\"../\">chkbuild</a></p>"
       end
-      f.print "<a href=\"log/#{start_time}.txt.gz\" name=\"#{start_time}\">#{h start_time}</a> #{h title}"
-      f.print " (<a href=\"log/#{start_time}.diff.txt.gz\">#{h diff_txt}</a>)" if diff_txt
+      f.print "<a href=\"log/#{h @compressed_log_basename}\" name=\"#{start_time}\">#{h start_time}</a> #{h title}"
+      f.print " (<a href=\"log/#{h @compressed_diff_basename}\">#{h diff_txt}</a>)" if diff_txt
       f.puts "<br>"
     }
   end
@@ -340,7 +343,7 @@ End
     entries = Dir.entries(@public_log)
     time_seq = []
     entries.each {|f|
-      if /\A(\d{8}T\d{6})\.txt\.gz\z/ =~ f # year 10000 problem
+      if /\A(\d{8}T\d{6})(?:\.log)?\.txt\.gz\z/ =~ f # year 10000 problem
         time_seq << $1
       end
     }
@@ -349,7 +352,7 @@ End
     return nil if time_seq.empty?
     time1 = time_seq.last
     different_sections = nil
-    output_path = @public_log+"#{time2}.diff.txt.gz"
+    output_path = @public_log+@compressed_diff_basename
     Zlib::GzipWriter.wrap(open(output_path, "w")) {|z|
       different_sections = output_diff(time1, time2, z)
     }
@@ -436,7 +439,12 @@ End
   end
 
   def open_gziped_log(time, &block)
-    Zlib::GzipReader.wrap(open(@public_log+"#{time}.txt.gz"), &block)
+    if File.file?(@public_log+"#{time}.log.txt.gz")
+      filename = @public_log+"#{time}.log.txt.gz"
+    else
+      filename = @public_log+"#{time}.txt.gz"
+    end
+    Zlib::GzipReader.wrap(open(filename), &block)
   end
 
   class CommandError < StandardError
