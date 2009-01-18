@@ -116,8 +116,7 @@ End
 	end
 
         use_rubyspec = false
-        if %r{branches/ruby_1_8} =~ ruby_branch &&
-           ENV['PATH'].split(/:/).any? {|d| File.executable?("#{d}/git") }
+        if ENV['PATH'].split(/:/).any? {|d| File.executable?("#{d}/git") }
           use_rubyspec = true
         end
 
@@ -181,7 +180,7 @@ End
 
         Dir.chdir(ruby_build_dir)
         use_rubyspec &&= b.catch_error {
-          b.run("bin/ruby", "mspec/bin/mspec", "-V", "-f", "s", "-t", "bin/ruby", "spec/rubyspec/1.8", :section=>"rubyspec")
+          b.run("bin/ruby", "mspec/bin/mspec", "-V", "-f", "s", "-t", "bin/ruby", "spec/rubyspec", :section=>"rubyspec")
         }
       }
 
