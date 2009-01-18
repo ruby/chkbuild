@@ -3,7 +3,7 @@ require 'test/unit'
 
 class TestTimeoutCommand < Test::Unit::TestCase
   def test_time
-    assert_raise(TimeoutError) {
+    assert_raise(CommandTimeoutError) {
       open("/dev/null", 'w') {|null|
         TimeoutCommand.timeout_command(Time.now+1, null) {
           begin
@@ -16,7 +16,7 @@ class TestTimeoutCommand < Test::Unit::TestCase
   end
 
   def test_past_time
-    assert_raise(TimeoutError) {
+    assert_raise(CommandTimeoutError) {
       TimeoutCommand.timeout_command(Time.now-1, nil) {}
     }
   end
