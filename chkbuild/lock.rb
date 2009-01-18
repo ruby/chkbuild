@@ -19,6 +19,6 @@ module ChkBuild
   end
 
   def self.lock_puts(mesg)
-    @lock_io.puts mesg
+    @lock_io.puts "#{Time.now.iso8601} #{mesg}"
   end
 end
