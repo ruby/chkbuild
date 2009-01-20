@@ -2,7 +2,7 @@
 
 require 'chkbuild'
 
-ChkBuild.limit(:data=>1024*1024*600, :as=>1024*1024*600)
+ChkBuild.limit(:data=>1024*1024*800, :as=>1024*1024*800)
 
 gcc = ChkBuild::GCC.def_target(
   ["trunk", "4.2", "4.1", "4.0"],

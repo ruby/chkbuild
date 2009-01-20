@@ -2,7 +2,7 @@
 
 require 'chkbuild'
 
-ChkBuild.limit(:data=>1024*1024*300, :as=>1024*1024*300)
+ChkBuild.limit(:data=>1024*1024*800, :as=>1024*1024*800)
 
 ChkBuild::Ruby.def_target(
   ["yarv"],
