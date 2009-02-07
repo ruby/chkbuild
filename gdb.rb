@@ -15,7 +15,7 @@ module GDB
       binaries[basename] = f if stat.file? && stat.executable?
       next if /\bcore\b/ !~ basename
       next if /\.chkbuild\.\d+\z/ =~ basename
-      guess = `file #{f}`
+      guess = `file #{f} 2>&1`
       next if /\bcore\b.*from '(.*?)'/ !~ guess.sub(/\A.*?:/, '')
       core_info << [f, $1]
     }
