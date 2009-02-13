@@ -144,7 +144,7 @@ End
         use_rubyspec &&= b.catch_error {
           opts2 = opts.dup
           opts2[:section] = "git-rubyspec"
-          b.github("rubyspec", "rubyspec", "spec/rubyspec", opts2)
+          b.github("rubyspec", "rubyspec", "rubyspec", opts2)
         }
 
         b.mkcd("ruby")
@@ -180,12 +180,12 @@ End
 
         Dir.chdir(ruby_build_dir)
         use_rubyspec &&= b.catch_error {
-	  Dir.chdir("spec/rubyspec") {
-	    b.run("../../bin/ruby",
-	          "../../mspec/bin/mspec",
+	  Dir.chdir("rubyspec") {
+	    b.run("../bin/ruby",
+	          "../mspec/bin/mspec",
 		  "-V",
 		  "-f", "s",
-		  "-t", "../../bin/ruby",
+		  "-t", "../bin/ruby",
 		  "-G", "critical",
 		  :section=>"rubyspec")
 	  }
