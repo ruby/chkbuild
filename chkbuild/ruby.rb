@@ -55,7 +55,7 @@ End
         cflags = %w[-DRUBY_DEBUG_ENV]
         optflags = %w[-O2]
         debugflags = %w[-g]
-	warnflags = %w[-Wall -Wformat=2 -Wundef -Wno-parentheses]
+	warnflags = %w[-W -Wall -Wformat=2 -Wundef -Wno-parentheses -Wno-unused-parameter]
 	dldflags = %w[]
         gcc_dir = nil
         autoconf_command = 'autoconf'
