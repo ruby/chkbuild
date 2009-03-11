@@ -1,3 +1,5 @@
+Encoding.default_external = "ASCII-8BIT" if defined?(Encoding.default_external = nil)
+
 require 'chkbuild/main'
 require 'chkbuild/lock'
 require 'chkbuild/cvs'
