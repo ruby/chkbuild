@@ -52,7 +52,8 @@ End
 
         ruby_branch = nil
         configure_flags = %w[--with-valgrind]
-        cflags = %w[-DRUBY_DEBUG_ENV]
+        cflags = %w[]
+        cppflags = %w[-DRUBY_DEBUG_ENV]
         optflags = %w[-O2]
         debugflags = %w[-g]
 	warnflags = %w[-W -Wall -Wformat=2 -Wundef -Wno-parentheses -Wno-unused-parameter]
@@ -64,7 +65,7 @@ End
           case s
           when "trunk" then ruby_branch = 'trunk'
           when "mvm" then ruby_branch = 'branches/mvm'
-            cflags.delete '-DRUBY_DEBUG_ENV'
+            cppflags.delete '-DRUBY_DEBUG_ENV'
           when "half-baked-1.9" then ruby_branch = 'branches/half-baked-1.9'
           when "matzruby" then ruby_branch = 'branches/matzruby'
           when "1.9.1" then ruby_branch = 'branches/ruby_1_9_1'
@@ -107,9 +108,11 @@ End
 	end
 
 	if %r{branches/ruby_1_8_} =~ ruby_branch && $' < "8"
+	  cflags.concat cppflags
 	  cflags.concat optflags
 	  cflags.concat debugflags
 	  cflags.concat warnflags
+          cppflags = nil
 	  optflags = nil
 	  debugflags = nil
 	  warnflags = nil
@@ -150,7 +153,8 @@ End
         b.mkcd("ruby")
 	args = []
 	args << "--prefix=#{ruby_build_dir}"
-	args << "CFLAGS=#{cflags.join(' ')}"
+	args << "CFLAGS=#{cflags.join(' ')}" if cflags && !cflags.empty?
+	args << "CPPFLAGS=#{cppflags.join(' ')}" if cppflags && !cppflags.empty?
 	args << "optflags=#{optflags.join(' ')}" if optflags
 	args << "debugflags=#{debugflags.join(' ')}" if debugflags
 	args << "warnflags=#{warnflags.join(' ')}" if warnflags
