@@ -13,12 +13,31 @@ mods.each {|mod|
   mod.singleton_methods(false).sort.each {|methname|
     nummethod += 1
     meth = mod.method(methname)
-    puts "#{mod.name}.#{methname} #{meth.arity}"
+    line = "#{mod.name}.#{methname} #{meth.arity}"
+    line << " not-implemented" if !mod.respond_to?(methname)
+    puts line
   }
+  obj = :none
+  begin
+    if Class === mod
+      obj = mod.allocate
+    else
+      obj = Object.new
+      obj.extend mod
+    end
+    obj.respond_to? :foo
+  rescue TypeError, # Bignum#allocate
+         NoMethodError # BasicObject#respond_to?
+    obj = :none
+  end
   mod.instance_methods(false).sort.each {|methname|
     nummethod += 1
     meth = mod.instance_method(methname)
-    puts "#{mod.name}\##{methname} #{meth.arity}"
+    line = "#{mod.name}\##{methname} #{meth.arity}"
+    if :none != obj
+      line << " not-implemented" if !obj.respond_to?(methname)
+    end
+    puts line
   }
 }
 puts "#{nummodule} modules, #{nummethod} methods"
