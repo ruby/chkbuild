@@ -14,7 +14,7 @@ mods.each {|mod|
     nummethod += 1
     meth = mod.method(methname)
     line = "#{mod.name}.#{methname} #{meth.arity}"
-    line << " not-implemented" if /\(not-implemented\)/ =~ meth.inspect
+    line << " not-implemented" if !mod.respond_to?(methname)
     puts line
   }
   mod.instance_methods(false).sort.each {|methname|
