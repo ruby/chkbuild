@@ -1,3 +1,4 @@
 #!/bin/sh
 
 tail -n 3 `ls -1tr tmp/public_html/*/summary.txt tmp/build/.lock` < /dev/null
+echo

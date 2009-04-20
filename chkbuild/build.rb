@@ -156,10 +156,11 @@ class ChkBuild::Build
   end
 
   def child_build_wrapper(parent_pipe, *branch_info)
-    ChkBuild.lock_puts self.depsuffixed_name
-    @parent_pipe = parent_pipe
-    @errors = []
-    ret = child_build_target(*branch_info)
+    ret = ChkBuild.lock_puts(self.depsuffixed_name) {
+      @parent_pipe = parent_pipe
+      @errors = []
+      child_build_target(*branch_info)
+    }
     ret
   end
 

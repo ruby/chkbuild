@@ -19,6 +19,15 @@ module ChkBuild
   end
 
   def self.lock_puts(mesg)
-    @lock_io.puts "#{Time.now.iso8601} #{mesg}"
+    if block_given?
+      t1 = Time.now
+      @lock_io.print "#{t1.iso8601} #{mesg}"
+      ret = yield
+      t2 = Time.now
+      @lock_io.puts "\t#{t2-t1}"
+      ret
+    else
+      @lock_io.puts "#{Time.now.iso8601} #{mesg}"
+    end
   end
 end
