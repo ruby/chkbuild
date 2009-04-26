@@ -291,6 +291,31 @@ class ChkBuild::Build
     }
   end
 
+  RECENT_HTMLTemplate = <<'End'
+<html>
+  <head>
+    <title><%= h title %></title>
+    <meta name="author" content="chkbuild">
+    <meta name="generator" content="chkbuild">
+  </head>
+  <body>
+    <h1><%= h title %></h1>
+    <p>
+      <a href="../">chkbuild</a>
+      <a href="summary.html">summary</a>
+      <a href="recent.html">recent</a>
+    </p>
+<%= recent_summary.chomp %>
+    <hr>
+    <p>
+      <a href="../">chkbuild</a>
+      <a href="summary.html">summary</a>
+      <a href="recent.html">recent</a>
+    </p>
+  </body>
+</html>
+End
+
   def update_recent
     start_time = @start_time
     summary_path = @public+"summary.html"
@@ -304,14 +329,13 @@ class ChkBuild::Build
     while !lines.empty? && /\A<a / !~ lines[0]
       lines.shift
     end
-    content = "<title>#{h self.depsuffixed_name} recent build summary</title>\n"
-    content << "<h1>#{h self.depsuffixed_name} recent build summary</h1>\n"
-    content << "<p><a href=\"../\">chkbuild</a></p>\n"
-    content << lines.reverse.join
+    title = "#{self.depsuffixed_name} recent build summary"
+
+    recent_summary = lines.reverse.join
+    content = ERB.new(RECENT_HTMLTemplate).result(binding)
+
     recent_path = @public+"recent.html"
-    recent_path.open("w") {|f|
-      f.write content
-    }
+    atomic_make_file(recent_path, content)
   end
 
   def markup(str)
