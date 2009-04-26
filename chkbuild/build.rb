@@ -361,17 +361,17 @@ End
     <h1><%= h title %></h1>
     <p>
       <a href="../">chkbuild</a>
-      <a href="<%=h permalink %>">permalink</a>
       <a href="summary.html">summary</a>
       <a href="recent.html">recent</a>
+      <a href="<%=h permalink %>">permalink</a>
     </p>
     <pre><%= markup log %></pre>
     <hr>
     <p>
       <a href="../">chkbuild</a>
-      <a href="<%=h permalink %>">permalink</a>
       <a href="summary.html">summary</a>
       <a href="recent.html">recent</a>
+      <a href="<%=h permalink %>">permalink</a>
     </p>
   </body>
 </html>
