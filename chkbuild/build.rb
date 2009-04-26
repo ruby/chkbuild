@@ -204,6 +204,7 @@ class ChkBuild::Build
     compress_file(@log_filename, @public_log+@compressed_log_basename)
     different_sections = make_diff
     update_summary(title, different_sections)
+    update_recent
     make_html_log(@log_filename, title, @public+"last.html")
     compress_file(@public+"last.html", @public+"last.html.gz")
     ChkBuild.run_upload_hooks(self.suffixed_name)
@@ -290,6 +291,29 @@ class ChkBuild::Build
     }
   end
 
+  def update_recent
+    start_time = @start_time
+    summary_path = @public+"summary.html"
+    lines = []
+    summary_path.open {|f|
+      while l = f.gets
+        lines << l
+        lines.shift if 10 < lines.length
+      end
+    }
+    while !lines.empty? && /\A<a / !~ lines[0]
+      lines.shift
+    end
+    content = "<title>#{h self.depsuffixed_name} recent build summary</title>\n"
+    content << "<h1>#{h self.depsuffixed_name} recent build summary</h1>\n"
+    content << "<p><a href=\"../\">chkbuild</a></p>\n"
+    content << lines.reverse.join
+    recent_path = @public+"recent.html"
+    recent_path.open("w") {|f|
+      f.write content
+    }
+  end
+
   def markup(str)
     result = ''
     i = 0
@@ -311,10 +335,18 @@ class ChkBuild::Build
   </head>
   <body>
     <h1><%= h title %></h1>
-    <p><a href="../">chkbuild</a> <a href="summary.html">summary</a></p>
+    <p>
+      <a href="../">chkbuild</a>
+      <a href="summary.html">summary</a>
+      <a href="recent.html">recent</a>
+    </p>
     <pre><%= markup log %></pre>
     <hr>
-    <p><a href="../">chkbuild</a> <a href="summary.html">summary</a></p>
+    <p>
+      <a href="../">chkbuild</a>
+      <a href="summary.html">summary</a>
+      <a href="recent.html">recent</a>
+    </p>
   </body>
 </html>
 End
