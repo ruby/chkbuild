@@ -326,7 +326,7 @@ class ChkBuild::Build
     result
   end
 
-  HTMLTemplate = <<'End'
+  LAST_HTMLTemplate = <<'End'
 <html>
   <head>
     <title><%= h title %></title>
@@ -357,7 +357,7 @@ End
     log = File.read(log_filename)
     log.force_encoding("ascii-8bit") if log.respond_to? :force_encoding
     permalink = "log/#{@compressed_log_basename}"
-    content = ERB.new(HTMLTemplate).result(binding)
+    content = ERB.new(LAST_HTMLTemplate).result(binding)
     atomic_make_file(dst, content)
   end
 
