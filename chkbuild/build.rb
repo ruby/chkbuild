@@ -337,6 +337,7 @@ class ChkBuild::Build
     <h1><%= h title %></h1>
     <p>
       <a href="../">chkbuild</a>
+      <a href="<%=h permalink %>">permalink</a>
       <a href="summary.html">summary</a>
       <a href="recent.html">recent</a>
     </p>
@@ -344,6 +345,7 @@ class ChkBuild::Build
     <hr>
     <p>
       <a href="../">chkbuild</a>
+      <a href="<%=h permalink %>">permalink</a>
       <a href="summary.html">summary</a>
       <a href="recent.html">recent</a>
     </p>
@@ -354,6 +356,7 @@ End
   def make_html_log(log_filename, title, dst)
     log = File.read(log_filename)
     log.force_encoding("ascii-8bit") if log.respond_to? :force_encoding
+    permalink = "log/#{@compressed_log_basename}"
     content = ERB.new(HTMLTemplate).result(binding)
     atomic_make_file(dst, content)
   end
