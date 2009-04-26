@@ -364,6 +364,7 @@ End
       <a href="summary.html">summary</a>
       <a href="recent.html">recent</a>
       <a href="<%=h permalink %>">permalink</a>
+      <a href="<%=h diff_permalink %>">diff</a>
     </p>
     <pre><%= markup log %></pre>
     <hr>
@@ -372,6 +373,7 @@ End
       <a href="summary.html">summary</a>
       <a href="recent.html">recent</a>
       <a href="<%=h permalink %>">permalink</a>
+      <a href="<%=h diff_permalink %>">diff</a>
     </p>
   </body>
 </html>
@@ -381,6 +383,7 @@ End
     log = File.read(log_filename)
     log.force_encoding("ascii-8bit") if log.respond_to? :force_encoding
     permalink = "log/#{@compressed_log_basename}"
+    diff_permalink = "log/#{@compressed_diff_basename}"
     content = ERB.new(LAST_HTMLTemplate).result(binding)
     atomic_make_file(dst, content)
   end
