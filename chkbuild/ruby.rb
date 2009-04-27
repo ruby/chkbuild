@@ -189,13 +189,13 @@ End
         Dir.chdir(ruby_build_dir)
         use_rubyspec &&= b.catch_error {
 	  Dir.chdir("rubyspec") {
-	    b.run("../bin/ruby",
-	          "../mspec/bin/mspec",
-                  "ci",
-		  "-V",
-		  "-f", "s",
-		  "-t", "../bin/ruby",
-		  :section=>"rubyspec")
+            if %r{branches/ruby_1_8} =~ ruby_branch
+              command = %w[../bin/ruby ../mspec/bin/mspec -V -f s -t ../bin/ruby -G critical]
+            else
+              command = %w[../bin/ruby ../mspec/bin/mspec ci -V -f s -t ../bin/ruby]
+            end
+            command << { :section=>"rubyspec" }
+            b.run(*command)
 	  }
         }
       }
