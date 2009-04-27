@@ -205,7 +205,7 @@ class ChkBuild::Build
     different_sections = make_diff
     update_summary(title, different_sections)
     update_recent
-    make_html_log(@log_filename, title, @public+"last.html")
+    make_html_log(@log_filename, title, different_sections, @public+"last.html")
     compress_file(@public+"last.html", @public+"last.html.gz")
     ChkBuild.run_upload_hooks(self.suffixed_name)
     ret
@@ -366,7 +366,9 @@ End
       <a href="summary.html">summary</a>
       <a href="recent.html">recent</a>
       <a href="<%=h permalink %>">permalink</a>
+% if has_diff
       <a href="<%=h diff_permalink %>">diff</a>
+% end
     </p>
     <pre><%= markup log %></pre>
     <hr>
@@ -375,18 +377,20 @@ End
       <a href="summary.html">summary</a>
       <a href="recent.html">recent</a>
       <a href="<%=h permalink %>">permalink</a>
+% if has_diff
       <a href="<%=h diff_permalink %>">diff</a>
+% end
     </p>
   </body>
 </html>
 End
 
-  def make_html_log(log_filename, title, dst)
+  def make_html_log(log_filename, title, has_diff, dst)
     log = File.read(log_filename)
     log.force_encoding("ascii-8bit") if log.respond_to? :force_encoding
     permalink = "log/#{@compressed_log_basename}"
     diff_permalink = "log/#{@compressed_diff_basename}"
-    content = ERB.new(LAST_HTMLTemplate).result(binding)
+    content = ERB.new(LAST_HTMLTemplate, nil, '%').result(binding)
     atomic_make_file(dst, content)
   end
 
