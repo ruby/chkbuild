@@ -304,6 +304,7 @@ class ChkBuild::Build
       <a href="../">chkbuild</a>
       <a href="summary.html">summary</a>
       <a href="recent.html">recent</a>
+      <a href="last.html.gz">last</a>
     </p>
 <%= recent_summary.chomp %>
     <hr>
@@ -311,6 +312,7 @@ class ChkBuild::Build
       <a href="../">chkbuild</a>
       <a href="summary.html">summary</a>
       <a href="recent.html">recent</a>
+      <a href="last.html.gz">last</a>
     </p>
   </body>
 </html>
