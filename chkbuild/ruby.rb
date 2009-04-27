@@ -191,10 +191,10 @@ End
 	  Dir.chdir("rubyspec") {
 	    b.run("../bin/ruby",
 	          "../mspec/bin/mspec",
+                  "ci",
 		  "-V",
 		  "-f", "s",
 		  "-t", "../bin/ruby",
-		  "-G", "critical",
 		  :section=>"rubyspec")
 	  }
         }
