@@ -245,9 +245,9 @@ class ChkBuild::Build
       puts "failed(#{err.reason})"
     else
       if err.respond_to? :reason
-        puts "failed(#{err.reason} #{err.class}: #{err.message})"
+        puts "failed(#{err.reason} #{err.class})"
       else
-        puts "failed(#{err.class}: #{err.message})"
+        puts "failed(#{err.class})"
       end
     end
     return false

@@ -18,7 +18,7 @@ class ChkBuild::Title
     @title[:version] = @logfile.suffixed_name
     @title[:dep_versions] = []
     @title[:hostname] = "(#{Util.simple_hostname})"
-    @title_order = [:status]
+    @title_order = [:version, :dep_versions, :hostname, :warn, :mark, :status]
     @logfile.each_secname {|secname|
       log = @logfile.get_section(secname)
       lastline = log.chomp("").lastline
@@ -28,7 +28,6 @@ class ChkBuild::Title
         @title[sym] = lastline
       end
     }
-    @title_order.concat [:warn, :mark, :version, :dep_versions, :hostname]
   end
   attr_reader :logfile
 
