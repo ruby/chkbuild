@@ -166,7 +166,7 @@ End
 	args.concat configure_flags
         b.run("#{srcdir}/configure", *args)
         b.make("miniruby", make_options)
-        b.catch_error { b.run("./miniruby", "-v", :section=>"version") }
+        b.catch_error { b.run("./miniruby", "-v", :section=>"miniversion") }
         if File.directory? "#{srcdir}/bootstraptest"
           b.catch_error { b.make("btest", "OPTS=-v -q", :section=>"btest") }
         end
@@ -178,6 +178,7 @@ End
         }
         b.catch_error { b.run("./miniruby", '-e', METHOD_LIST_SCRIPT, :section=>"method-list") }
         b.make(make_options)
+        b.catch_error { b.run("./ruby", "-v", :section=>"version") }
         b.make("install-nodoc")
         b.catch_error { b.make("install-doc") }
         if File.file? "#{srcdir}/KNOWNBUGS.rb"
@@ -203,6 +204,15 @@ End
       t.add_title_hook("configure") {|title, log|
         if /^checking target system type\.\.\. (\S+)$/ =~ log
           title.update_title(:version, "#{title.suffixed_name} [#{$1}]")
+        end
+      }
+
+      t.add_title_hook("miniversion") {|title, log|
+        if /^ruby [0-9].*$/ =~ log
+          ver = $&
+          ss = title.suffixed_name.split(/-/)[1..-1].reject {|s| /\A(trunk|1\.8)\z/ =~ s }
+          ver << " [#{ss.join(',')}]" if !ss.empty?
+          title.update_title(:version, ver)
         end
       }
 
