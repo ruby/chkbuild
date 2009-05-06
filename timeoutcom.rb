@@ -1,4 +1,4 @@
-class CommandTimeoutError < StandardError
+class CommandTimeout < StandardError
 end
 
 module TimeoutCommand
@@ -83,7 +83,7 @@ module TimeoutCommand
       output_interval_timeout = parse_timespan(opts[:output_interval_timeout])
     end
     if command_timeout < 0
-      raise CommandTimeoutError, 'no time to run a command'
+      raise CommandTimeout, 'no time to run a command'
     end
     pid = fork {
       Process.setpgid($$, $$)
@@ -131,7 +131,7 @@ module TimeoutCommand
           kill_processgroup(pid, msgout)
         rescue Errno::ESRCH # no process
         end
-        raise CommandTimeoutError, timeout_reason
+        raise CommandTimeout, timeout_reason
       end
     rescue Interrupt
       Process.kill("INT", -pid)
