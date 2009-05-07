@@ -86,7 +86,7 @@ class ChkBuild::Target
     if @diff_preprocess_sort_patterns.empty?
       nil
     else
-      Regexp.union(*@diff_preprocess_sort_patterns)
+      /\A#{Regexp.union(*@diff_preprocess_sort_patterns)}/
     end
   end
 
