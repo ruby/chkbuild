@@ -436,6 +436,7 @@ End
     has_change_line = output_change_lines(t2, out)
     tmp1 = make_diff_content(t1)
     tmp2 = make_diff_content(t2)
+    tmp1, tmp2 = sort_diff_content(t1, tmp1, t2, tmp2)
     header = "--- #{t1}\n+++ #{t2}\n"
     has_diff = has_change_line | UDiff.diff(tmp1.path, tmp2.path, out, header)
     return nil if !has_diff
@@ -505,6 +506,103 @@ End
     }
     tmp.flush
     tmp
+  end
+
+  def sort_diff_content(time1, tmp1, time2, tmp2)
+    pat = @target.diff_preprocess_sort_pattern
+    return tmp1, tmp2 if !pat
+
+    h1 = {}
+    tmp1.rewind
+    tmp1.each_line {|line| h1[$&] = true if pat =~ line }
+
+    h2 = {}
+    tmp2.rewind
+    tmp2.each_line {|line| h2[$&] = true if pat =~ line }
+
+    h0 = {}
+    h1.each_key {|k| h0[k] = true if h2[k] }
+
+    blockgen = lambda {|hash|
+      prev_matched = nil
+      prev_lines = nil
+      lambda {|line|
+        if line && pat =~ line && h0[$&]
+          matched = $&
+        else
+          matched = nil
+        end
+        if prev_matched && prev_matched != matched
+          hash[prev_matched] = Digest::SHA256.hexdigest(prev_lines.sort.join(''))
+        end
+        if matched && prev_matched != matched
+          prev_matched = matched
+          prev_lines = []
+        end
+        if matched
+          prev_lines << line
+        end
+      }
+    }
+
+    h1 = {}
+    b1 = blockgen.call(h1)
+    tmp1.rewind
+    tmp1.each_line(&b1)
+    b1.call(nil)
+
+    h2 = {}
+    b2 = blockgen.call(h2)
+    tmp2.rewind
+    tmp2.each_line(&b2)
+    b2.call(nil)
+
+    h0 = {}
+    h1.each_key {|k| h0[k] = true if h1[k] == h2[k] }
+
+    block_gen2 = lambda {|newtmp|
+      prev_matched = nil
+      prev_lines = nil
+      lambda {|line|
+        if line && pat =~ line && h0[$&]
+          matched = $&
+        else
+          matched = nil
+        end
+        if prev_matched && prev_matched != matched
+          newtmp.print *prev_lines.sort
+          prev_matched = nil
+          prev_lines = nil
+        end
+        if matched && prev_matched != matched
+          prev_matched = matched
+          prev_lines = []
+        end
+        if matched
+          prev_lines << line
+        elsif line
+          newtmp.print line
+        end
+      }
+    }
+
+    newtmp1 = Tempfile.open("#{time1}.d.")
+    b1 = block_gen2.call(newtmp1)
+    tmp1.rewind
+    tmp1.each_line(&b1)
+    b1.call(nil)
+    tmp1.close(true)
+    newtmp1.rewind
+
+    newtmp2 = Tempfile.open("#{time2}.d.")
+    b2 = block_gen2.call(newtmp2)
+    tmp2.rewind
+    tmp2.each_line(&b2)
+    b2.call(nil)
+    tmp2.close(true)
+    newtmp2.rewind
+
+    return newtmp1, newtmp2
   end
 
   def open_gziped_log(time, &block)

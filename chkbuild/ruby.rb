@@ -384,6 +384,13 @@ End
 	'<elapsed> s: '
       }
 
+      # MinitestSpec#test_needs_to_verify_nil: <elapsed> s: .
+      # RUNIT::TestAssert#test_assert_send: .
+      t.add_diff_preprocess_sort(/\A[A-Z][A-Za-z0-9_]+(::[A-Z][A-Za-z0-9_]+)*\#/)
+
+      # - returns self as a symbol literal for :$*
+      t.add_diff_preprocess_sort(/\A- returns self as a symbol literal for :/)
+
       t
     end
 

@@ -10,6 +10,7 @@ class ChkBuild::Target
     @failure_hook = []
     @diff_preprocess_hook = []
     init_default_diff_preprocess_hooks
+    @diff_preprocess_sort_patterns = []
   end
   attr_reader :target_name, :opts, :build_proc
 
@@ -79,6 +80,15 @@ class ChkBuild::Target
   end
   def add_diff_preprocess_hook(&block) @diff_preprocess_hook << block end
   def each_diff_preprocess_hook(&block) @diff_preprocess_hook.each(&block) end
+
+  def add_diff_preprocess_sort(pat) @diff_preprocess_sort_patterns << pat end
+  def diff_preprocess_sort_pattern()
+    if @diff_preprocess_sort_patterns.empty?
+      nil
+    else
+      Regexp.union(*@diff_preprocess_sort_patterns)
+    end
+  end
 
   def each_suffixes
     @branches.each {|suffixes|
