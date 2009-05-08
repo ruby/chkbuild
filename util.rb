@@ -47,7 +47,7 @@ class IO
   end
 end
 
-module Enumerable
+class Tempfile
   def each_coset(arg)
     if Regexp === arg
       regexp = arg
