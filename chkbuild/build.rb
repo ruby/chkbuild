@@ -512,95 +512,33 @@ End
     pat = @target.diff_preprocess_sort_pattern
     return tmp1, tmp2 if !pat
 
-    h1 = {}
-    tmp1.rewind
-    tmp1.each_line {|line| h1[$&] = true if pat =~ line }
-
-    h2 = {}
-    tmp2.rewind
-    tmp2.each_line {|line| h2[$&] = true if pat =~ line }
-
-    h0 = {}
-    h1.each_key {|k| h0[k] = true if h2[k] }
-
-    blockgen = lambda {|hash|
-      prev_matched = nil
-      prev_lines = nil
-      lambda {|line|
-        if line && pat =~ line && h0[$&]
-          matched = $&
-        else
-          matched = nil
-        end
-        if prev_matched && prev_matched != matched
-          hash[prev_matched] = Digest::SHA256.hexdigest(prev_lines.sort.join(''))
-        end
-        if matched && prev_matched != matched
-          prev_matched = matched
-          prev_lines = []
-        end
-        if matched
-          prev_lines << line
-        end
+    h1, h2 = [tmp1, tmp2].map {|tmp|
+      h = {}
+      tmp.rewind
+      tmp.each_coset(pat) {|lines|
+        next unless 1 < lines.length && pat =~ lines.first
+        h[$&] = Digest::SHA256.hexdigest(lines.sort.join(''))
       }
+      h
     }
 
-    h1 = {}
-    b1 = blockgen.call(h1)
-    tmp1.rewind
-    tmp1.each_line(&b1)
-    b1.call(nil)
-
-    h2 = {}
-    b2 = blockgen.call(h2)
-    tmp2.rewind
-    tmp2.each_line(&b2)
-    b2.call(nil)
-
     h0 = {}
-    h1.each_key {|k| h0[k] = true if h1[k] == h2[k] }
+    h1.each_key {|k| h0[k] = true if h1[k] == h2[k]  }
 
-    block_gen2 = lambda {|newtmp|
-      prev_matched = nil
-      prev_lines = nil
-      lambda {|line|
-        if line && pat =~ line && h0[$&]
-          matched = $&
+    newtmp1, newtmp2 = [[time1, tmp1], [time2, tmp2]].map {|time, tmp|
+      newtmp = Tempfile.open("#{time}.d.")
+      tmp.rewind
+      tmp.each_coset(pat) {|lines|
+        if 1 < lines.length && pat =~ lines.first && h0[$&]
+          newtmp.print lines.sort.join('')
         else
-          matched = nil
-        end
-        if prev_matched && prev_matched != matched
-          newtmp.print *prev_lines.sort
-          prev_matched = nil
-          prev_lines = nil
-        end
-        if matched && prev_matched != matched
-          prev_matched = matched
-          prev_lines = []
-        end
-        if matched
-          prev_lines << line
-        elsif line
-          newtmp.print line
+          newtmp.print lines.join('')
         end
       }
+      tmp.close(true)
+      newtmp.rewind
+      newtmp
     }
-
-    newtmp1 = Tempfile.open("#{time1}.d.")
-    b1 = block_gen2.call(newtmp1)
-    tmp1.rewind
-    tmp1.each_line(&b1)
-    b1.call(nil)
-    tmp1.close(true)
-    newtmp1.rewind
-
-    newtmp2 = Tempfile.open("#{time2}.d.")
-    b2 = block_gen2.call(newtmp2)
-    tmp2.rewind
-    tmp2.each_line(&b2)
-    b2.call(nil)
-    tmp2.close(true)
-    newtmp2.rewind
 
     return newtmp1, newtmp2
   end

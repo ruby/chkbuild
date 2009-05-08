@@ -47,6 +47,42 @@ class IO
   end
 end
 
+module Enumerable
+  def each_coset(arg)
+    if Regexp === arg
+      regexp = arg
+      arg = lambda {|e| regexp =~ e; $& }
+    end
+    prev_value = prev_elts = nil
+    self.each {|e|
+      v = arg.call(e)
+      if prev_value == nil
+        if v == nil
+          yield [e]
+        else
+          prev_value = v
+          prev_elts = [e]
+        end
+      else
+        if v == nil
+          yield prev_elts
+          yield [e]
+          prev_value = prev_elts = nil
+        elsif prev_value == v
+          prev_elts << e
+        else
+          yield prev_elts
+          prev_value = v
+          prev_elts = [e]
+        end
+      end
+    }
+    if prev_value != nil
+      yield prev_elts
+    end
+  end
+end
+
 module Util
   extend Util # similar to module_function but instance methods are public.
 
