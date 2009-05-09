@@ -48,7 +48,7 @@ class IO
 end
 
 class Tempfile
-  def each_coset(arg)
+  def gather_each(arg)
     if Regexp === arg
       regexp = arg
       arg = lambda {|e| regexp =~ e; $& }

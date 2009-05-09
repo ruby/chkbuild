@@ -515,7 +515,7 @@ End
     h1, h2 = [tmp1, tmp2].map {|tmp|
       h = {}
       tmp.rewind
-      tmp.each_coset(pat) {|lines|
+      tmp.gather_each(pat) {|lines|
         next unless 1 < lines.length && pat =~ lines.first
         h[$&] = Digest::SHA256.hexdigest(lines.sort.join(''))
       }
@@ -528,7 +528,7 @@ End
     newtmp1, newtmp2 = [[time1, tmp1], [time2, tmp2]].map {|time, tmp|
       newtmp = Tempfile.open("#{time}.d.")
       tmp.rewind
-      tmp.each_coset(pat) {|lines|
+      tmp.gather_each(pat) {|lines|
         if 1 < lines.length && pat =~ lines.first && h0[$&]
           newtmp.print lines.sort.join('')
         else
