@@ -3,6 +3,7 @@ require 'chkbuild'
 module ChkBuild
   module Ruby
     METHOD_LIST_SCRIPT = <<'End'
+use_symbol = Object.instance_methods[0].is_a?(Symbol)
 nummodule = nummethod = 0
 mods = []
 ObjectSpace.each_object(Module) {|m| mods << m if m.name }
@@ -17,7 +18,13 @@ mods.each {|mod|
     line << " not-implemented" if !mod.respond_to?(methname)
     puts line
   }
-  mod.instance_methods(false).sort.each {|methname|
+  ms = mod.instance_methods(false)
+  if use_symbol
+    ms << :initialize if mod.private_instance_methods(false).include? :initialize
+  else
+    ms << "initialize" if mod.private_instance_methods(false).include? "initialize"
+  end
+  ms.sort.each {|methname|
     nummethod += 1
     meth = mod.instance_method(methname)
     line = "#{mod.name}\##{methname} #{meth.arity}"
