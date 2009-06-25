@@ -162,4 +162,4 @@ xen, chroot, jail, user mode linux, VMware, ... などで環境を限定することも検討し
 
 == TODO
 
-* index.html を生成する。
+* index.html を生成する
