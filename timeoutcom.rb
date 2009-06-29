@@ -127,7 +127,7 @@ module TimeoutCommand
         msgout.puts "timeout: #{timeout_reason}" if msgout
         begin
           Process.kill(0, -pid)
-          msgout.puts "timeout: the process group is alive." if msgout
+          msgout.puts "timeout: the process group #{pid} is alive." if msgout
           kill_processgroup(pid, msgout)
         rescue Errno::ESRCH # no process
         end
@@ -141,7 +141,7 @@ module TimeoutCommand
       raise
     ensure
       if processgroup_alive?(pid)
-        msgout.puts "some descendant processes remain." if msgout
+        msgout.puts "some descendant process in process group #{pid} remain." if msgout
         kill_processgroup(pid, msgout)
       end
     end
