@@ -294,7 +294,7 @@ End
         numbugs = count_prefix(/\[BUG\]/i, log) and mark << " #{numbugs}[BUG]"
         numsegv = count_prefix(
           /segmentation fault|signal segv/i,
-          log.sub(/combination may cause frequent hang or segmentation fault|e\.g\. hangs or segmentation faults/, '')) and # skip tk message.
+          log.sub(/combination may cause frequent hang or segmentation fault|hangs or segmentation faults/, '')) and # skip tk message.
           mark << " #{numsegv}[SEGV]"
         numsigbus = count_prefix(/signal SIGBUS/i, log) and mark << " #{numsigbus}[SIGBUS]"
         numsigill = count_prefix(/signal SIGILL/i, log) and mark << " #{numsigill}[SIGILL]"
