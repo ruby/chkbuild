@@ -368,6 +368,11 @@ End
         s
       }
 
+      # mkdir -p /home/akr/chkbuild/tmp/build/ruby-trunk/<buildtime>/tmp/fileutils.rb.23661/tmpdir/dir/
+      t.add_diff_preprocess_gsub(%r{/tmp/fileutils.rb.\d+/tmpdir/}o) {|match|
+        '/tmp/fileutils.rb.<n>/tmpdir/'
+      }
+
       t.add_diff_preprocess_gsub(/^Elapsed: [0-9.]+s/) {|match|
         "Elapsed: <t>s"
       }
