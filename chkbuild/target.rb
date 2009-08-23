@@ -76,6 +76,9 @@ class ChkBuild::Target
     add_diff_preprocess_gsub(/timeout: the process group \d+ is alive/) {|match|
       "timeout: the process group <pgid> is alive"
     }
+    add_diff_preprocess_gsub(/some descendant process in process group \d+ remain/) {|match|
+      "some descendant process in process group <pgid> remain"
+    }
   end
 
   def add_diff_preprocess_gsub(pat, &block)
