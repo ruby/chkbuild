@@ -373,6 +373,11 @@ End
         '/tmp/fileutils.rb.<n>/tmpdir/'
       }
 
+      # connect to #<Addrinfo: [::1]:54046 TCP>.
+      t.add_diff_preprocess_gsub(%r{\#<Addrinfo: \[::1\]:\d+}o) {|match|
+        '#<Addrinfo: [::1]:<port>'
+      }
+
       t.add_diff_preprocess_gsub(/^Elapsed: [0-9.]+s/) {|match|
         "Elapsed: <t>s"
       }
