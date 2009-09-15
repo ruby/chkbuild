@@ -2,6 +2,12 @@ require "uri"
 
 class ChkBuild::Build
   def cvs(cvsroot, mod, branch, opts={})
+    network_access {
+      cvs_internal(cvsroot, mod, branch, opts)
+    }
+  end
+
+  def cvs_internal(cvsroot, mod, branch, opts={})
     opts = opts.dup
     opts[:section] ||= 'cvs'
     working_dir = opts.fetch(:working_dir, mod)

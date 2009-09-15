@@ -31,6 +31,12 @@ class ChkBuild::Build
   end
 
   def git(cloneurl, working_dir, opts={})
+    network_access {
+      git_internal(cloneurl, working_dir, opts)
+    }
+  end
+
+  def git_internal(cloneurl, working_dir, opts={})
     urigen = nil
     opts = opts.dup
     opts[:section] ||= 'git'

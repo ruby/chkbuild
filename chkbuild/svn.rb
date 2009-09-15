@@ -45,6 +45,12 @@ end
 
 class ChkBuild::Build
   def svn(svnroot, rep_dir, working_dir, opts={})
+    network_access {
+      svn_internal(svnroot, rep_dir, working_dir, opts)
+    }
+  end
+
+  def svn_internal(svnroot, rep_dir, working_dir, opts={})
     url = svnroot + '/' + rep_dir
     opts = opts.dup
     opts[:section] ||= 'svn'

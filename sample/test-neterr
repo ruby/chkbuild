@@ -1,0 +1,16 @@
+#!/usr/bin/env ruby
+
+require 'chkbuild'
+
+t = ChkBuild.def_target("network-error") {|b|
+  b.network_access {
+    if rand < 0.5
+      b.run("false")
+    else
+      b.run("true")
+    end
+  }
+  b.run("true")
+}
+
+ChkBuild.main

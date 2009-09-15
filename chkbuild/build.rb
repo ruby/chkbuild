@@ -253,6 +253,16 @@ class ChkBuild::Build
     return false
   end
 
+  def network_access(name=nil)
+    begin
+      yield
+    ensure
+      if err = $!
+        @logfile.start_section("neterror")
+      end
+    end
+  end
+
   def build_dir() @build_dir end
 
   def remove_old_build(current, num)
@@ -418,6 +428,24 @@ End
     }
     time_seq.sort!
     time_seq.delete time2
+    while !time_seq.empty? &&
+          open_gziped_log(time_seq.last) {|f|
+            neterror = false
+            f.each_line {|line|
+              line.force_encoding("ascii-8bit") if line.respond_to? :force_encoding
+              if /\A== neterror / =~ line
+                neterror = true
+                break
+              end
+            }
+            if neterror
+              true
+            else
+              false
+            end
+          }
+      time_seq.pop
+    end
     return nil if time_seq.empty?
     time1 = time_seq.last
     different_sections = nil
