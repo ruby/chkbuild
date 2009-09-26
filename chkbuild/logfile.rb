@@ -1,3 +1,5 @@
+# chkbuild/logfile.rb - chkbuild's log file library
+#
 # Copyright (C) 2006,2009 Tanaka Akira  <akr@fsij.org>
 # 
 # Redistribution and use in source and binary forms, with or without

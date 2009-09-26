@@ -1,3 +1,5 @@
+# udiff.rb - unified diff library
+#
 # Copyright (C) 2005,2006,2007,2008 Tanaka Akira  <akr@fsij.org>
 # 
 # Redistribution and use in source and binary forms, with or without

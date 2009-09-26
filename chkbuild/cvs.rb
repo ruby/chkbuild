@@ -1,3 +1,5 @@
+# chkbuild/cvs.rb - cvs access method
+#
 # Copyright (C) 2006,2007,2009 Tanaka Akira  <akr@fsij.org>
 # 
 # Redistribution and use in source and binary forms, with or without

@@ -1,3 +1,5 @@
+# chkbuild/git.rb - git access method
+#
 # Copyright (C) 2008,2009 Tanaka Akira  <akr@fsij.org>
 # 
 # Redistribution and use in source and binary forms, with or without

@@ -1,3 +1,5 @@
+# chkbuild/ruby.rb - ruby build module
+#
 # Copyright (C) 2006,2007,2008,2009 Tanaka Akira  <akr@fsij.org>
 # 
 # Redistribution and use in source and binary forms, with or without

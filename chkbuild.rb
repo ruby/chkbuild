@@ -1,3 +1,5 @@
+# chkbuild.rb - chkbuild library entry file
+#
 # Copyright (C) 2006,2008,2009 Tanaka Akira  <akr@fsij.org>
 # 
 # Redistribution and use in source and binary forms, with or without

@@ -1,3 +1,5 @@
+# chkbuild/gcc.rb - gcc build module
+#
 # Copyright (C) 2006 Tanaka Akira  <akr@fsij.org>
 # 
 # Redistribution and use in source and binary forms, with or without
