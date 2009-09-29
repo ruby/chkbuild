@@ -48,11 +48,31 @@ end
 class ChkBuild::LogFile
   InitialMark = '=='
 
+  def self.os_version
+    if File.readable?("/etc/debian_version")
+      ver = File.read('/etc/debian_version').chomp
+      case ver
+      when /\A2\.0/; codename = 'potato'
+      when /\A3\.0/; codename = 'woody'
+      when /\A3\.1/; codename = 'sarge'
+      when /\A4\.0/; codename = 'etch'
+      when /\A5\.0/; codename = 'lenny'
+      else codename = nil
+      end
+      ver = "Debian GNU/Linux #{ver}"
+      ver << " (#{codename})" if codename
+      return ver
+    end
+    nil
+  end
+
   def self.write_open(filename, build)
     logfile = self.new(filename, true)
     logfile.start_section build.depsuffixed_name
     logfile.with_default_output {
       system("uname -a")
+      os_ver = self.os_version
+      puts os_ver if os_ver
       section_started = false
       build.traverse_depbuild {|depbuild|
         if !section_started
