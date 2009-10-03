@@ -93,7 +93,7 @@ End
         cppflags = %w[-DRUBY_DEBUG_ENV]
         optflags = %w[-O2]
         debugflags = %w[-g]
-	warnflags = %w[-W -Wall -Wformat=2 -Wundef -Wno-parentheses -Wno-unused-parameter]
+	warnflags = %w[-W -Wall -Wformat=2 -Wundef -Wno-parentheses -Wno-unused-parameter -Wno-missing-field-initializers]
 	dldflags = %w[]
         gcc_dir = nil
         autoconf_command = 'autoconf'
