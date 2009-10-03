@@ -36,7 +36,7 @@ module GDB
     binaries = {}
     core_info = []
     Find.find(dir.to_s) {|f|
-      stat = File.stat(f)
+      stat = File.lstat(f)
       basename = File.basename(f)
       binaries[basename] = f if stat.file? && stat.executable?
       next if /\bcore\b/ !~ basename
