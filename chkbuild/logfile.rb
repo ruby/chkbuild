@@ -49,8 +49,15 @@ class ChkBuild::LogFile
   InitialMark = '=='
 
   def self.os_version
+    if File.readable?("/etc/lsb-release")
+      File.foreach("/etc/lsb-release") {|line|
+        if /\ADISTRIB_DESCRIPTION="(.*)"/ =~ line
+	  return $1
+	end
+      }
+    end
     if File.readable?("/etc/debian_version")
-      ver = File.read('/etc/debian_version').chomp
+      ver = File.read("/etc/debian_version").chomp
       case ver
       when /\A2\.0/; codename = 'potato'
       when /\A3\.0/; codename = 'woody'
