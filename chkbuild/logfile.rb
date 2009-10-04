@@ -66,14 +66,19 @@ class ChkBuild::LogFile
     nil
   end
 
+  def self.show_os_version
+    system("uname -a")
+    if !system("lsb_release -idrc")
+      os_ver = self.os_version
+      puts os_ver if os_ver
+    end
+  end
+
   def self.write_open(filename, build)
     logfile = self.new(filename, true)
     logfile.start_section build.depsuffixed_name
     logfile.with_default_output {
-      system("uname -a")
-      system("lsb_release -a")
-      os_ver = self.os_version
-      puts os_ver if os_ver
+      self.show_os_version
       section_started = false
       build.traverse_depbuild {|depbuild|
         if !section_started
