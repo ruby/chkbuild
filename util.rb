@@ -56,20 +56,22 @@ unless File.respond_to? :identical?
   end
 end
 
-class IO
-  def close_on_exec
-    self.fcntl(Fcntl::F_GETFD) & Fcntl::FD_CLOEXEC != 0
-  end
-
-  def close_on_exec=(v)
-    flags = self.fcntl(Fcntl::F_GETFD)
-    if v
-      flags |= Fcntl::FD_CLOEXEC
-    else
-      flags &= ~Fcntl::FD_CLOEXEC
+unless STDIN.respond_to? :close_on_exec?
+  class IO
+    def close_on_exec?
+      self.fcntl(Fcntl::F_GETFD) & Fcntl::FD_CLOEXEC != 0
     end
-    self.fcntl(Fcntl::F_SETFD, flags)
-    v
+
+    def close_on_exec=(v)
+      flags = self.fcntl(Fcntl::F_GETFD)
+      if v
+        flags |= Fcntl::FD_CLOEXEC
+      else
+        flags &= ~Fcntl::FD_CLOEXEC
+      end
+      self.fcntl(Fcntl::F_SETFD, flags)
+      v
+    end
   end
 end
 
