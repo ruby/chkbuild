@@ -50,11 +50,21 @@ class ChkBuild::LogFile
 
   def self.os_version
     if File.readable?("/etc/lsb-release")
+      codename = nil
+      desc = nil
       File.foreach("/etc/lsb-release") {|line|
-        if /\ADISTRIB_DESCRIPTION="(.*)"/ =~ line
-	  return $1
-	end
+	desc = $1 if /\ADISTRIB_DESCRIPTION=(.*)/ =~ line
+	codename = $1 if /\ADISTRIB_CODENAME=(.*)/ =~ line
       }
+      desc = $1 if desc && /\A"(.*)"\z/ =~ desc
+      codename = $1 if codename && /\A"(.*)"\z/ =~ codename
+      if desc
+        if codename
+	  return "#{desc} (#{codename})"
+	else
+	  return desc
+	end
+      end
     end
     if File.readable?("/etc/debian_version")
       ver = File.read("/etc/debian_version").chomp
