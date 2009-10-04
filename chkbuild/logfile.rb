@@ -49,23 +49,6 @@ class ChkBuild::LogFile
   InitialMark = '=='
 
   def self.os_version
-    if File.readable?("/etc/lsb-release")
-      codename = nil
-      desc = nil
-      File.foreach("/etc/lsb-release") {|line|
-	desc = $1 if /\ADISTRIB_DESCRIPTION=(.*)/ =~ line
-	codename = $1 if /\ADISTRIB_CODENAME=(.*)/ =~ line
-      }
-      desc = $1 if desc && /\A"(.*)"\z/ =~ desc
-      codename = $1 if codename && /\A"(.*)"\z/ =~ codename
-      if desc
-        if codename
-	  return "#{desc} (#{codename})"
-	else
-	  return desc
-	end
-      end
-    end
     if File.readable?("/etc/debian_version")
       ver = File.read("/etc/debian_version").chomp
       case ver
@@ -88,6 +71,7 @@ class ChkBuild::LogFile
     logfile.start_section build.depsuffixed_name
     logfile.with_default_output {
       system("uname -a")
+      system("lsb_release -a")
       os_ver = self.os_version
       puts os_ver if os_ver
       section_started = false
