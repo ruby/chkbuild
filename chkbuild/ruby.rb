@@ -210,6 +210,9 @@ End
           end
         }
         b.catch_error { b.run("./miniruby", '-e', METHOD_LIST_SCRIPT, :section=>"method-list") }
+        if %r{trunk} =~ ruby_branch
+          b.make("main", make_options)
+        end
         b.make(make_options)
         b.catch_error { b.run("./ruby", "-v", :section=>"version") }
         b.make("install-nodoc")
