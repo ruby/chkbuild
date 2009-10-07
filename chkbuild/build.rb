@@ -388,12 +388,13 @@ End
 
   def markup(str)
     result = ''
-    i = 0
     str.each_line {|line|
       if /\A== (\S+)/ =~ line
         tag = $1
-        result << "<a name=\"#{h(u(tag))}\">== #{h(tag)}</a>#{h($')}"
+        rest = $'
+        result << "<a name=\"#{h(u(tag))}\">== #{h(tag)}</a>#{h(rest)}"
       else
+        i = 0
         line.scan(/#{URI.regexp(['http'])}/o) {
           result << h(line[i...$~.begin(0)]) if i < $~.begin(0)
           result << "<a href=\"#{h $&}\">#{h $&}</a>"
