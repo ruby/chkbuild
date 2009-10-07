@@ -376,15 +376,32 @@ End
     atomic_make_file(recent_path, content)
   end
 
+  def list_tags(log)
+    tags = []
+    log.each_line {|line|
+      if /\A== (\S+)/ =~ line
+        tags << $1
+      end
+    }
+    tags
+  end
+
   def markup(str)
     result = ''
     i = 0
-    str.scan(/#{URI.regexp(['http'])}/o) {
-      result << h(str[i...$~.begin(0)]) if i < $~.begin(0)
-      result << "<a href=\"#{h $&}\">#{h $&}</a>"
-      i = $~.end(0)
+    str.each_line {|line|
+      if /\A== (\S+)/ =~ line
+        tag = $1
+        result << "<a name=\"#{h(u(tag))}\">== #{h(tag)}</a>#{h($')}"
+      else
+        line.scan(/#{URI.regexp(['http'])}/o) {
+          result << h(line[i...$~.begin(0)]) if i < $~.begin(0)
+          result << "<a href=\"#{h $&}\">#{h $&}</a>"
+          i = $~.end(0)
+        }
+        result << h(line[i...line.length]) if i < line.length
+      end
     }
-    result << h(str[i...str.length]) if i < str.length
     result
   end
 
@@ -406,6 +423,11 @@ End
       <a href="<%=h diff_permalink %>">diff</a>
 % end
     </p>
+    <ul>
+% list_tags(log).each {|tag|
+      <li><a href="#<%= h(u(tag)) %>"><%= h tag %></a></li>
+% }
+    </ul>
     <pre><%= markup log %></pre>
     <hr>
     <p>
