@@ -227,11 +227,13 @@ End
         use_rubyspec &&= b.catch_error {
           if %r{branches/ruby_1_8} =~ ruby_branch
             config = Dir.pwd + "/rubyspec/ruby.1.8.mspec"
-            command = %W[bin/ruby mspec/bin/mspec -V -f s -B #{config} -t bin/ruby -G critical rubyspec]
+            command = %W[bin/ruby mspec/bin/mspec -V -f s -B #{config} -t bin/ruby -G critical]
           else
             config = Dir.pwd + "/rubyspec/ruby.1.9.mspec"
-            command = %W[bin/ruby mspec/bin/mspec ci -V -f s -B #{config} -t bin/ruby rubyspec]
+            command = %W[bin/ruby mspec/bin/mspec ci -V -f s -B #{config} -t bin/ruby]
           end
+	  command << "#{ChkBuild::TOP_DIRECTORY}/chkbuild/rubyspec-tmp-patch.rb"
+	  command << "rubyspec"
           command << { :section=>"rubyspec" }
           b.run(*command)
         }
