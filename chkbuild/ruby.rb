@@ -232,7 +232,6 @@ End
             config = Dir.pwd + "/rubyspec/ruby.1.9.mspec"
             command = %W[bin/ruby mspec/bin/mspec ci -V -f s -B #{config} -t bin/ruby]
           end
-	  command << "#{ChkBuild::TOP_DIRECTORY}/chkbuild/rubyspec-tmp-patch.rb"
 	  command << "rubyspec"
           command << { :section=>"rubyspec" }
           b.run(*command)
