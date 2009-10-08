@@ -192,7 +192,7 @@ class ChkBuild::Build
 
   def make_local_tmpdir
     tmpdir = @build_dir + 'tmp'
-    tmpdir.mkpath
+    tmpdir.mkdir(0700)
     ENV['TMPDIR'] = tmpdir.to_s
   end
 
