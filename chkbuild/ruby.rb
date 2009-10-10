@@ -371,23 +371,23 @@ End
 
       # #<String:0x4455ae94
       t.add_diff_preprocess_gsub(%r{\#<[A-Z][A-Za-z0-9_]*(?:::[A-Z][A-Za-z0-9_]*)*:0x[0-9a-f]+}o) {|match|
-        match[0].sub(/[0-9a-f]+\z/) { 'X' * $&.length }
+        match[0].sub(/[0-9a-f]+\z/) { '<address>' }
       }
 
       # #<#<Class:0xXXXXXXX>:0x0e87dd00
       # order sensitive.  this should be applied after the above.
-      t.add_diff_preprocess_gsub(%r{(\#<\#<Class:0xX+>:0x)([0-9a-f]+)}o) {|match|
-        match[1] + 'X' * match[2].length
+      t.add_diff_preprocess_gsub(%r{(\#<\#<Class:0x<address>>:0x)([0-9a-f]+)}o) {|match|
+        match[1] + '<address>'
       }
 
       # #<BigDecimal:403070d8,
       t.add_diff_preprocess_gsub(%r{\#<BigDecimal:[0-9a-f]+}) {|match|
-        match[0].sub(/[0-9a-f]+\z/) { 'X' * $&.length }
+        match[0].sub(/[0-9a-f]+\z/) { '<address>' }
       }
 
       # but got ThreadError (uncaught throw `blah' in thread 0x23f0660)
       t.add_diff_preprocess_gsub(%r{thread 0x[0-9a-f]+}o) {|match|
-        match[0].sub(/[0-9a-f]+\z/) { 'X' * $&.length }
+        match[0].sub(/[0-9a-f]+\z/) { '<address>' }
       }
 
       # XSD::ValueSpaceError: {http://www.w3.org/2001/XMLSchema}dateTime: cannot accept '2007-02-01T23:44:2682967.846399999994901+09:00'.
