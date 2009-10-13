@@ -436,6 +436,11 @@ End
 	'<elapsed> s: '
       }
 
+      # Errno::ENOENT: No such file or directory - /home/akr/chkbuild/tmp/build/ruby-trunk/<buildtime>/tmp/generate_test_12905.csv
+      t.add_diff_preprocess_gsub(%r{generate_test_\d+.csv}) {|match|
+	'generate_test_<digits>.csv'
+      }
+
       # MinitestSpec#test_needs_to_verify_nil: <elapsed> s: .
       # RUNIT::TestAssert#test_assert_send: .
       t.add_diff_preprocess_sort(/\A[A-Z][A-Za-z0-9_]+(::[A-Z][A-Za-z0-9_]+)*\#/)
