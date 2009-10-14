@@ -120,7 +120,7 @@ class ChkBuild::Build
       raise "already built"
     end
     branch_info = @suffixes + dep_dirs
-    start_time_obj = Time.now
+    @start_time_obj = start_time_obj = Time.now
     @start_time = start_time_obj.strftime("%Y%m%dT%H%M%S")
     dir = ChkBuild.build_top + self.depsuffixed_name + @start_time
     r, w = IO.pipe
@@ -196,6 +196,18 @@ class ChkBuild::Build
     ENV['TMPDIR'] = tmpdir.to_s
   end
 
+  def format_elapsed_time(seconds)
+    res = "elapsed #{seconds}[s]"
+    m, s = seconds.divmod(60)
+    h, m = m.divmod(60)
+    if h != 0
+      res << " (#{h}h #{m}m #{s}s)"
+    elsif m != 0
+      res << " (#{m}m #{s}s)"
+    end
+    res
+  end
+
   def child_build_target(*branch_info)
     opts = @target.opts
     @build_dir = @target_dir + @start_time
@@ -217,6 +229,7 @@ class ChkBuild::Build
       ret = catch_error { @target.build_proc.call(self, *branch_info) }
       output_status_section
       @logfile.start_section 'end'
+      puts format_elapsed_time(Time.now - @start_time_obj)
     }
     force_link @current_txt, @public+'last.txt' if @current_txt.file?
     titlegen = ChkBuild::Title.new(@target, @logfile)
