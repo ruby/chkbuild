@@ -105,6 +105,9 @@ class ChkBuild::Target
     add_diff_preprocess_gsub(/some descendant process in process group \d+ remain/) {|match|
       "some descendant process in process group <pgid> remain"
     }
+    add_diff_preprocess_gsub(/^elapsed [0-9.]+s.*/) {|match|
+      "<elapsed time>"
+    }
   end
 
   def add_diff_preprocess_gsub(pat, &block)
