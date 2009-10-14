@@ -235,13 +235,13 @@ module Util
   end
 
   def format_elapsed_time(seconds)
-    res = "#{seconds}[s]"
+    res = "#{seconds}s"
     m, s = seconds.divmod(60)
     h, m = m.divmod(60)
     if h != 0
-      res << " (#{h}h #{m}m #{s}s)"
+      res << " = #{h}h #{m}m #{s}s"
     elsif m != 0
-      res << " (#{m}m #{s}s)"
+      res << " = #{m}m #{s}s"
     end
     res
   end
