@@ -50,7 +50,7 @@ module ChkBuild
       @lock_io.print "#{t1.iso8601} #{mesg}"
       ret = yield
       t2 = Time.now
-      @lock_io.puts "\t#{t2-t1}"
+      @lock_io.puts "\t#{Util.format_elapsed_time t2-t1}"
       ret
     else
       @lock_io.puts "#{Time.now.iso8601} #{mesg}"
