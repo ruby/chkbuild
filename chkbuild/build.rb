@@ -368,7 +368,7 @@ End
     while !lines.empty? && /\A<a / !~ lines[0]
       lines.shift
     end
-    title = "#{self.depsuffixed_name} recent build summary"
+    title = "#{self.depsuffixed_name} recent build summary (#{Util.simple_hostname})"
 
     recent_summary = lines.reverse.join
     content = ERB.new(RECENT_HTMLTemplate).result(binding)
