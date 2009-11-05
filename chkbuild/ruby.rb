@@ -224,19 +224,36 @@ End
         b.catch_error { b.make("test-all", "TESTS=-v", :section=>"test-all") }
 
         Dir.chdir(ruby_build_dir)
-        use_rubyspec &&= b.catch_error {
-          if %r{branches/ruby_1_8} =~ ruby_branch
-            config = Dir.pwd + "/rubyspec/ruby.1.8.mspec"
-            # command = %W[bin/ruby mspec/bin/mspec -V -f s -B #{config} -t bin/ruby -G critical]
-          else
-            config = Dir.pwd + "/rubyspec/ruby.1.9.mspec"
-            # command = %W[bin/ruby mspec/bin/mspec ci -V -f s -B #{config} -t bin/ruby]
+        if use_rubyspec
+          b.catch_error {
+            if %r{branches/ruby_1_8} =~ ruby_branch
+              config = Dir.pwd + "/rubyspec/ruby.1.8.mspec"
+              # command = %W[bin/ruby mspec/bin/mspec -V -f s -B #{config} -t bin/ruby -G critical]
+            else
+              config = Dir.pwd + "/rubyspec/ruby.1.9.mspec"
+              # command = %W[bin/ruby mspec/bin/mspec ci -V -f s -B #{config} -t bin/ruby]
+            end
+            command = %W[bin/ruby mspec/bin/mspec -V -f s -B #{config} -t bin/ruby]
+            command << "rubyspec"
+            command << { :section=>"rubyspec" }
+            b.run(*command)
+          }
+          if /^Finished/ !~ b.logfile.get_section('rubyspec')
+            b.catch_error {
+              if %r{branches/ruby_1_8} =~ ruby_branch
+                config = Dir.pwd + "/rubyspec/ruby.1.8.mspec"
+                #command = %W[bin/ruby mspec/bin/mspec -V -f s -B #{config} -t bin/ruby -G critical]
+              else
+                config = Dir.pwd + "/rubyspec/ruby.1.9.mspec"
+                #command = %W[bin/ruby mspec/bin/mspec ci -V -f s -B #{config} -t bin/ruby]
+              end
+              command = %W[bin/ruby mspec/bin/mspec ci -V -f s -B #{config} -t bin/ruby]
+              command << "rubyspec"
+              command << { :section=>"rubyspec-ci" }
+              b.run(*command)
+            }
           end
-          command = %W[bin/ruby mspec/bin/mspec -V -f s -B #{config} -t bin/ruby]
-	  command << "rubyspec"
-          command << { :section=>"rubyspec" }
-          b.run(*command)
-        }
+        end
       }
 
       t.add_title_hook("configure") {|title, log|
