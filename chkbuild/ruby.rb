@@ -225,7 +225,7 @@ End
 	  b.make("test-all", "TESTS=-v", :section=>"test-all")
 	}
         b.catch_error {
-	  if /^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors$/ !~ b.logfile.get_section('rubyspec')
+	  if /^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors/ !~ b.logfile.get_section('test-all')
 	    ts = Dir.entries("test").sort
 	    ts.each {|t|
 	      next if %r{\A\.} =~ t
