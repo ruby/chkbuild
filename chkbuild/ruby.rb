@@ -221,7 +221,23 @@ End
           b.catch_error { b.make("test-knownbug", "OPTS=-v -q") }
         end
         #b.catch_error { b.run("./ruby", "#{srcdir+'test/runner.rb'}", "-v", :section=>"test-all") }
-        b.catch_error { b.make("test-all", "TESTS=-v", :section=>"test-all") }
+        b.catch_error {
+	  b.make("test-all", "TESTS=-v", :section=>"test-all")
+	}
+        b.catch_error {
+	  if /^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors$/ !~ b.logfile.get_section('rubyspec')
+	    ts = Dir.entries("test").sort
+	    ts.each {|t|
+	      next if %r{\A\.} =~ t
+	      s = File.lstat("test/#{t}")
+	      if s.directory? || (s.file? && /\Atest_/ =~ t)
+		b.catch_error {
+		  b.make("test-all", "TESTS=-v #{t}", :section=>"test/#{t}")
+		}
+	      end
+	    }
+	  end
+	}
 
         Dir.chdir(ruby_build_dir)
         if use_rubyspec
