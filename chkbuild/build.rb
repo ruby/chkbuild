@@ -379,11 +379,21 @@ End
 
   def list_tags(log)
     tags = []
+    lastline = ''
     log.each_line {|line|
       if /\A== (\S+)/ =~ line
-        tags << $1
+        if !tags.empty?
+	  tags.last << !ChkBuild::LogFile.failed_line?(lastline)
+	end
+        tags << [$1]
+      end
+      if /\A\s*\z/ !~ line
+        lastline = line
       end
     }
+    if !tags.empty?
+      tags.last << !ChkBuild::LogFile.failed_line?(lastline)
+    end
     tags
   end
 
@@ -426,8 +436,8 @@ End
 % end
     </p>
     <ul>
-% list_tags(log).each {|tag|
-      <li><a href="#<%= h(u(tag)) %>"><%= h tag %></a></li>
+% list_tags(log).each {|tag, success|
+      <li><a href="#<%= h(u(tag)) %>"><%= h tag %></a><%= success ? "" : " failed" %></li>
 % }
     </ul>
     <pre><%= markup log %></pre>
