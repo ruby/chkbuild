@@ -121,6 +121,16 @@ class ChkBuild::LogFile
   def target_name() suffixed_name.sub(/-.*/, '') end
   def suffixes() suffixed_name.split(/-/)[1..-1] end
 
+  def failed_section?(secname)
+    if log = get_section(secname)
+      lastline = log.chomp("").lastline
+      if /\Afailed\(.*\)\z/ =~ lastline
+        return true
+      end
+    end
+    false
+  end
+
   def self.read_open(filename)
     self.new(filename, false)
   end

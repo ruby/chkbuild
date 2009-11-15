@@ -26,16 +26,6 @@
 
 require 'util'
 
-class String
-  def lastline
-    if pos = rindex(?\n)
-      self[(pos+1)..-1]
-    else
-      self
-    end
-  end
-end
-
 class ChkBuild::Title
   def initialize(target, logfile)
     @target = target
@@ -46,12 +36,12 @@ class ChkBuild::Title
     @title[:hostname] = "(#{Util.simple_hostname})"
     @title_order = [:version, :dep_versions, :hostname, :warn, :mark, :status]
     @logfile.each_secname {|secname|
-      log = @logfile.get_section(secname)
-      lastline = log.chomp("").lastline
-      if /\Afailed\(.*\)\z/ =~ lastline
-        sym = "failure_#{secname}".intern
-        @title_order << sym
-        @title[sym] = lastline
+      if @logfile.failed_section?(secname)
+	log = @logfile.get_section(secname)
+	lastline = log.chomp("").lastline
+	sym = "failure_#{secname}".intern
+	@title_order << sym
+	@title[sym] = lastline
       end
     }
   end
@@ -83,14 +73,12 @@ class ChkBuild::Title
 
   def run_failure_hooks
     @target.each_failure_hook {|secname, block|
-      if log = @logfile.get_section(secname)
-        lastline = log.chomp("").lastline
-        if /\Afailed\(.*\)\z/ =~ lastline
-          sym = "failure_#{secname}".intern
-          if newval = block.call(log)
-            @title[sym] = newval
-          end
-        end
+      if @logfile.failed_section?(secname)
+        log = @logfile.get_section(secname)
+	sym = "failure_#{secname}".intern
+	if newval = block.call(log)
+	  @title[sym] = newval
+	end
       end
     }
   end

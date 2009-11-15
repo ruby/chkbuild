@@ -50,6 +50,16 @@ module Kernel
   end
 end
 
+class String
+  def lastline
+    if pos = rindex(?\n)
+      self[(pos+1)..-1]
+    else
+      self
+    end
+  end
+end
+
 unless File.respond_to? :identical?
   def File.identical?(filename1, filename2)
     test(?-, filename1, filename2)
