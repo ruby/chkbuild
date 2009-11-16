@@ -475,6 +475,11 @@ End
 	'generate_test_<digits>.csv'
       }
 
+      # ruby exit stauts is not success: #<Process::Status: pid 7502 exit 1>
+      t.add_diff_preprocess_gsub(/\#<Process::Status: pid \d+ /) {|match|
+        '#<Process::Status: pid <pid> '
+      }
+
       # MinitestSpec#test_needs_to_verify_nil: <elapsed> s: .
       # RUNIT::TestAssert#test_assert_send: .
       t.add_diff_preprocess_sort(/\A[A-Z][A-Za-z0-9_]+(::[A-Z][A-Za-z0-9_]+)*\#/)
