@@ -67,7 +67,7 @@ class ChkBuild::LogFile
   end
 
   def self.show_os_version
-    puts "Host Name: #{Util.simple_hostname}"
+    puts "Hostname: #{Util.simple_hostname}"
     system("uname -mrsv")
     system("sw_vers") # MacOS X
     if !system("lsb_release -idrc") # recent GNU/Linux
