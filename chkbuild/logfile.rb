@@ -67,7 +67,7 @@ class ChkBuild::LogFile
   end
 
   def self.show_os_version
-    system("uname -a")
+    system("uname -mrsv")
     system("sw_vers") # MacOS X
     if !system("lsb_release -idrc") # recent GNU/Linux
       os_ver = self.os_version
