@@ -42,7 +42,7 @@ module ChkBuild
     @lock_io.puts "\nlocked pid:#{$$}"
     lock_pid = $$
     at_exit {
-      @lock_io.print "exit pid:#{$$}\n\n" if $$ == lock_pid
+      @lock_io.print "exit pid:#{$$}\n" if $$ == lock_pid
     }
   end
 
