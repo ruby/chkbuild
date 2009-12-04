@@ -244,10 +244,8 @@ End
           b.catch_error {
             if %r{branches/ruby_1_8} =~ ruby_branch
               config = Dir.pwd + "/rubyspec/ruby.1.8.mspec"
-              # command = %W[bin/ruby mspec/bin/mspec -V -f s -B #{config} -t bin/ruby -G critical]
             else
               config = Dir.pwd + "/rubyspec/ruby.1.9.mspec"
-              # command = %W[bin/ruby mspec/bin/mspec ci -V -f s -B #{config} -t bin/ruby]
             end
             command = %W[bin/ruby mspec/bin/mspec -V -f s -B #{config} -t bin/ruby]
             command << "rubyspec"
@@ -255,6 +253,21 @@ End
             b.run(*command)
           }
           if /^Finished/ !~ b.logfile.get_section('rubyspec')
+	    (ruby_build_dir+"rubyspec").children.sort.each {|n|
+	      next if %w[.git fixtures nbproject shared tags].include? n.basename.to_s
+	      next if !n.directory?
+	      b.catch_error {
+		if %r{branches/ruby_1_8} =~ ruby_branch
+		  config = ruby_build_dir + "rubyspec/ruby.1.8.mspec"
+		else
+		  config = ruby_build_dir + "rubyspec/ruby.1.9.mspec"
+		end
+		command = %W[bin/ruby mspec/bin/mspec -V -f s -B #{config} -t bin/ruby]
+		command << n.to_s
+		command << { :section=>"rubyspec/#{n.basename}" }
+		b.run(*command)
+	      }
+	    }
             b.catch_error {
               if %r{branches/ruby_1_8} =~ ruby_branch
                 config = Dir.pwd + "/rubyspec/ruby.1.8.mspec"
