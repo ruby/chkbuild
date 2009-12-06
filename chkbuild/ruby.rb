@@ -253,19 +253,24 @@ End
             b.run(*command)
           }
           if /^Finished/ !~ b.logfile.get_section('rubyspec')
-	    (ruby_build_dir+"rubyspec").children.sort.each {|n|
-	      next if %w[.git fixtures nbproject shared tags].include? n.basename.to_s
-	      next if !n.directory?
-	      b.catch_error {
-		if %r{branches/ruby_1_8} =~ ruby_branch
-		  config = ruby_build_dir + "rubyspec/ruby.1.8.mspec"
-		else
-		  config = ruby_build_dir + "rubyspec/ruby.1.9.mspec"
-		end
-		command = %W[bin/ruby mspec/bin/mspec -V -f s -B #{config} -t bin/ruby]
-		command << n.to_s
-		command << { :section=>"rubyspec/#{n.basename}" }
-		b.run(*command)
+	    b.logfile.start_section("rubyspec-sep")
+	    (ruby_build_dir+"rubyspec").children.reject {|f| !f.directory? }.sort.each {|d|
+	      d.stable_find {|f|
+		Find.prune if %w[.git fixtures nbproject shared tags].include? f.basename.to_s
+		next if f.extname != ".rb"
+		s = f.lstat
+		next if !s.file?
+		b.catch_error {
+		  if %r{branches/ruby_1_8} =~ ruby_branch
+		    config = ruby_build_dir + "rubyspec/ruby.1.8.mspec"
+		  else
+		    config = ruby_build_dir + "rubyspec/ruby.1.9.mspec"
+		  end
+		  command = %W[bin/ruby mspec/bin/mspec -V -f s -B #{config} -t bin/ruby]
+		  command << f.to_s
+		  command << { :section=>nil }
+		  b.run(*command)
+		}
 	      }
 	    }
             b.catch_error {

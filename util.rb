@@ -30,6 +30,8 @@ require "etc"
 require "digest/sha2"
 require "fcntl"
 require "tempfile"
+require "find"
+require "pathname"
 
 def tp(obj)
   open("/dev/tty", "w") {|f| f.puts obj.inspect }
@@ -256,3 +258,52 @@ module Util
     res
   end
 end
+
+module Find
+  def stable_find(*paths) # :yield: path
+    block_given? or return enum_for(__method__, *paths)
+
+    paths.collect!{|d| raise Errno::ENOENT unless File.exist?(d); d.dup}
+    while file = paths.shift
+      catch(:prune) do
+        yield file.dup.taint
+	begin
+	  s = File.lstat(file)
+        rescue Errno::ENOENT
+	  next
+        end
+        begin
+          if s.directory? then
+	    fs = Dir.entries(file)
+	    fs.sort!
+	    fs.reverse!
+	    for f in fs
+	      next if f == "." or f == ".."
+	      if File::ALT_SEPARATOR and file =~ /^(?:[\/\\]|[A-Za-z]:[\/\\]?)$/ then
+		f = file + f
+	      elsif file == "/" then
+		f = "/" + f
+	      else
+		f = File.join(file, f)
+	      end
+	      paths.unshift f.untaint
+	    end
+          end
+        rescue Errno::ENOENT, Errno::EACCES
+        end
+      end
+    end
+  end
+  module_function :stable_find
+end
+
+class Pathname    # * Find *
+  def stable_find(&block) # :yield: pathname
+    if @path == '.'
+      Find.stable_find(@path) {|f| yield self.class.new(f.sub(%r{\A\./}, '')) }
+    else
+      Find.stable_find(@path) {|f| yield self.class.new(f) }
+    end
+  end
+end
+
