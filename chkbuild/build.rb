@@ -303,6 +303,7 @@ class ChkBuild::Build
   end
 
   def update_summary(title, different_sections)
+    different_sections = different_sections.map {|secname| secname.sub(%r{/.*\z}, "/") }.uniq
     start_time = @start_time
     if different_sections
       if different_sections.empty?

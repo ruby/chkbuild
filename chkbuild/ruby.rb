@@ -253,8 +253,7 @@ End
             b.run(*command)
           }
           if /^Finished/ !~ b.logfile.get_section('rubyspec')
-	    b.logfile.start_section("rubyspec-sep")
-	    (ruby_build_dir+"rubyspec").children.reject {|f| !f.directory? }.sort.each {|d|
+	    Pathname("rubyspec").children.reject {|f| !f.directory? }.sort.each {|d|
 	      d.stable_find {|f|
 		Find.prune if %w[.git fixtures nbproject shared tags].include? f.basename.to_s
 		next if f.extname != ".rb"
@@ -268,7 +267,7 @@ End
 		  end
 		  command = %W[bin/ruby mspec/bin/mspec -V -f s -B #{config} -t bin/ruby]
 		  command << f.to_s
-		  command << { :section=>nil }
+		  command << { :section=>f.to_s }
 		  b.run(*command)
 		}
 	      }

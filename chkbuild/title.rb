@@ -40,6 +40,9 @@ class ChkBuild::Title
 	log = @logfile.get_section(secname)
 	lastline = log.chomp("").lastline
 	sym = "failure_#{secname}".intern
+	if %r{/} =~ secname && lastline == "failed(#{secname})"
+	  lastline = "failed(#{secname.sub(%r{/.*\z}, '/')})"
+	end
 	@title_order << sym
 	@title[sym] = lastline
       end
@@ -96,9 +99,29 @@ class ChkBuild::Title
 
   def make_title
     title_hash = @title
-    @title_order.map {|key|
+    a = []
+    a = @title_order.map {|key|
       title_hash[key]
-    }.flatten.join(' ').gsub(/\s+/, ' ').strip
+    }.flatten
+    h = Hash.new(0)
+    a.each {|s|
+      h[s] += 1
+    }
+    a2 = []
+    a.each {|s|
+      if h[s] == 1
+        a2 << s
+      elsif h[s] > 1
+	n = h[s]
+        if /\A[0-9]/ =~ s
+	  a2 << "#{n}_#{s}"
+	else
+	  a2 << "#{n}#{s}"
+	end
+	h[s] = 0
+      end
+    }
+    a2.join(' ').gsub(/\s+/, ' ').strip
   end
 
   def [](key)
