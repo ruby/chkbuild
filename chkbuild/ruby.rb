@@ -432,8 +432,9 @@ End
       }
 
       # #<#<Class:0xXXXXXXX>:0x0e87dd00
+      # NoMethodError: undefined method `join' for #<#<Class:0x<address>>::Enum:0x00000000d76e98 @elements=[]>
       # order sensitive.  this should be applied after the above.
-      t.add_diff_preprocess_gsub(%r{(\#<\#<Class:0x<address>>:0x)([0-9a-f]+)}o) {|match|
+      t.add_diff_preprocess_gsub(%r{(\#<\#<Class:0x<address>>(?:::[A-Z][A-Za-z0-9_]*)*:0x)([0-9a-f]+)}o) {|match|
         match[1] + '<address>'
       }
 
