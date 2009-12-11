@@ -256,7 +256,7 @@ End
 	    Pathname("rubyspec").children.reject {|f| !f.directory? }.sort.each {|d|
 	      d.stable_find {|f|
 		Find.prune if %w[.git fixtures nbproject shared tags].include? f.basename.to_s
-		next if f.extname != ".rb"
+		next if /_spec\.rb\z/ !~ f.basename.to_s
 		s = f.lstat
 		next if !s.file?
 		b.catch_error {
