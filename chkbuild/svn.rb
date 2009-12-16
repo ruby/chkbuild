@@ -79,7 +79,8 @@ class ChkBuild::Build
   def svn_internal(svnroot, rep_dir, working_dir, opts={})
     url = svnroot + '/' + rep_dir
     opts = opts.dup
-    opts[:section] ||= 'svn'
+    opts_info = opts.dup
+    opts[:section] ||= "svn/#{working_dir}"
     if opts[:viewvc]||opts[:viewcvs]
       viewvc = ChkBuild::ViewVC.new(opts[:viewvc]||opts[:viewcvs], opts[:viewcvs]!=nil)
     else
@@ -93,6 +94,7 @@ class ChkBuild::Build
         self.run "svn", "update", "-q", opts
         h2 = svn_revisions
         svn_print_changes(h1, h2, viewvc, rep_dir)
+        self.run "svn", "info", opts_info
       }
     else
       if File.exist?(working_dir)
@@ -107,9 +109,11 @@ class ChkBuild::Build
         }
       end
       self.run "svn", "checkout", "-q", url, working_dir, opts
+      opts[:section] = nil
       Dir.chdir(working_dir) {
         h2 = svn_revisions
         svn_print_changes(h1, h2, viewvc, rep_dir) if h1
+        self.run "svn", "info", opts
       }
     end
   end
