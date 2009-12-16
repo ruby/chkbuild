@@ -242,6 +242,7 @@ End
         Dir.chdir(ruby_build_dir)
         if use_rubyspec
           b.catch_error {
+	    FileUtils.rmtree "rubyspec_temp"
             if %r{branches/ruby_1_8} =~ ruby_branch
               config = Dir.pwd + "/rubyspec/ruby.1.8.mspec"
             else
@@ -260,6 +261,7 @@ End
 		s = f.lstat
 		next if !s.file?
 		b.catch_error {
+		  FileUtils.rmtree "rubyspec_temp"
 		  if %r{branches/ruby_1_8} =~ ruby_branch
 		    config = ruby_build_dir + "rubyspec/ruby.1.8.mspec"
 		  else
@@ -273,6 +275,7 @@ End
 	      }
 	    }
             b.catch_error {
+	      FileUtils.rmtree "rubyspec_temp"
               if %r{branches/ruby_1_8} =~ ruby_branch
                 config = Dir.pwd + "/rubyspec/ruby.1.8.mspec"
                 #command = %W[bin/ruby mspec/bin/mspec -V -f s -B #{config} -t bin/ruby -G critical]
