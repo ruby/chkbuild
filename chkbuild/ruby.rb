@@ -399,7 +399,9 @@ End
         ""
       }
 
-      # delete trailing spaces.
+      # svn info prints the last revision in the whole repository
+      # which can be different from the last changed revision.
+      # Revision: 26147
       t.add_diff_preprocess_gsub(/^Revision: \d+/) {|match|
         "Revision: <rev>"
       }
