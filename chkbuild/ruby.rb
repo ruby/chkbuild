@@ -399,6 +399,11 @@ End
         ""
       }
 
+      # delete trailing spaces.
+      t.add_diff_preprocess_gsub(/^Revision: \d+/) {|match|
+        "Revision: <rev>"
+      }
+
       # test_exception.rb #1 test_exception.rb:1
       t.add_diff_preprocess_gsub(/\#\d+ test_/) {|match|
         "#<n> test_"
