@@ -514,6 +514,7 @@ End
         '#<Process::Status: pid <pid> '
       }
 
+      # Doxygen:
       # Version of /home/akr/chkbuild/tmp/build/ruby-trunk/20100104T093900/ruby/doc/images/.svn/all-wcprops : 26238
       t.add_diff_preprocess_gsub(/^(Version of .* : )\d+/) {|match|
         "#{$1}<num>"
