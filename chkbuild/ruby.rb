@@ -514,6 +514,11 @@ End
         '#<Process::Status: pid <pid> '
       }
 
+      # Version of /home/akr/chkbuild/tmp/build/ruby-trunk/20100104T093900/ruby/doc/images/.svn/all-wcprops : 26238
+      t.add_diff_preprocess_gsub(/^(Version of .* : )\d+/) {|match|
+        "#{$1}<num>"
+      }
+
       # MinitestSpec#test_needs_to_verify_nil: <elapsed> s: .
       # RUNIT::TestAssert#test_assert_send: .
       t.add_diff_preprocess_sort(/\A[A-Z][A-Za-z0-9_]+(::[A-Z][A-Za-z0-9_]+)*\#/)
