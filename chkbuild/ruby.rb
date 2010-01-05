@@ -516,8 +516,8 @@ End
 
       # Doxygen:
       # Version of /home/akr/chkbuild/tmp/build/ruby-trunk/20100104T093900/ruby/doc/images/.svn/all-wcprops : 26238
-      t.add_diff_preprocess_gsub(/^(Version of .* : )\d+/) {|match|
-        "#{$1}<num>"
+      t.add_diff_preprocess_gsub(/^(Version of .* : )\d+$/) {|match|
+        match[1] + "<num>"
       }
 
       # MinitestSpec#test_needs_to_verify_nil: <elapsed> s: .
