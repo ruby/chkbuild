@@ -241,6 +241,7 @@ End
 
         Dir.chdir(ruby_build_dir)
         if use_rubyspec
+	  rubybin = ruby_build_dir + "bin/ruby"
           b.catch_error {
 	    FileUtils.rmtree "rubyspec_temp"
             if %r{branches/ruby_1_8} =~ ruby_branch
@@ -248,7 +249,7 @@ End
             else
               config = Dir.pwd + "/rubyspec/ruby.1.9.mspec"
             end
-            command = %W[bin/ruby mspec/bin/mspec -V -f s -B #{config} -t bin/ruby]
+            command = %W[bin/ruby mspec/bin/mspec -V -f s -B #{config} -t #{rubybin}]
             command << "rubyspec"
             command << { :section=>"rubyspec" }
             b.run(*command)
@@ -267,7 +268,7 @@ End
 		  else
 		    config = ruby_build_dir + "rubyspec/ruby.1.9.mspec"
 		  end
-		  command = %W[bin/ruby mspec/bin/mspec -V -f s -B #{config} -t bin/ruby]
+		  command = %W[bin/ruby mspec/bin/mspec -V -f s -B #{config} -t #{rubybin}]
 		  command << f.to_s
 		  command << { :section=>f.to_s }
 		  b.run(*command)
@@ -278,12 +279,10 @@ End
 	      FileUtils.rmtree "rubyspec_temp"
               if %r{branches/ruby_1_8} =~ ruby_branch
                 config = Dir.pwd + "/rubyspec/ruby.1.8.mspec"
-                #command = %W[bin/ruby mspec/bin/mspec -V -f s -B #{config} -t bin/ruby -G critical]
               else
                 config = Dir.pwd + "/rubyspec/ruby.1.9.mspec"
-                #command = %W[bin/ruby mspec/bin/mspec ci -V -f s -B #{config} -t bin/ruby]
               end
-              command = %W[bin/ruby mspec/bin/mspec ci -V -f s -B #{config} -t bin/ruby]
+              command = %W[bin/ruby mspec/bin/mspec ci -V -f s -B #{config} -t #{rubybin}]
               command << "rubyspec"
               command << { :section=>"rubyspec-ci" }
               b.run(*command)
