@@ -283,21 +283,6 @@ End
 		}
 	      }
 	    }
-            b.catch_error {
-	      FileUtils.rmtree "rubyspec_temp"
-              if %r{branches/ruby_1_8} =~ ruby_branch
-                config = Dir.pwd + "/rubyspec/ruby.1.8.mspec"
-              else
-                config = Dir.pwd + "/rubyspec/ruby.1.9.mspec"
-              end
-              command = %W[bin/ruby mspec/bin/mspec ci -V -f s -B #{config} -t #{rubybin}]
-              command << "rubyspec"
-              command << {
-                "ENV:PATH"=>"#{bindir}:#{ENV['PATH']}",
-                :section=>"rubyspec-ci"
-              }
-              b.run(*command)
-            }
           end
         end
       }
