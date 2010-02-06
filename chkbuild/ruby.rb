@@ -201,7 +201,7 @@ End
         b.make("miniruby", make_options)
         b.catch_error { b.run("./miniruby", "-v", :section=>"miniversion") }
         if File.directory? "#{srcdir}/bootstraptest"
-          b.catch_error { b.make("btest", "OPTS=-v -q", :section=>"btest") }
+          b.catch_error { b.make("btest", "OPTS=-v -q", make_options.merge(:section=>"btest")) }
         end
         b.catch_error {
           b.run("./miniruby", "#{srcdir+'sample/test.rb'}", :section=>"test.rb")
@@ -215,14 +215,16 @@ End
         end
         b.make(make_options)
         b.catch_error { b.run("./ruby", "-v", :section=>"version") }
-        b.make("install-nodoc")
-        b.catch_error { b.make("install-doc") }
+        b.make("install-nodoc", make_options)
+        bindir = ruby_build_dir+'bin'
+        make_options["ENV:PATH"] = "#{bindir}:#{ENV['PATH']}"
+        b.catch_error { b.make("install-doc", make_options) }
         if File.file? "#{srcdir}/KNOWNBUGS.rb"
-          b.catch_error { b.make("test-knownbug", "OPTS=-v -q") }
+          b.catch_error { b.make("test-knownbug", "OPTS=-v -q", make_options) }
         end
         #b.catch_error { b.run("./ruby", "#{srcdir+'test/runner.rb'}", "-v", :section=>"test-all") }
         b.catch_error {
-	  b.make("test-all", "TESTS=-v", "RUBYOPT=-w", :section=>"test-all")
+	  b.make("test-all", "TESTS=-v", "RUBYOPT=-w", make_options.merge(:section=>"test-all"))
 	}
         b.catch_error {
 	  if /^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors/ !~ b.logfile.get_section('test-all')
@@ -232,7 +234,7 @@ End
 	      s = File.lstat("test/#{t}")
 	      if s.directory? || (s.file? && /\Atest_/ =~ t)
 		b.catch_error {
-		  b.make("test-all", "TESTS=-v #{t}", "RUBYOPT=-w", :section=>"test/#{t}")
+		  b.make("test-all", "TESTS=-v #{t}", "RUBYOPT=-w", make_options.merge(:section=>"test/#{t}"))
 		}
 	      end
 	    }
@@ -251,7 +253,10 @@ End
             end
             command = %W[bin/ruby mspec/bin/mspec -V -f s -B #{config} -t #{rubybin}]
             command << "rubyspec"
-            command << { :section=>"rubyspec" }
+            command << {
+              "ENV:PATH"=>"#{bindir}:#{ENV['PATH']}",
+              :section=>"rubyspec"
+            }
             b.run(*command)
           }
           if /^Finished/ !~ b.logfile.get_section('rubyspec')
@@ -270,7 +275,10 @@ End
 		  end
 		  command = %W[bin/ruby mspec/bin/mspec -V -f s -B #{config} -t #{rubybin}]
 		  command << f.to_s
-		  command << { :section=>f.to_s }
+		  command << {
+                    "ENV:PATH"=>"#{bindir}:#{ENV['PATH']}",
+                    :section=>f.to_s
+                  }
 		  b.run(*command)
 		}
 	      }
@@ -284,7 +292,10 @@ End
               end
               command = %W[bin/ruby mspec/bin/mspec ci -V -f s -B #{config} -t #{rubybin}]
               command << "rubyspec"
-              command << { :section=>"rubyspec-ci" }
+              command << {
+                "ENV:PATH"=>"#{bindir}:#{ENV['PATH']}",
+                :section=>"rubyspec-ci"
+              }
               b.run(*command)
             }
           end
