@@ -55,6 +55,7 @@ module Lchg
   end
 
   def Lchg.fcmp(path1, path2, out, header1, header2)
+    first = true
     found = false
     context = 1
     last = nil
@@ -62,7 +63,7 @@ module Lchg
       found = true
       i += 1
       if !last
-        out.puts
+        first = false
         out.puts header2
         last = -1
       end
@@ -76,7 +77,7 @@ module Lchg
       found = true
       i += 1
       if !last
-        out.puts
+        out.puts if !first
         out.puts header1
         last = -1
       end
