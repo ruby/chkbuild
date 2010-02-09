@@ -28,7 +28,8 @@ require 'escape'
 require 'tempfile'
 
 class UDiff
-  def UDiff.diff(path1, path2, out, header="--- #{path1}\n+++ #{path2}\n")
+  def UDiff.diff(path1, path2, out, header1="--- #{path1}\n", header2="+++ #{path2}\n")
+    header = header1 + header2
     UDiff.new(path1, path2, out, header).diff
   end
 
