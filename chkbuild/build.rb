@@ -36,7 +36,7 @@ require "pathname"
 require 'escape'
 require 'timeoutcom'
 require 'gdb'
-require "udiff"
+require "lchg"
 require "util"
 
 module ChkBuild
@@ -525,10 +525,9 @@ End
     has_change_line = output_change_lines(t2, out)
     tmp1 = make_diff_content(t1)
     tmp2 = make_diff_content(t2)
-    tmp1, tmp2 = sort_diff_content(t1, tmp1, t2, tmp2)
     header1 = "--- #{t1}\n"
     header2 = "+++ #{t2}\n"
-    has_diff = has_change_line | UDiff.diff(tmp1.path, tmp2.path, out, header1, header2)
+    has_diff = has_change_line | Lchg.diff(tmp1.path, tmp2.path, out, header1, header2)
     return nil if !has_diff
     ret = []
     ret << 'src' if has_change_line
