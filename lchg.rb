@@ -57,7 +57,7 @@ module Lchg
   def Lchg.fcmp(path1, path2, out, header1, header2)
     first = true
     found = false
-    context = 1
+    context = 3
     last = nil
     Lchg.line_additions(path1, path2, context) {|i, t, line|
       found = true
