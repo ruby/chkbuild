@@ -161,7 +161,7 @@ module Lchg
 
   def Lchg.sort_by_linenum(path)
     tf = Tempfile.open("lchg-d")
-    command = ["sort", "-k", "1n", path]
+    command = ["sort", "-n", path]
     IO.popen("#{Escape.shell_command command}") {|f|
       while line = f.gets
         tf.puts line
