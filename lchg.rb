@@ -64,6 +64,7 @@ module Lchg
       i += 1
       if !last
         first = false
+        out.puts '==================================================================='
         out.puts header2
         last = -1
       end
@@ -78,6 +79,7 @@ module Lchg
       i += 1
       if !last
         out.puts if !first
+        out.puts '==================================================================='
         out.puts header1
         last = -1
       end
