@@ -515,6 +515,12 @@ End
         match[1] + "<num>"
       }
 
+      # rubyspec:
+      # 2932 files, 13911 examples, 182945 expectations, 34 failures, 24 errors
+      t.add_diff_preprocess_gsub(/^(\d+ files, \d+ examples, )\d+( expectations, \d+ failures, \d+ errors)$/) {|match|
+        match[1] + "<num>" + match[2]
+      }
+
       # MinitestSpec#test_needs_to_verify_nil: <elapsed> s: .
       # RUNIT::TestAssert#test_assert_send: .
       t.add_diff_preprocess_sort(/\A[A-Z][A-Za-z0-9_]+(::[A-Z][A-Za-z0-9_]+)*\#/)
