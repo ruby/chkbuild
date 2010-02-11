@@ -515,6 +515,12 @@ End
         match[1] + "<num>"
       }
 
+      # test-all:
+      # 6937 tests, 2165250 assertions, 6 failures, 0 errors, 0 skips
+      t.add_diff_preprocess_gsub(/^(\d+ tests, )\d+( assertions, \d+ failures, \d+ errors, \d+ skips)$/) {|match|
+        match[1] + "<num>" + match[2]
+      }
+
       # rubyspec:
       # 2932 files, 13911 examples, 182945 expectations, 34 failures, 24 errors
       t.add_diff_preprocess_gsub(/^(\d+ files, \d+ examples, )\d+( expectations, \d+ failures, \d+ errors)$/) {|match|
