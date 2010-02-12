@@ -363,7 +363,7 @@ End
     summary_path.open {|f|
       while l = f.gets
         lines << l
-        lines.shift if 10 < lines.length
+        lines.shift if 100 < lines.length
       end
     }
     while !lines.empty? && /\A<a / !~ lines[0]
