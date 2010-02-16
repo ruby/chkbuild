@@ -394,6 +394,16 @@ End
         ""
       }
 
+      # file.c:884: warning: comparison between signed and unsigned
+      t.add_diff_preprocess_gsub_state(/^(\S*:)\d+(: warning: .*)/) {|match, state|
+        warnhash = state[:warnhash] ||= {}
+        key = "#{match[1]}<linenum>#{match[2]}"
+        lineid = warnhash[key] ||= "a"
+        lineid = lineid.succ
+        warnhash[key] = lineid
+        "#{match[1]}<line_#{lineid}>#{match[2]}"
+      }
+
       # svn info prints the last revision in the whole repository
       # which can be different from the last changed revision.
       # Revision: 26147

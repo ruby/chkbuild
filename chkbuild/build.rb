@@ -584,11 +584,12 @@ End
     }
     pat = Regexp.union(*times.uniq)
     tmp = Tempfile.open("#{time}.d.")
+    state = {}
     open_gziped_log(time) {|z|
       z.each_line {|line|
         line = line.gsub(pat, '<buildtime>')
         @target.each_diff_preprocess_hook {|block|
-          catch_error(block.to_s) { line = block.call(line) }
+          catch_error(block.to_s) { line = block.call(line, state) }
         }
         tmp << line
       }

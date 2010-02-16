@@ -110,8 +110,11 @@ class ChkBuild::Target
     }
   end
 
+  def add_diff_preprocess_gsub_state(pat, &block)
+    @diff_preprocess_hook << lambda {|line, state| line.gsub(pat) { yield $~, state } }
+  end
   def add_diff_preprocess_gsub(pat, &block)
-    @diff_preprocess_hook << lambda {|line| line.gsub(pat) { yield $~ } }
+    @diff_preprocess_hook << lambda {|line, state| line.gsub(pat) { yield $~ } }
   end
   def add_diff_preprocess_hook(&block) @diff_preprocess_hook << block end
   def each_diff_preprocess_hook(&block) @diff_preprocess_hook.each(&block) end
