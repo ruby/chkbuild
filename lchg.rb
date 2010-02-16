@@ -44,18 +44,6 @@ module Lchg
     end
   end
 
-  def Lchg.line_additions(path1, path2, context)
-    File.open(path1) {|f|
-      SortedFile.open(f) {|sf|
-        File.open(path2) {|f2|
-          each_context(f2, sf, context) {|i, t, line|
-            yield i, t, line
-          }
-        }
-      }
-    }
-  end
-
   def Lchg.encode_pair(num, str)
     hex = str.unpack("H*")[0]
     return "#{num} #{hex}"
@@ -184,7 +172,7 @@ module Lchg
     }
   end
 
-  def Lchg.fcmp(path1, path2, out, header1, header2)
+  def Lchg.diff(path1, path2, out, header1="--- #{path1}\n", header2="+++ #{path2}\n")
     tf1a = encode_lines(path1)
     #puts tf1a.path; print File.read(tf1a.path)
     tf1b = sort_by_content(tf1a.path)
@@ -214,7 +202,4 @@ module Lchg
     numadd != 0 || numdel != 0
   end
 
-  def Lchg.diff(path1, path2, out, header1="--- #{path1}\n", header2="+++ #{path2}\n")
-    Lchg.fcmp(path1, path2, out, header1, header2)
-  end
 end
