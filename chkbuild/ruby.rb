@@ -395,13 +395,18 @@ End
       }
 
       # file.c:884: warning: comparison between signed and unsigned
-      t.add_diff_preprocess_gsub_state(/^(\S*:)\d+(: warning: .*)/) {|match, state|
+      t.add_diff_preprocess_gsub_state(/^(\S*:)(\d+)(: warning: .*)/) {|match, state|
+        pre, linenum, post = match[1], match[2], match[3]
         warnhash = state[:warnhash] ||= {}
-        key = "#{match[1]}<linenum>#{match[2]}"
-        lineid = warnhash[key] ||= "a"
-        lineid = lineid.succ
-        warnhash[key] = lineid
-        "#{match[1]}<line_#{lineid}>#{match[2]}"
+        key = "#{pre}<linenum>#{post}"
+        id_next, warnhash2 = warnhash[key] ||= ["a", {}]
+	if warnhash2[linenum]
+	  id = warnhash2[linenum]
+	else
+	  warnhash2[linenum] = id = id_next.dup
+	  id_next.succ!
+	end
+        "#{pre}<line_#{id}>#{post}"
       }
 
       # svn info prints the last revision in the whole repository
