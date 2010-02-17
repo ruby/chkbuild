@@ -395,7 +395,7 @@ End
       }
 
       # file.c:884: warning: comparison between signed and unsigned
-      t.add_diff_preprocess_gsub_state(/(\S*:)(\d+)(: warning: .*)/) {|match, state|
+      t.add_diff_preprocess_gsub_state(/(\S*?:)(\d+)(:(?:\d+:)? warning: .*)/) {|match, state|
         pre, linenum, post = match[1], match[2], match[3]
         warnhash = state[:warnhash] ||= {}
         key = "#{pre}<linenum>#{post}"
