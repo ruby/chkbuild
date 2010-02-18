@@ -385,7 +385,8 @@ End
 
       # ruby 1.9.2dev (2009-12-07 trunk 26037) [i686-linux]
       # ruby 1.9.1p376 (2009-12-07 revision 26040) [i686-linux]
-      t.add_diff_preprocess_gsub(/^ruby [0-9.a-z]+ \(.*\) \[.*\]$/) {|match|
+      # | ruby 1.9.2dev (2010-02-18 trunk 26704) [x86_64-linux]
+      t.add_diff_preprocess_gsub(/ruby [0-9.a-z]+ \(.*\) \[.*\]$/) {|match|
         "ruby <version>"
       }
 
