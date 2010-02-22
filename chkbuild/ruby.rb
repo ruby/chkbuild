@@ -111,14 +111,17 @@ End
           when "1.8.6" then ruby_branch = 'branches/ruby_1_8_6'
           when "1.8.7" then ruby_branch = 'branches/ruby_1_8_7'
           when "o0"
-            optflags.delete_if {|arg| /\A-O\d\z/ =~ arg }
+            optflags.delete_if {|arg| /\A-O[s\d]\z/ =~ arg }
             optflags << '-O0'
           when "o1"
-            optflags.delete_if {|arg| /\A-O\d\z/ =~ arg }
+            optflags.delete_if {|arg| /\A-O[s\d]\z/ =~ arg }
             optflags << '-O1'
           when "o3"
-            optflags.delete_if {|arg| /\A-O\d\z/ =~ arg }
+            optflags.delete_if {|arg| /\A-O[s\d]\z/ =~ arg }
             optflags << '-O3'
+          when "os"
+            optflags.delete_if {|arg| /\A-O[s\d]\z/ =~ arg }
+            optflags << '-Os'
           when "pth" then configure_flags << '--enable-pthread'
           when "m32"
             cflags.delete_if {|arg| /\A-m(32|64)\z/ =~ arg }
