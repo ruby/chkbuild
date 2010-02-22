@@ -136,6 +136,10 @@ End
           when /\Agcc=/
             configure_flags << "CC=#{$'}/bin/gcc"
             make_options["ENV:LD_RUN_PATH"] = "#{$'}/lib"
+          when /\Amtune=/
+            optflags << "-mtune=#{$'}"
+          when /\Amarch=/
+            optflags << "-march=#{$'}"
           when /\Aautoconf=/
             autoconf_command = "#{$'}/bin/autoconf"
           else
