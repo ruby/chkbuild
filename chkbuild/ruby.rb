@@ -425,6 +425,11 @@ End
         "Revision: <rev>"
       }
 
+      # done.  (0.07user 0.01system 0.05elapsed)
+      t.add_diff_preprocess_gsub(/^done\.  \(\d+\.\d\duser \d+\.\d\dsystem \d+\.\d\delapsed\)/) {|match|
+        "done.  (X.XXuser X.XXsystem X.XXelapsed)"
+      }
+
       # test_exception.rb #1 test_exception.rb:1
       t.add_diff_preprocess_gsub(/\#\d+ test_/) {|match|
         "#<n> test_"
