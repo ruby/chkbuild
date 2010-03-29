@@ -550,6 +550,11 @@ End
         match[1] + "<num>" + match[2]
       }
 
+      # Test run options: --seed 27850 --verbose
+      t.add_diff_preprocess_gsub(/Test run options: --seed \d+ --verbose/) {|match|
+        'Test run options: --seed <num> --verbose'
+      }
+
       # rubyspec:
       # 2932 files, 13911 examples, 182945 expectations, 34 failures, 24 errors
       t.add_diff_preprocess_gsub(/^(\d+ files, \d+ examples, )\d+( expectations, \d+ failures, \d+ errors)$/) {|match|
