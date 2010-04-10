@@ -430,6 +430,16 @@ End
         "done.  (X.XXuser X.XXsystem X.XXelapsed)"
       }
 
+      # rdoc:
+      #   0% [ 1/513]   eval.c
+      #   0% [ 2/513]   prelude.c
+      # ...
+      #  99% [512/513]   ext/zlib/zlib.c
+      # 100% [513/513]   doc/re.rdoc
+      t.add_diff_preprocess_gsub(%r{^\s*\d+%\s+\[\s*\d+/\d+\]}) {|match|
+        "XXX% [XXX/XXX]"
+      }
+
       # test_exception.rb #1 test_exception.rb:1
       t.add_diff_preprocess_gsub(/\#\d+ test_/) {|match|
         "#<n> test_"
