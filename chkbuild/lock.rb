@@ -48,6 +48,7 @@ module ChkBuild
 
   def self.lock_puts(mesg)
     LOCK_PATH.open(File::WRONLY|File::APPEND) {|f|
+      f.sync = true
       if block_given?
         t1 = Time.now
         f.print "#{t1.iso8601} #{mesg}"
