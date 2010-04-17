@@ -117,34 +117,51 @@ class ChkBuild::Build
 
   BuiltHash = {}
 
-  def set_built_info(status, dir, version)
-    BuiltHash[depsuffixed_name] = [status, dir, version]
+  def set_prebuilt_info(start_time_obj, start_time)
+    BuiltHash[depsuffixed_name] = [start_time_obj, start_time]
   end
 
-  def built_info
-    BuiltHash[depsuffixed_name]
+  def set_built_info(start_time_obj, start_time, status, dir, version)
+    BuiltHash[depsuffixed_name] = [start_time_obj, start_time, status, dir, version]
+  end
+
+  def has_prebuilt_info?
+    BuiltHash[depsuffixed_name] && 2 <= BuiltHash[depsuffixed_name].length
+  end
+
+  def has_built_info?
+    BuiltHash[depsuffixed_name] && 5 <= BuiltHash[depsuffixed_name].length
+  end
+
+  def prebuilt_start_time_obj
+    BuiltHash[depsuffixed_name][0]
+  end
+
+  def prebuilt_start_time
+    BuiltHash[depsuffixed_name][1]
   end
 
   def built_status
-    built_info[0]
+    BuiltHash[depsuffixed_name][2]
   end
 
   def built_dir
-    built_info[1]
+    BuiltHash[depsuffixed_name][3]
   end
 
   def built_version
-    built_info[2]
+    BuiltHash[depsuffixed_name][4]
   end
 
   def build_in_child(dep_dirs)
-    if self.built_info
+    if has_built_info?
       raise "already built"
     end
     branch_info = @suffixes + dep_dirs
-    @start_time_obj = start_time_obj = Time.now
-    @start_time = start_time_obj.strftime("%Y%m%dT%H%M%S")
-    dir = ChkBuild.build_top + self.depsuffixed_name + @start_time
+    start_time_obj = Time.now
+    start_time = start_time_obj.strftime("%Y%m%dT%H%M%S")
+    set_prebuilt_info(start_time_obj, start_time)
+    dir = ChkBuild.build_top + self.depsuffixed_name + start_time
     r, w = IO.pipe
     r.close_on_exec = true
     w.close_on_exec = true
@@ -165,17 +182,17 @@ class ChkBuild::Build
     rescue ArgumentError
       version = self.suffixed_name
     end
-    set_built_info(status, dir, version)
+    set_built_info(start_time_obj, start_time, status, dir, version)
     return status
   end
 
   def start_time
-    return @start_time if defined? @start_time
+    return prebuilt_start_time if has_prebuilt_info?
     raise "#{self.suffixed_name}: no start_time yet"
   end
 
   def success?
-    if built_info
+    if has_built_info?
       if built_status.to_i == 0
         true
       else
@@ -192,12 +209,12 @@ class ChkBuild::Build
   end
 
   def dir
-    return built_dir if built_info
+    return built_dir if has_built_info?
     raise "#{self.suffixed_name}: no dir yet"
   end
 
   def version
-    return built_version if built_info
+    return built_version if has_built_info?
     raise "#{self.suffixed_name}: no version yet"
   end
 
@@ -218,26 +235,26 @@ class ChkBuild::Build
 
   def child_build_target(*branch_info)
     opts = @target.opts
-    @build_dir = @target_dir + @start_time
+    @build_dir = @target_dir + prebuilt_start_time
     @log_filename = @build_dir + 'log'
     mkcd @target_dir
-    raise "already exist: #{@start_time}" if File.exist? @start_time
-    Dir.mkdir @start_time # fail if it is already exists.
-    Dir.chdir @start_time
+    raise "already exist: #{prebuilt_start_time}" if File.exist? prebuilt_start_time
+    Dir.mkdir prebuilt_start_time # fail if it is already exists.
+    Dir.chdir prebuilt_start_time
     @logfile = ChkBuild::LogFile.write_open(@log_filename, self)
     @logfile.change_default_output
     @public.mkpath
     @public_log.mkpath
     force_link "log", @current_txt
     make_local_tmpdir
-    remove_old_build(@start_time, opts.fetch(:old, ChkBuild.num_oldbuilds))
+    remove_old_build(prebuilt_start_time, opts.fetch(:old, ChkBuild.num_oldbuilds))
     @logfile.start_section 'start'
     ret = nil
     with_procmemsize(opts) {
       ret = catch_error { @target.build_proc.call(self, *branch_info) }
       output_status_section
       @logfile.start_section 'end'
-      puts "elapsed #{format_elapsed_time(Time.now - @start_time_obj)}"
+      puts "elapsed #{format_elapsed_time(Time.now - prebuilt_start_time_obj)}"
     }
     force_link @current_txt, @public+'last.txt' if @current_txt.file?
     titlegen = ChkBuild::Title.new(@target, @logfile)
@@ -246,8 +263,8 @@ class ChkBuild::Build
     title << " (titlegen.run_hooks error)" if !title_succ
     Marshal.dump(titlegen.version, @parent_pipe)
     @parent_pipe.close
-    @compressed_log_basename = "#{@start_time}.log.txt.gz"
-    @compressed_diff_basename = "#{@start_time}.diff.txt.gz"
+    @compressed_log_basename = "#{prebuilt_start_time}.log.txt.gz"
+    @compressed_diff_basename = "#{prebuilt_start_time}.diff.txt.gz"
     compress_file(@log_filename, @public_log+@compressed_log_basename)
     different_sections = make_diff
     update_summary(title, different_sections)
@@ -323,7 +340,7 @@ class ChkBuild::Build
   end
 
   def update_summary(title, different_sections)
-    start_time = @start_time
+    start_time = prebuilt_start_time
     if different_sections
       if different_sections.empty?
         diff_txt = "diff"
@@ -377,7 +394,7 @@ class ChkBuild::Build
 End
 
   def update_recent
-    start_time = @start_time
+    start_time = prebuilt_start_time
     summary_path = @public+"summary.html"
     lines = []
     summary_path.open {|f|
@@ -499,7 +516,7 @@ End
   end
 
   def make_diff
-    time2 = @start_time
+    time2 = prebuilt_start_time
     entries = Dir.entries(@public_log)
     time_seq = []
     entries.each {|f|
