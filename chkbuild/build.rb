@@ -115,8 +115,30 @@ class ChkBuild::Build
     status.to_i == 0
   end
 
+  BuiltHash = {}
+
+  def set_built_info(status, dir, version)
+    BuiltHash[depsuffixed_name] = [status, dir, version]
+  end
+
+  def built_info
+    BuiltHash[depsuffixed_name]
+  end
+
+  def built_status
+    built_info[0]
+  end
+
+  def built_dir
+    built_info[1]
+  end
+
+  def built_version
+    built_info[2]
+  end
+
   def build_in_child(dep_dirs)
-    if defined? @built_status
+    if self.built_info
       raise "already built"
     end
     branch_info = @suffixes + dep_dirs
@@ -143,9 +165,7 @@ class ChkBuild::Build
     rescue ArgumentError
       version = self.suffixed_name
     end
-    @built_status = status
-    @built_dir = dir
-    @built_version = version
+    set_built_info(status, dir, version)
     return status
   end
 
@@ -155,8 +175,8 @@ class ChkBuild::Build
   end
 
   def success?
-    if defined? @built_status
-      if @built_status.to_i == 0
+    if built_info
+      if built_status.to_i == 0
         true
       else
         false
@@ -167,17 +187,17 @@ class ChkBuild::Build
   end
 
   def status
-    return @built_status if defined? @built_status
+    return built_status if bulit_info
     raise "#{self.suffixed_name}: no status yet"
   end
 
   def dir
-    return @built_dir if defined? @built_dir
+    return built_dir if built_info
     raise "#{self.suffixed_name}: no dir yet"
   end
 
   def version
-    return @built_version if defined? @built_version
+    return built_version if built_info
     raise "#{self.suffixed_name}: no version yet"
   end
 
