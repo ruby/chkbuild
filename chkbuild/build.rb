@@ -32,6 +32,7 @@ include ERB::Util
 require "uri"
 require "tempfile"
 require "pathname"
+require "rbconfig"
 
 require 'escape'
 require 'timeoutcom'
@@ -59,6 +60,7 @@ class ChkBuild::Build
     @public = ChkBuild.public_top + self.depsuffixed_name
     @public_log = @public+"log"
     @current_txt = @public+"current.txt"
+  #p [:pid, $$, self.depsuffixed_name]
   end
   attr_reader :target, :suffixes, :depbuilds
   attr_reader :target_dir
@@ -161,22 +163,17 @@ class ChkBuild::Build
     start_time_obj = Time.now
     start_time = start_time_obj.strftime("%Y%m%dT%H%M%S")
     set_prebuilt_info(start_time_obj, start_time)
-    dir = ChkBuild.build_top + self.depsuffixed_name + start_time
-    r, w = IO.pipe
-    r.close_on_exec = true
-    w.close_on_exec = true
-    pid = fork {
-      r.close
-      if child_build_wrapper(w, *branch_info)
-        exit 0
-      else
-        exit 1
-      end
-    }
-    w.close
-    str = r.read
-    r.close
-    status = Process.wait2(pid)[1]
+    dir = ChkBuild.build_top + self.depsuffixed_name
+    dir.mkpath
+    dir += start_time
+    dir.mkdir
+    target_params_name = dir + "params.marshal"
+    target_output_name = dir + "result.marshal"
+    File.open(target_params_name, "wb") {|f| Marshal.dump([branch_info, ChkBuild::Build::BuiltHash], f) }
+    ruby_command = RbConfig.ruby
+    system(ruby_command, "-I#{ChkBuild::TOP_DIRECTORY}", $0, "internal-build", self.depsuffixed_name, start_time, target_params_name.to_s, target_output_name.to_s)
+    status = $?
+    str = File.open(target_output_name, "rb") {|f| f.read }
     begin
       version = Marshal.load(str)
     rescue ArgumentError
@@ -184,6 +181,28 @@ class ChkBuild::Build
     end
     set_built_info(start_time_obj, start_time, status, dir, version)
     return status
+  end
+
+  def internal_build(start_time, target_params_name, target_output_name)
+    #p [:internal_build, depsuffixed_name]
+    branch_info, builthash = File.open(target_params_name) {|f| Marshal.load(f) }
+    #pp builthash
+    ChkBuild::Build::BuiltHash.update builthash
+    self.build_and_exit(branch_info, start_time, target_output_name)
+  end
+
+  def build_and_exit(branch_info, start_time, target_output_name)
+    if has_built_info?
+    #p BuiltHash[depsuffixed_name]
+      raise "already built: #{depsuffixed_name}"
+    end
+    dir = ChkBuild.build_top + self.depsuffixed_name + prebuilt_start_time
+    marshal_data = ''
+    if child_build_wrapper(target_output_name, nil, *branch_info)
+      exit 0
+    else
+      exit 1
+    end
   end
 
   def start_time
@@ -218,11 +237,10 @@ class ChkBuild::Build
     raise "#{self.suffixed_name}: no version yet"
   end
 
-  def child_build_wrapper(parent_pipe, *branch_info)
+  def child_build_wrapper(target_output_name, parent_pipe, *branch_info)
     ret = ChkBuild.lock_puts(self.depsuffixed_name) {
-      @parent_pipe = parent_pipe
       @errors = []
-      child_build_target(*branch_info)
+      child_build_target(target_output_name, *branch_info)
     }
     ret
   end
@@ -233,13 +251,14 @@ class ChkBuild::Build
     ENV['TMPDIR'] = tmpdir.to_s
   end
 
-  def child_build_target(*branch_info)
+  def child_build_target(target_output_name, *branch_info)
     opts = @target.opts
     @build_dir = @target_dir + prebuilt_start_time
     @log_filename = @build_dir + 'log'
     mkcd @target_dir
-    raise "already exist: #{prebuilt_start_time}" if File.exist? prebuilt_start_time
-    Dir.mkdir prebuilt_start_time # fail if it is already exists.
+    #raise "already exist: #{prebuilt_start_time}" if File.exist? prebuilt_start_time
+    #Dir.mkdir prebuilt_start_time # fail if it is already exists.
+    @parent_pipe = File.open(target_output_name, "wb")
     Dir.chdir prebuilt_start_time
     @logfile = ChkBuild::LogFile.write_open(@log_filename, self)
     @logfile.change_default_output
@@ -261,8 +280,10 @@ class ChkBuild::Build
     title_succ = catch_error('run_hooks') { titlegen.run_hooks }
     title = titlegen.make_title
     title << " (titlegen.run_hooks error)" if !title_succ
-    Marshal.dump(titlegen.version, @parent_pipe)
-    @parent_pipe.close
+    if @parent_pipe
+      Marshal.dump(titlegen.version, @parent_pipe)
+      @parent_pipe.close
+    end
     @compressed_log_basename = "#{prebuilt_start_time}.log.txt.gz"
     @compressed_diff_basename = "#{prebuilt_start_time}.diff.txt.gz"
     compress_file(@log_filename, @public_log+@compressed_log_basename)

@@ -1,6 +1,6 @@
 # chkbuild/main.rb - chkbuild main routines.
 #
-# Copyright (C) 2006,2009 Tanaka Akira  <akr@fsij.org>
+# Copyright (C) 2006,2009,2010 Tanaka Akira  <akr@fsij.org>
 # 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -51,6 +51,7 @@ End
   end
 
   @target_list = []
+
   def ChkBuild.main_build
     o = OptionParser.new
     o.def_option('--procmemsize') {
@@ -71,6 +72,36 @@ End
     @target_list.each {|t|
       t.make_result
     }
+  end
+
+  def ChkBuild.main_internal_build
+    o = OptionParser.new
+    o.def_option('--procmemsize') {
+      @target_list.each {|t|
+        t.update_option(:procmemsize => true)
+      }
+    }
+    o.parse!
+    depsuffixed_name = ARGV.shift
+    start_time = ARGV.shift
+    target_params_name = ARGV.shift
+    target_output_name = ARGV.shift
+    begin
+      Process.setpriority(Process::PRIO_PROCESS, 0, 10)
+    rescue Errno::EACCES # already niced to 11 or more
+    end
+    File.umask(002)
+    STDIN.reopen("/dev/null", "r")
+    STDOUT.sync = true
+    ChkBuild.build_top.mkpath
+    @target_list.each {|t|
+      t.each_build_obj {|build|
+        if build.depsuffixed_name == depsuffixed_name
+          build.internal_build start_time, target_params_name, target_output_name
+        end
+      }
+    }
+    exit 1
   end
 
   def ChkBuild.def_target(target_name, *args, &block)
@@ -129,6 +160,7 @@ End
     case subcommand
     when 'help', '-h' then ChkBuild.main_help
     when 'build' then ChkBuild.main_build
+    when 'internal-build' then ChkBuild.main_internal_build
     when 'list' then ChkBuild.main_list
     when 'title' then ChkBuild.main_title
     when 'logdiff' then ChkBuild.main_logdiff

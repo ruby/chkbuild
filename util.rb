@@ -1,6 +1,6 @@
 # util.rb - utilities
 #
-# Copyright (C) 2006,2007,2009 Tanaka Akira  <akr@fsij.org>
+# Copyright (C) 2006,2007,2009,2010 Tanaka Akira  <akr@fsij.org>
 # 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -32,6 +32,7 @@ require "fcntl"
 require "tempfile"
 require "find"
 require "pathname"
+require "rbconfig"
 
 def tp(obj)
   open("/dev/tty", "w") {|f| f.puts obj.inspect }
@@ -84,6 +85,15 @@ unless STDIN.respond_to? :close_on_exec?
       self.fcntl(Fcntl::F_SETFD, flags)
       v
     end
+  end
+end
+
+unless RbConfig.respond_to? :ruby
+  def RbConfig.ruby
+    File.join(
+      RbConfig::CONFIG["bindir"],
+      RbConfig::CONFIG["ruby_install_name"] + RbConfig::CONFIG["EXEEXT"]
+    )
   end
 end
 
