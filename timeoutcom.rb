@@ -1,6 +1,6 @@
 # timeoutcom.rb - command timeout library
 #
-# Copyright (C) 2005,2006,2007,2008,2009 Tanaka Akira  <akr@fsij.org>
+# Copyright (C) 2005,2006,2007,2008,2009,2010 Tanaka Akira  <akr@fsij.org>
 # 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -23,6 +23,8 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
 # IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
 # OF SUCH DAMAGE.
+
+require 'rbconfig'
 
 class CommandTimeout < StandardError
 end
@@ -102,7 +104,7 @@ module TimeoutCommand
     end
   end
 
-  def timeout_command(command_timeout, msgout=STDERR, opts={})
+  def timeout_command(ruby_script, command_timeout, msgout=STDERR, opts={})
     command_timeout = parse_timespan(command_timeout)
     output_interval_timeout = nil
     if opts[:output_interval_timeout]
@@ -111,66 +113,69 @@ module TimeoutCommand
     if command_timeout < 0
       raise CommandTimeout, 'no time to run a command'
     end
-    pid = fork {
-      Process.setpgid($$, $$)
-      yield
-    }
-    begin
-      Process.setpgid(pid, pid)
-    rescue Errno::EACCES # already execed.
-    rescue Errno::ESRCH # already exited. (setpgid for a zombie fails on OpenBSD)
-    end
-    wait_thread = Thread.new {
-      Process.wait2(pid)[1]
-    }
-    begin
-      start_time = Time.now
-      limit_time = start_time + command_timeout
-      command_status = nil
-      while true
-        join_timeout = limit_time - Time.now
-        if join_timeout < 0
-          timeout_reason = "command execution time exceeds #{command_timeout} seconds."
-          break 
-        end
-        if output_interval_timeout and
-           t = last_output_time and
-           (tmp_join_timeout = t + output_interval_timeout - Time.now) < join_timeout
-          join_timeout = tmp_join_timeout
+    IO.popen(RbConfig.ruby, "w") {|io|
+      pid = io.pid
+      io.puts 'STDIN.reopen("/dev/null", "r")'
+      io.puts "Process.setpgid($$, $$)"
+      io.puts ruby_script
+      io.puts '__END__'
+      begin
+        Process.setpgid(pid, pid)
+      rescue Errno::EACCES # already execed.
+      rescue Errno::ESRCH # already exited. (setpgid for a zombie fails on OpenBSD)
+      end
+      wait_thread = Thread.new {
+        Process.wait2(pid)[1]
+      }
+      begin
+        start_time = Time.now
+        limit_time = start_time + command_timeout
+        command_status = nil
+        while true
+          join_timeout = limit_time - Time.now
           if join_timeout < 0
-            timeout_reason = "output interval exceeds #{output_interval_timeout} seconds."
+            timeout_reason = "command execution time exceeds #{command_timeout} seconds."
+            break 
+          end
+          if output_interval_timeout and
+             t = last_output_time and
+             (tmp_join_timeout = t + output_interval_timeout - Time.now) < join_timeout
+            join_timeout = tmp_join_timeout
+            if join_timeout < 0
+              timeout_reason = "output interval exceeds #{output_interval_timeout} seconds."
+              break
+            end
+          end
+          if wait_thread.join(join_timeout)
+            command_status = wait_thread.value
             break
           end
         end
-        if wait_thread.join(join_timeout)
-          command_status = wait_thread.value
-          break
+        if command_status
+          return command_status
+        else
+          msgout.puts "timeout: #{timeout_reason}" if msgout
+          begin
+            Process.kill(0, -pid)
+            msgout.puts "timeout: the process group #{pid} is alive." if msgout
+            kill_processgroup(pid, msgout)
+          rescue Errno::ESRCH # no process
+          end
+          raise CommandTimeout, timeout_reason
         end
-      end
-      if command_status
-        return command_status
-      else
-        msgout.puts "timeout: #{timeout_reason}" if msgout
-        begin
-          Process.kill(0, -pid)
-          msgout.puts "timeout: the process group #{pid} is alive." if msgout
+      rescue Interrupt
+        Process.kill("INT", -pid)
+        raise
+      rescue SignalException
+        Process.kill($!.message, -pid)
+        raise
+      ensure
+        if processgroup_alive?(pid)
+          msgout.puts "some descendant process in process group #{pid} remain." if msgout
           kill_processgroup(pid, msgout)
-        rescue Errno::ESRCH # no process
         end
-        raise CommandTimeout, timeout_reason
       end
-    rescue Interrupt
-      Process.kill("INT", -pid)
-      raise
-    rescue SignalException
-      Process.kill($!.message, -pid)
-      raise
-    ensure
-      if processgroup_alive?(pid)
-        msgout.puts "some descendant process in process group #{pid} remain." if msgout
-        kill_processgroup(pid, msgout)
-      end
-    end
+    }
   end
 end
 

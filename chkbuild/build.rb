@@ -726,10 +726,9 @@ End
 
     puts "+ #{Escape.shell_command [command, *args]}"
     pos = STDOUT.pos
+    ruby_script = script_to_run_in_child(opts, command, *args)
     begin
-      command_status = TimeoutCommand.timeout_command(opts.fetch(:timeout, '1h'), STDERR, opts) {
-        run_in_child(opts, command, *args)
-      }
+      command_status = TimeoutCommand.timeout_command(ruby_script, opts.fetch(:timeout, '1h'), STDERR, opts)
     ensure
       exc = $!
       if exc && secname
@@ -755,28 +754,68 @@ End
     end
   end
 
-  def run_in_child(opts, command, *args)
+  def script_to_run_in_child(opts, command, *args)
+    ruby_script = ''
     opts.each {|k, v|
       next if /\AENV:/ !~ k.to_s
-      ENV[$'] = v
+      k = $'
+      ruby_script << "ENV[#{k.dump}] = #{v.dump}\n"
     }
+
     if Process.respond_to? :setrlimit
-      resource_unlimit(:RLIMIT_CORE)
       limit = ChkBuild.get_limit
-      opts.each {|k, v| limit[$'.intern] = v if /\Ar?limit_/ =~ k.to_s }
-      resource_limit(:RLIMIT_CPU, limit.fetch(:cpu))
-      resource_limit(:RLIMIT_STACK, limit.fetch(:stack))
-      resource_limit(:RLIMIT_DATA, limit.fetch(:data))
-      resource_limit(:RLIMIT_AS, limit.fetch(:as))
-      #system('sh', '-c', "ulimit -a")
+      opts.each {|k, v|
+        limit[$'.intern] = v if /\Ar?limit_/ =~ k.to_s
+      }
+      ruby_script << <<-"End"
+        def resource_unlimit(resource)
+          if Symbol === resource
+            begin
+              resource = Process.const_get(resource)
+            rescue NameError
+              return
+            end
+          end
+          cur_limit, max_limit = Process.getrlimit(resource)
+          Process.setrlimit(resource, max_limit, max_limit)
+        end
+
+        def resource_limit(resource, val)
+          if Symbol === resource
+            begin
+              resource = Process.const_get(resource)
+            rescue NameError
+              return
+            end
+          end
+          cur_limit, max_limit = Process.getrlimit(resource)
+          if max_limit < val
+            val = max_limit
+          end
+          Process.setrlimit(resource, val, val)
+        end
+
+        resource_unlimit(:RLIMIT_CORE)
+        resource_limit(:RLIMIT_CPU, #{limit.fetch(:cpu).to_i})
+        resource_limit(:RLIMIT_STACK, #{limit.fetch(:stack).to_i})
+        resource_limit(:RLIMIT_DATA, #{limit.fetch(:data).to_i})
+        resource_limit(:RLIMIT_AS, #{limit.fetch(:as).to_i})
+      End
     end
-    alt_commands = opts.fetch(:alt_commands, [])
+
     if opts.include?(:stdout)
-      STDOUT.reopen(opts[:stdout], "w")
+      ruby_script << "STDOUT.reopen(#{opts[:stdout].dump}, 'w')\n"
     end
     if opts.include?(:stderr)
-      STDERR.reopen(opts[:stderr], "w")
+      ruby_script << "STDERR.reopen(#{opts[:stderr].dump}, 'w')\n"
     end
+    
+    alt_commands = opts.fetch(:alt_commands, [])
+    ruby_script << "command = #{command.dump}\n"
+    ruby_script << "args = [#{args.map {|s| s.dump }.join(",")}]\n"
+    ruby_script << "alt_commands = [#{alt_commands.map {|s| s.dump }.join(",")}]\n"
+
+    ruby_script + <<-"End"
     begin
       exec [command, command], *args
     rescue Errno::ENOENT
@@ -787,6 +826,7 @@ End
         raise
       end
     end
+    End
   end
 
   SignalNum2Name = Hash.new('unknown signal')
