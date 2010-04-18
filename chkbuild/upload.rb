@@ -59,10 +59,12 @@ module ChkBuild
     local_host = Socket.gethostname
     private_key ||= "#{ENV['HOME']}/.ssh/chkbuild-#{local_host}-#{remote_host}"
 
-    pid = fork {
-      ENV.delete 'SSH_AUTH_SOCK'
-      exec "rsync", "--delete", "-rte", "ssh -akxi #{private_key}", "#{ChkBuild.public_top}/#{name}", "#{rsync_target}"
-    }
-    Process.wait pid
+    begin
+      save = ENV['SSH_AUTH_SOCK']
+      ENV['SSH_AUTH_SOCK'] = nil
+      system "rsync", "--delete", "-rte", "ssh -akxi #{private_key}", "#{ChkBuild.public_top}/#{name}", "#{rsync_target}"
+    ensure
+      ENV['SSH_AUTH_SOCK'] = save
+    end
   end
 end
