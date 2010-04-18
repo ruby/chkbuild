@@ -149,7 +149,11 @@ module Escape
       assoc = []
       @str.split(/[&;]/, -1).each {|s|
         raise InvalidHTMLForm, "invalid: #{@str}" unless /=/ =~ s
-        assoc << [PercentEncoded.new_no_dup($`), PercentEncoded.new_no_dup($')]
+        k = $`
+        v = $'
+        k.gsub!(/\+/, ' ')
+        v.gsub!(/\+/, ' ')
+        assoc << [PercentEncoded.new_no_dup(k), PercentEncoded.new_no_dup(v)]
       }
       assoc
     end
@@ -282,7 +286,9 @@ module Escape
       first = false
       k.each_byte {|byte|
         ch = byte.chr
-        if %r{[^0-9A-Za-z\-\._~:/?@!\$'()*,]}n =~ ch
+        if ch == ' '
+          r << "+"
+        elsif %r{[^0-9A-Za-z\-\._~:/?@!\$'()*,]}n =~ ch
           r << "%" << ch.unpack("H2")[0].upcase
         else
           r << ch
@@ -291,7 +297,9 @@ module Escape
       r << '='
       v.each_byte {|byte|
         ch = byte.chr
-        if %r{[^0-9A-Za-z\-\._~:/?@!\$'()*,]}n =~ ch
+        if ch == ' '
+          r << "+"
+        elsif %r{[^0-9A-Za-z\-\._~:/?@!\$'()*,]}n =~ ch
           r << "%" << ch.unpack("H2")[0].upcase
         else
           r << ch
