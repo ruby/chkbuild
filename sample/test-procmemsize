@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+
+require 'chkbuild'
+
+# * needs procmemsize command.  http://github.com/akr/procmemsize/
+# * it is GNU/Linux dependent.
+
+ChkBuild.def_target("procmemsize", :procmemsize=>true) {|b|
+  b.run("sleep", "3")
+}
+
+ChkBuild.main

@@ -301,10 +301,11 @@ class ChkBuild::Build
   def with_procmemsize(opts)
     if opts[:procmemsize]
       current_pid = $$
-      procmemsize_pid = fork { exec(*%W[procmemsize -p #{current_pid}]) }
-      ret = yield
-      Process.kill :TERM, procmemsize_pid
-      Process.wait procmemsize_pid
+      IO.popen("procmemsize -p #{current_pid}", "w") {|io|
+        procmemsize_pid = io.pid
+        ret = yield
+        Process.kill :TERM, procmemsize_pid
+      }
     else
       ret = yield
     end
