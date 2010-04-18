@@ -41,8 +41,10 @@ module ChkBuild
     @lock_io.close_on_exec = true
     @lock_io.puts "\nlocked pid:#{$$}"
     lock_pid = $$
+    t1 = Time.now
     at_exit {
-      @lock_io.print "exit pid:#{$$}\n" if $$ == lock_pid
+      t2 = Time.now
+      @lock_io.print "exit pid:#{$$}\t#{Util.format_elapsed_time t2-t1}\n" if $$ == lock_pid
     }
   end
 
