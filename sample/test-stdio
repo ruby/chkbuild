@@ -4,6 +4,7 @@ require 'chkbuild'
 
 ChkBuild.def_target("stdio") {|b|
   b.run("ruby", "-e", 'system("ls -l /proc/#$$/fd")')
+  b.run("ruby", "-e", 'system("ls -l /proc/$$/fd")')
   b.run("ruby", "-rpp", "-e", "pp STDIN.stat")
   b.run("ruby", "-rpp", "-e", "pp STDOUT.stat")
   b.run("ruby", "-rpp", "-e", "pp STDERR.stat")
