@@ -252,12 +252,17 @@ class ChkBuild::Build
   end
 
   def child_build_target(target_output_name, *branch_info)
+    opts = setup_build(target_output_name)
+    ret = do_build(opts, branch_info)
+    update_result
+    ret
+  end
+
+  def setup_build(target_output_name)
     opts = @target.opts
     @build_dir = @target_dir + prebuilt_start_time
     @log_filename = @build_dir + 'log'
     mkcd @target_dir
-    #raise "already exist: #{prebuilt_start_time}" if File.exist? prebuilt_start_time
-    #Dir.mkdir prebuilt_start_time # fail if it is already exists.
     @parent_pipe = File.open(target_output_name, "wb")
     Dir.chdir prebuilt_start_time
     @logfile = ChkBuild::LogFile.write_open(@log_filename, self)
@@ -267,6 +272,10 @@ class ChkBuild::Build
     force_link "log", @current_txt
     make_local_tmpdir
     remove_old_build(prebuilt_start_time, opts.fetch(:old, ChkBuild.num_oldbuilds))
+    opts
+  end
+
+  def do_build(opts, branch_info)
     @logfile.start_section 'start'
     ret = nil
     with_procmemsize(opts) {
@@ -275,6 +284,10 @@ class ChkBuild::Build
       @logfile.start_section 'end'
       puts "elapsed #{format_elapsed_time(Time.now - prebuilt_start_time_obj)}"
     }
+    ret
+  end
+
+  def update_result
     force_link @current_txt, @public+'last.txt' if @current_txt.file?
     titlegen = ChkBuild::Title.new(@target, @logfile)
     title_succ = catch_error('run_hooks') { titlegen.run_hooks }
@@ -293,7 +306,6 @@ class ChkBuild::Build
     make_html_log(@log_filename, title, different_sections, @public+"last.html")
     compress_file(@public+"last.html", @public+"last.html.gz")
     ChkBuild.run_upload_hooks(self.suffixed_name)
-    ret
   end
 
   attr_reader :logfile
