@@ -288,24 +288,34 @@ class ChkBuild::Build
   end
 
   def update_result
+    title, title_version = gen_title
+    send_title_to_parent(title_version)
     force_link @current_txt, @public+'last.txt' if @current_txt.file?
-    titlegen = ChkBuild::Title.new(@target, @logfile)
-    title_succ = catch_error('run_hooks') { titlegen.run_hooks }
-    title = titlegen.make_title
-    title << " (titlegen.run_hooks error)" if !title_succ
-    if @parent_pipe
-      Marshal.dump(titlegen.version, @parent_pipe)
-      @parent_pipe.close
-    end
-    @compressed_log_basename = "#{prebuilt_start_time}.log.txt.gz"
-    @compressed_diff_basename = "#{prebuilt_start_time}.diff.txt.gz"
-    compress_file(@log_filename, @public_log+@compressed_log_basename)
+    @compressed_log_relpath = "log/#{prebuilt_start_time}.log.txt.gz"
+    @compressed_diff_relpath = "log/#{prebuilt_start_time}.diff.txt.gz"
+    compress_file(@log_filename, @public+@compressed_log_relpath)
     different_sections = make_diff
     update_summary(title, different_sections)
     update_recent
     make_html_log(@log_filename, title, different_sections, @public+"last.html")
     compress_file(@public+"last.html", @public+"last.html.gz")
     ChkBuild.run_upload_hooks(self.suffixed_name)
+  end
+
+  def gen_title
+    titlegen = ChkBuild::Title.new(@target, @logfile)
+    title_succ = catch_error('run_hooks') { titlegen.run_hooks }
+    title = titlegen.make_title
+    title << " (titlegen.run_hooks error)" if !title_succ
+    title_version = titlegen.version
+    return title, title_version
+  end
+
+  def send_title_to_parent(title_version)
+    if @parent_pipe
+      Marshal.dump(title_version, @parent_pipe)
+      @parent_pipe.close
+    end
   end
 
   attr_reader :logfile
@@ -394,8 +404,8 @@ class ChkBuild::Build
         f.puts "<h1>#{h self.depsuffixed_name} build summary</h1>"
         f.puts "<p><a href=\"../\">chkbuild</a></p>"
       end
-      f.print "<a href=\"log/#{h @compressed_log_basename}\" name=\"#{start_time}\">#{h start_time}</a> #{h title}"
-      f.print " (<a href=\"log/#{h @compressed_diff_basename}\">#{h diff_txt}</a>)" if diff_txt
+      f.print "<a href=\"#{h @compressed_log_relpath}\" name=\"#{start_time}\">#{h start_time}</a> #{h title}"
+      f.print " (<a href=\"#{h @compressed_diff_relpath}\">#{h diff_txt}</a>)" if diff_txt
       f.puts "<br>"
     }
   end
@@ -530,8 +540,8 @@ End
   def make_html_log(log_filename, title, has_diff, dst)
     log = File.read(log_filename)
     log.force_encoding("ascii-8bit") if log.respond_to? :force_encoding
-    permalink = "log/#{@compressed_log_basename}"
-    diff_permalink = "log/#{@compressed_diff_basename}"
+    permalink = @compressed_log_relpath
+    diff_permalink = @compressed_diff_relpath
     content = ERB.new(LAST_HTMLTemplate, nil, '%').result(binding)
     atomic_make_file(dst, content)
   end
@@ -581,7 +591,7 @@ End
     return nil if time_seq.empty?
     time1 = time_seq.last
     different_sections = nil
-    output_path = @public_log+@compressed_diff_basename
+    output_path = @public+@compressed_diff_relpath
     Zlib::GzipWriter.wrap(open(output_path, "w")) {|z|
       different_sections = output_diff(time1, time2, z)
     }
