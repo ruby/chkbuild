@@ -27,8 +27,6 @@
 require 'fileutils'
 require 'time'
 require 'zlib'
-require "erb"
-include ERB::Util
 require "uri"
 require "tempfile"
 require "pathname"
@@ -404,8 +402,8 @@ class ChkBuild::Build
         f.puts "<h1>#{h self.depsuffixed_name} build summary</h1>"
         f.puts "<p><a href=\"../\">chkbuild</a></p>"
       end
-      f.print "<a href=\"#{h @compressed_log_relpath}\" name=\"#{start_time}\">#{h start_time}</a> #{h title}"
-      f.print " (<a href=\"#{h @compressed_diff_relpath}\">#{h diff_txt}</a>)" if diff_txt
+      f.print "<a href=#{ha @compressed_log_relpath} name=#{ha start_time}>#{h start_time}</a> #{h title}"
+      f.print " (<a href=#{ha @compressed_diff_relpath}>#{h diff_txt}</a>)" if diff_txt
       f.puts "<br>"
     }
   end
@@ -413,12 +411,12 @@ class ChkBuild::Build
   RECENT_HTMLTemplate = <<'End'
 <html>
   <head>
-    <title><%= h title %></title>
+    <title><%=h title %></title>
     <meta name="author" content="chkbuild">
     <meta name="generator" content="chkbuild">
   </head>
   <body>
-    <h1><%= h title %></h1>
+    <h1><%=h title %></h1>
     <p>
       <a href="../">chkbuild</a>
       <a href="summary.html">summary</a>
@@ -485,12 +483,12 @@ End
       if /\A== (\S+)/ =~ line
         tag = $1
         rest = $'
-        result << "<a name=\"#{h(u(tag))}\">== #{h(tag)}</a>#{h(rest)}"
+        result << "<a name=#{ha(u(tag))}>== #{h(tag)}</a>#{h(rest)}"
       else
         i = 0
         line.scan(/#{URI.regexp(['http'])}/o) {
           result << h(line[i...$~.begin(0)]) if i < $~.begin(0)
-          result << "<a href=\"#{h $&}\">#{h $&}</a>"
+          result << "<a href=#{ha $&}>#{h $&}</a>"
           i = $~.end(0)
         }
         result << h(line[i...line.length]) if i < line.length
@@ -502,12 +500,12 @@ End
   LAST_HTMLTemplate = <<'End'
 <html>
   <head>
-    <title><%= h title %></title>
+    <title><%=h title %></title>
     <meta name="author" content="chkbuild">
     <meta name="generator" content="chkbuild">
   </head>
   <body>
-    <h1><%= h title %></h1>
+    <h1><%=h title %></h1>
     <p>
       <a href="../">chkbuild</a>
       <a href="summary.html">summary</a>
@@ -519,7 +517,7 @@ End
     </p>
     <ul>
 % list_tags(log).each {|tag, success|
-      <li><a href="#<%= h(u(tag)) %>"><%= h tag %></a><%= success ? "" : " failed" %></li>
+      <li><a href=<%=ha("#"+u(tag)) %>><%=h tag %></a><%= success ? "" : " failed" %></li>
 % }
     </ul>
     <pre><%= markup log %></pre>
@@ -528,9 +526,9 @@ End
       <a href="../">chkbuild</a>
       <a href="summary.html">summary</a>
       <a href="recent.html">recent</a>
-      <a href="<%=h permalink %>">permalink</a>
+      <a href=<%=ha permalink %>>permalink</a>
 % if has_diff
-      <a href="<%=h diff_permalink %>">diff</a>
+      <a href=<%=ha diff_permalink %>>diff</a>
 % end
     </p>
   </body>

@@ -34,6 +34,9 @@ require "find"
 require "pathname"
 require "rbconfig"
 
+require "erb"
+include ERB::Util
+
 def tp(obj)
   open("/dev/tty", "w") {|f| f.puts obj.inspect }
 end
@@ -41,6 +44,10 @@ end
 def tpp(obj)
   require 'pp'
   open("/dev/tty", "w") {|f| PP.pp(obj, f) }
+end
+
+def ha(str)
+  '"' + h(str) + '"'
 end
 
 module Kernel
