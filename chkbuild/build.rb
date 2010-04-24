@@ -251,8 +251,12 @@ class ChkBuild::Build
 
   def child_build_target(target_output_name, *branch_info)
     opts = setup_build(target_output_name)
+    @logfile.start_section 'start'
     ret = do_build(opts, branch_info)
+    @logfile.start_section 'end'
+    puts "elapsed #{format_elapsed_time(Time.now - prebuilt_start_time_obj)}"
     update_result
+    @logfile.start_section 'end2'
     ret
   end
 
@@ -274,13 +278,10 @@ class ChkBuild::Build
   end
 
   def do_build(opts, branch_info)
-    @logfile.start_section 'start'
     ret = nil
     with_procmemsize(opts) {
       ret = catch_error { @target.build_proc.call(self, *branch_info) }
       output_status_section
-      @logfile.start_section 'end'
-      puts "elapsed #{format_elapsed_time(Time.now - prebuilt_start_time_obj)}"
     }
     ret
   end
