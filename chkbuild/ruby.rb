@@ -398,7 +398,7 @@ End
       }
 
       # delete trailing spaces.
-      t.add_diff_preprocess_gsub(/[ \t]*$/) {|match|
+      t.add_diff_preprocess_gsub(/[ \t]+$/) {|match|
         ""
       }
 
