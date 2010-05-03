@@ -418,6 +418,11 @@ End
         "#{pre}<line_#{id}>#{post}"
       }
 
+      # gcc ... -DRUBY_RELEASE_DATE=\"2010-05-04\" ... tcltklib.c
+      t.add_diff_preprocess_gsub(/-DRUBY_RELEASE_DATE=\\"\d+-\d\d-\d\d\\"/) {|match|
+        '-DRUBY_RELEASE_DATE=\"YYYY-MM-DD\"'
+      }
+
       # svn info prints the last revision in the whole repository
       # which can be different from the last changed revision.
       # Revision: 26147
