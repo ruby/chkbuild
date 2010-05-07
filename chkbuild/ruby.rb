@@ -74,7 +74,7 @@ End
       true
     end
 
-    MaintainedBranches = %w[trunk 1.9.1 1.8 1.8.7 1.8.6]
+    MaintainedBranches = %w[trunk 1.9.2 1.9.1 1.8 1.8.7 1.8.6]
 
     def def_target(*args)
       opts = Hash === args.last ? args.pop : {}
@@ -105,6 +105,7 @@ End
             cppflags.delete '-DRUBY_DEBUG_ENV'
           when "half-baked-1.9" then ruby_branch = 'branches/half-baked-1.9'
           when "matzruby" then ruby_branch = 'branches/matzruby'
+          when "1.9.2" then ruby_branch = 'branches/ruby_1_9_2'
           when "1.9.1" then ruby_branch = 'branches/ruby_1_9_1'
           when "1.8" then ruby_branch = 'branches/ruby_1_8'
           when "1.8.5" then ruby_branch = 'branches/ruby_1_8_5'
