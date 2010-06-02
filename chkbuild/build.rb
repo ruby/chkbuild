@@ -746,9 +746,22 @@ End
       opts[:output_interval_timeout] = '10min'
     end
 
+    alt_commands = opts.fetch(:alt_commands, [])
+
+    commands = [command, *alt_commands]
+    commands.reject! {|c|
+      ENV["PATH"].split(/:/).all? {|d|
+        f = File.join(d, c)
+	!File.file?(f) || !File.executable?(f)
+      }
+    }
+    if !commands.empty?
+      command, *alt_commands = commands
+    end
+
     puts "+ #{Escape.shell_command [command, *args]}"
     pos = STDOUT.pos
-    ruby_script = script_to_run_in_child(opts, command, *args)
+    ruby_script = script_to_run_in_child(opts, command, alt_commands, *args)
     begin
       command_status = TimeoutCommand.timeout_command(ruby_script, opts.fetch(:timeout, '1h'), STDERR, opts)
     ensure
@@ -776,7 +789,7 @@ End
     end
   end
 
-  def script_to_run_in_child(opts, command, *args)
+  def script_to_run_in_child(opts, command, alt_commands, *args)
     ruby_script = ''
     opts.each {|k, v|
       next if /\AENV:/ !~ k.to_s
@@ -831,8 +844,7 @@ End
     if opts.include?(:stderr)
       ruby_script << "STDERR.reopen(#{opts[:stderr].dump}, 'w')\n"
     end
-    
-    alt_commands = opts.fetch(:alt_commands, [])
+
     ruby_script << "command = #{command.dump}\n"
     ruby_script << "args = [#{args.map {|s| s.dump }.join(",")}]\n"
     ruby_script << "alt_commands = [#{alt_commands.map {|s| s.dump }.join(",")}]\n"
