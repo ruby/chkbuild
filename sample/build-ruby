@@ -31,9 +31,23 @@ require 'chkbuild'
 ChkBuild.limit(:data=>1024*1024*800, :as=>1024*1024*800)
 
 ChkBuild::Ruby.def_target(
-  ChkBuild::Ruby::MaintainedBranches, # %w[trunk],
-  # ['m32', 'm64'],
+  ChkBuild::Ruby::MaintainedBranches,
+  # %w[trunk 1.8],
+  # %w[trunk],
+
+  # ['o0', 'o1', nil, 'o3', 'os'],
+
   [nil, "pth"],
-  :old => 1)
+
+  # ['m32', 'm64'],
+
+  # :limit_combination => lambda {|*suffixes| true },
+
+  # :old => 1,
+
+  :timeout => '1h',
+
+  :output_interval_timeout => '10min'
+  )
 
 ChkBuild.main
