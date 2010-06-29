@@ -571,6 +571,11 @@ End
         'Test run options: --seed <num> --verbose'
       }
 
+      # <#<Errno::EIO: Input/output error - /dev/pts/0>>.
+      t.add_diff_preprocess_gsub(%r{/dev/pts/\d+}) {|match|
+        "/dev/pts/N"
+      }
+
       # rubyspec:
       # 2932 files, 13911 examples, 182945 expectations, 34 failures, 24 errors
       t.add_diff_preprocess_gsub(/^(\d+ files, \d+ examples, )\d+( expectations, \d+ failures, \d+ errors)$/) {|match|
