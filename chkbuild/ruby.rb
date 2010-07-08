@@ -540,7 +540,8 @@ End
 
       # miniunit:
       # Complex_Test#test_parse: 0.01 s: .
-      t.add_diff_preprocess_gsub(%r{\d+\.\d\d s: }) {|match|
+      # Test_REXMLStreamParser#test_fault: -0.58 s: .
+      t.add_diff_preprocess_gsub(%r{-?\d+\.\d\d s: }) {|match|
 	'<elapsed> s: '
       }
 
