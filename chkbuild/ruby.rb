@@ -454,10 +454,11 @@ End
       # test/unit:
       #  28) Error:
       #  33) Failure:
+      #  2) Skipped:
       # rubyspec:
       # 61)
-      t.add_diff_preprocess_gsub(/^ *\d+\)( Error:| Failure:|$)/) {|match|
-        " <n>) #{match[1]}"
+      t.add_diff_preprocess_gsub(/^ *\d+\)( Error:| Failure:| Skipped:|$)/) {|match|
+        " <n>)#{match[1]}"
       }
 
       # rubyspec
