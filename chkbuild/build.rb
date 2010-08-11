@@ -408,7 +408,11 @@ class ChkBuild::Build
         f.puts "<p><a href=\"../\">chkbuild</a></p>"
       end
       f.print "<a href=#{ha @compressed_loghtml_relpath} name=#{ha start_time}>#{h start_time}</a> #{h title}"
-      f.print " (<a href=#{ha @compressed_diffhtml_relpath}>#{h diff_txt}</a>)" if diff_txt
+      if diff_txt
+        f.print " (<a href=#{ha @compressed_diffhtml_relpath}>#{h diff_txt}</a>)"
+      else
+        f.print " (<a href=#{ha @compressed_diffhtml_relpath}>no diff</a>)"
+      end
       f.puts "<br>"
     }
   end
