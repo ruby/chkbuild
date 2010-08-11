@@ -583,7 +583,7 @@ End
 %     }
     </pre>
 % else
-    <p>no differences (<a href=<%=ha @compressed_loghtml_relpath %>>full log</a>)</p>
+    <p>no differences since the previous build (<a href=<%=ha @compressed_loghtml_relpath %>>full log</a>)</p>
 % end
     <hr>
     <p>
@@ -628,7 +628,7 @@ End
 %     }
     </pre>
 % else
-    <p>no differences (<a href=<%=ha "../"+@compressed_loghtml_relpath %>>full log</a>)</p>
+    <p>no differences since the previous build (<a href=<%=ha "../"+@compressed_loghtml_relpath %>>full log</a>)</p>
 % end
     <hr>
     <p>
