@@ -242,7 +242,7 @@ End
 	      s = File.lstat("test/#{t}")
 	      if s.directory? || (s.file? && /\Atest_/ =~ t)
 		b.catch_error {
-		  b.make("test-all", "TESTS=-v #{t}", "RUBYOPT=-w", make_options.merge(:section=>"test/#{t}"))
+		  b.make("test-all", "TESTS=-v test/#{t}", "RUBYOPT=-w", make_options.merge(:section=>"test/#{t}"))
 		}
 	      end
 	    }
