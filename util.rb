@@ -238,7 +238,7 @@ module Util
     end
   end
 
-  def atomic_make_file(filename, content)
+  def atomic_make_file(filename)
     tmp = nil
     i = 0
     begin
@@ -248,18 +248,18 @@ module Util
       i += 1
       retry
     end
-    f << content
+    yield f
     f.close
     File.rename tmp, filename
   end
 
-  def atomic_make_compressed_file(filename, content)
-    str = ""
-    strio = StringIO.new(str)
-    Zlib::GzipWriter.wrap(strio) {|z|
-      z << content
+  def atomic_make_compressed_file(filename)
+    atomic_make_file(filename) {|f|
+      Zlib::GzipWriter.wrap(f) {|z|
+        yield z
+        z.finish
+      }
     }
-    atomic_make_file(filename, str)
   end
 
   def with_tempfile(content) # :yield: tempfile

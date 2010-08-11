@@ -37,6 +37,7 @@ require 'timeoutcom'
 require 'gdb'
 require "lchg"
 require "util"
+require "erbio"
 
 module ChkBuild
 end
@@ -489,7 +490,7 @@ End
     content = ERB.new(RECENT_HTMLTemplate).result(binding)
 
     recent_path = @public+"recent.html"
-    atomic_make_file(recent_path, content)
+    atomic_make_file(recent_path) {|f| f << content }
   end
 
   def list_tags(log)
@@ -598,8 +599,9 @@ End
 End
 
   def make_html_log(title, has_diff, dst)
-    content = ERB.new(LAST_HTMLTemplate, nil, '%').result(binding)
-    atomic_make_file(dst, content)
+    atomic_make_file(dst) {|_erbout|
+      ERBIO.new(LAST_HTMLTemplate, nil, '%').result(binding)
+    }
   end
 
   DIFF_HTMLTemplate = <<'End'
@@ -642,8 +644,9 @@ End
 End
 
   def make_diffhtml(title, has_diff)
-    content = ERB.new(DIFF_HTMLTemplate, nil, '%').result(binding)
-    atomic_make_compressed_file(@public+@compressed_diffhtml_relpath, content)
+    atomic_make_compressed_file(@public+@compressed_diffhtml_relpath) {|_erbout|
+      ERBIO.new(DIFF_HTMLTemplate, nil, '%').result(binding)
+    }
   end
 
   LOG_HTMLTemplate = <<'End'
@@ -687,8 +690,9 @@ End
 End
 
   def make_loghtml(title, has_diff)
-    content = ERB.new(LOG_HTMLTemplate, nil, '%').result(binding)
-    atomic_make_compressed_file(@public+@compressed_loghtml_relpath, content)
+    atomic_make_compressed_file(@public+@compressed_loghtml_relpath) {|_erbout|
+      ERBIO.new(LOG_HTMLTemplate, nil, '%').result(binding)
+    }
   end
 
   def compress_file(src, dst)
