@@ -286,6 +286,30 @@ class ChkBuild::Build
     ret
   end
 
+  class LineReader
+    def initialize(filename)
+      @filename = filename
+    end
+
+    def each_line
+      if /\.gz\z/ =~ @filename.to_s
+        Zlib::GzipReader.wrap(open(@filename)) {|f|
+          f.each_line {|line|
+            line.force_encoding("ascii-8bit") if line.respond_to? :force_encoding
+            yield line
+          }
+        }
+      else
+        open(@filename) {|f|
+          f.each_line {|line|
+            line.force_encoding("ascii-8bit") if line.respond_to? :force_encoding
+            yield line
+          }
+        }
+      end
+    end
+  end
+
   def update_result
     title, title_version = gen_title
     send_title_to_parent(title_version)
@@ -296,6 +320,8 @@ class ChkBuild::Build
     @compressed_diffhtml_relpath = "log/#{prebuilt_start_time}.diff.html.gz"
     compress_file(@log_filename, @public+@compressed_rawlog_relpath)
     different_sections = make_diff
+    @diff_reader = LineReader.new(@public+@compressed_rawdiff_relpath)
+    @log_reader = LineReader.new(@log_filename)
     update_summary(title, different_sections)
     update_recent
     make_html_log(title, different_sections, @public+"last.html")
@@ -486,29 +512,13 @@ End
     tags
   end
 
-  def markup_log(str)
+  def markup_log_line(line)
     result = ''
-    str.each_line {|line|
-      if /\A== (\S+)/ =~ line
-        tag = $1
-        rest = $'
-        result << "<a name=#{ha(u(tag))}>== #{h(tag)}</a>#{h(rest)}"
-      else
-        i = 0
-        line.scan(/#{URI.regexp(['http'])}/o) {
-          result << h(line[i...$~.begin(0)]) if i < $~.begin(0)
-          result << "<a href=#{ha $&}>#{h $&}</a>"
-          i = $~.end(0)
-        }
-        result << h(line[i...line.length]) if i < line.length
-      end
-    }
-    result
-  end
-
-  def markup_diff(str)
-    result = ''
-    str.each_line {|line|
+    if /\A== (\S+)/ =~ line
+      tag = $1
+      rest = $'
+      result << "<a name=#{ha(u(tag))}>== #{h(tag)}</a>#{h(rest)}"
+    else
       i = 0
       line.scan(/#{URI.regexp(['http'])}/o) {
         result << h(line[i...$~.begin(0)]) if i < $~.begin(0)
@@ -516,6 +526,34 @@ End
         i = $~.end(0)
       }
       result << h(line[i...line.length]) if i < line.length
+    end
+    result
+  end
+
+  def markup_log(str)
+    result = ''
+    str.each_line {|line|
+      result << markup_log_line(line)
+    }
+    result
+  end
+
+  def markup_diff_line(line)
+    result = ''
+    i = 0
+    line.scan(/#{URI.regexp(['http'])}/o) {
+      result << h(line[i...$~.begin(0)]) if i < $~.begin(0)
+      result << "<a href=#{ha $&}>#{h $&}</a>"
+      i = $~.end(0)
+    }
+    result << h(line[i...line.length]) if i < line.length
+    result
+  end
+
+  def markup_diff(str)
+    result = ''
+    str.each_line {|line|
+      result << markup_diff_line(line)
     }
     result
   end
@@ -538,7 +576,11 @@ End
       <a href=<%=ha @compressed_loghtml_relpath %>>fulllog</a>
     </p>
 % if has_diff
-    <pre><%= markup_diff diff %></pre>
+    <pre>
+%     @diff_reader.each_line {|line|
+<%=     markup_diff_line line.chomp %>
+%     }
+    </pre>
 % else
     <p>no differences (<a href=<%=ha @compressed_loghtml_relpath %>>full log</a>)</p>
 % end
@@ -556,8 +598,6 @@ End
 End
 
   def make_html_log(title, has_diff, dst)
-    diff = Zlib::GzipReader.wrap(open(@public+@compressed_rawdiff_relpath)) {|f| f.read }
-    diff.force_encoding("ascii-8bit") if diff.respond_to? :force_encoding
     content = ERB.new(LAST_HTMLTemplate, nil, '%').result(binding)
     atomic_make_file(dst, content)
   end
@@ -580,7 +620,11 @@ End
       <a href=<%=ha "../"+@compressed_loghtml_relpath %>>fulllog</a>
     </p>
 % if has_diff
-    <pre><%= markup_diff diff %></pre>
+    <pre>
+%     @diff_reader.each_line {|line|
+<%=     markup_diff_line line.chomp %>
+%     }
+    </pre>
 % else
     <p>no differences (<a href=<%=ha "../"+@compressed_loghtml_relpath %>>full log</a>)</p>
 % end
@@ -598,8 +642,6 @@ End
 End
 
   def make_diffhtml(title, has_diff)
-    diff = Zlib::GzipReader.wrap(open(@public+@compressed_rawdiff_relpath)) {|f| f.read }
-    diff.force_encoding("ascii-8bit") if diff.respond_to? :force_encoding
     content = ERB.new(DIFF_HTMLTemplate, nil, '%').result(binding)
     atomic_make_compressed_file(@public+@compressed_diffhtml_relpath, content)
   end
@@ -622,11 +664,15 @@ End
       <a href=<%=ha "../"+@compressed_loghtml_relpath %>>fulllog</a>
     </p>
     <ul>
-% list_tags(log).each {|tag, success|
+% list_tags(@log_reader).each {|tag, success|
       <li><a href=<%=ha("#"+u(tag)) %>><%=h tag %></a><%= success ? "" : " failed" %></li>
 % }
     </ul>
-    <pre><%= markup_log log %></pre>
+    <pre>
+% @log_reader.each_line {|line|
+<%= markup_log_line line.chomp %>
+% }
+    </pre>
     <hr>
     <p>
       <a href="../../">chkbuild</a>
@@ -641,8 +687,6 @@ End
 End
 
   def make_loghtml(title, has_diff)
-    log = File.read(@log_filename)
-    log.force_encoding("ascii-8bit") if log.respond_to? :force_encoding
     content = ERB.new(LOG_HTMLTemplate, nil, '%').result(binding)
     atomic_make_compressed_file(@public+@compressed_loghtml_relpath, content)
   end
