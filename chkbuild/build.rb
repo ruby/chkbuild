@@ -290,14 +290,18 @@ class ChkBuild::Build
     title, title_version = gen_title
     send_title_to_parent(title_version)
     force_link @current_txt, @public+'last.txt' if @current_txt.file?
-    @compressed_log_relpath = "log/#{prebuilt_start_time}.log.txt.gz"
-    @compressed_diff_relpath = "log/#{prebuilt_start_time}.diff.txt.gz"
-    compress_file(@log_filename, @public+@compressed_log_relpath)
+    @compressed_rawlog_relpath = "log/#{prebuilt_start_time}.log.txt.gz"
+    @compressed_rawdiff_relpath = "log/#{prebuilt_start_time}.diff.txt.gz"
+    @compressed_loghtml_relpath = "log/#{prebuilt_start_time}.log.html.gz"
+    @compressed_diffhtml_relpath = "log/#{prebuilt_start_time}.diff.html.gz"
+    compress_file(@log_filename, @public+@compressed_rawlog_relpath)
     different_sections = make_diff
     update_summary(title, different_sections)
     update_recent
-    make_html_log(@log_filename, title, different_sections, @public+"last.html")
+    make_html_log(title, different_sections, @public+"last.html")
     compress_file(@public+"last.html", @public+"last.html.gz")
+    make_loghtml(title, different_sections)
+    make_diffhtml(title, different_sections)
     ChkBuild.run_upload_hooks(self.suffixed_name)
   end
 
@@ -403,8 +407,8 @@ class ChkBuild::Build
         f.puts "<h1>#{h self.depsuffixed_name} build summary</h1>"
         f.puts "<p><a href=\"../\">chkbuild</a></p>"
       end
-      f.print "<a href=#{ha @compressed_log_relpath} name=#{ha start_time}>#{h start_time}</a> #{h title}"
-      f.print " (<a href=#{ha @compressed_diff_relpath}>#{h diff_txt}</a>)" if diff_txt
+      f.print "<a href=#{ha @compressed_loghtml_relpath} name=#{ha start_time}>#{h start_time}</a> #{h title}"
+      f.print " (<a href=#{ha @compressed_diffhtml_relpath}>#{h diff_txt}</a>)" if diff_txt
       f.puts "<br>"
     }
   end
@@ -478,7 +482,7 @@ End
     tags
   end
 
-  def markup(str)
+  def markup_log(str)
     result = ''
     str.each_line {|line|
       if /\A== (\S+)/ =~ line
@@ -498,6 +502,20 @@ End
     result
   end
 
+  def markup_diff(str)
+    result = ''
+    str.each_line {|line|
+      i = 0
+      line.scan(/#{URI.regexp(['http'])}/o) {
+        result << h(line[i...$~.begin(0)]) if i < $~.begin(0)
+        result << "<a href=#{ha $&}>#{h $&}</a>"
+        i = $~.end(0)
+      }
+      result << h(line[i...line.length]) if i < line.length
+    }
+    result
+  end
+
   LAST_HTMLTemplate = <<'End'
 <html>
   <head>
@@ -511,38 +529,118 @@ End
       <a href="../">chkbuild</a>
       <a href="summary.html">summary</a>
       <a href="recent.html">recent</a>
-      <a href="<%=h permalink %>">permalink</a>
+      <a href="last.html.gz">last</a>
+      <a href=<%=ha @compressed_diffhtml_relpath %>>permalink</a>
+      <a href=<%=ha @compressed_loghtml_relpath %>>fulllog</a>
+    </p>
 % if has_diff
-      <a href="<%=h diff_permalink %>">diff</a>
+    <pre><%= markup_diff diff %></pre>
+% else
+    <p>no differences (<a href=<%=ha @compressed_loghtml_relpath %>>full log</a>)</p>
 % end
+    <hr>
+    <p>
+      <a href="../">chkbuild</a>
+      <a href="summary.html">summary</a>
+      <a href="recent.html">recent</a>
+      <a href="last.html.gz">last</a>
+      <a href=<%=ha @compressed_diffhtml_relpath %>>permalink</a>
+      <a href=<%=ha @compressed_loghtml_relpath %>>fulllog</a>
+    </p>
+  </body>
+</html>
+End
+
+  def make_html_log(title, has_diff, dst)
+    diff = Zlib::GzipReader.wrap(open(@public+@compressed_rawdiff_relpath)) {|f| f.read }
+    diff.force_encoding("ascii-8bit") if diff.respond_to? :force_encoding
+    content = ERB.new(LAST_HTMLTemplate, nil, '%').result(binding)
+    atomic_make_file(dst, content)
+  end
+
+  DIFF_HTMLTemplate = <<'End'
+<html>
+  <head>
+    <title><%=h title %></title>
+    <meta name="author" content="chkbuild">
+    <meta name="generator" content="chkbuild">
+  </head>
+  <body>
+    <h1><%=h title %></h1>
+    <p>
+      <a href="../../">chkbuild</a>
+      <a href="../summary.html">summary</a>
+      <a href="../recent.html">recent</a>
+      <a href="../last.html.gz">last</a>
+      <a href=<%=ha "../"+@compressed_diffhtml_relpath %>>difference</a>
+      <a href=<%=ha "../"+@compressed_loghtml_relpath %>>fulllog</a>
+    </p>
+% if has_diff
+    <pre><%= markup_diff diff %></pre>
+% else
+    <p>no differences (<a href=<%=ha "../"+@compressed_loghtml_relpath %>>full log</a>)</p>
+% end
+    <hr>
+    <p>
+      <a href="../../">chkbuild</a>
+      <a href="../summary.html">summary</a>
+      <a href="../recent.html">recent</a>
+      <a href="../last.html.gz">last</a>
+      <a href=<%=ha "../"+@compressed_diffhtml_relpath %>>difference</a>
+      <a href=<%=ha "../"+@compressed_loghtml_relpath %>>fulllog</a>
+    </p>
+  </body>
+</html>
+End
+
+  def make_diffhtml(title, has_diff)
+    diff = Zlib::GzipReader.wrap(open(@public+@compressed_rawdiff_relpath)) {|f| f.read }
+    diff.force_encoding("ascii-8bit") if diff.respond_to? :force_encoding
+    content = ERB.new(DIFF_HTMLTemplate, nil, '%').result(binding)
+    atomic_make_compressed_file(@public+@compressed_diffhtml_relpath, content)
+  end
+
+  LOG_HTMLTemplate = <<'End'
+<html>
+  <head>
+    <title><%=h title %></title>
+    <meta name="author" content="chkbuild">
+    <meta name="generator" content="chkbuild">
+  </head>
+  <body>
+    <h1><%=h title %></h1>
+    <p>
+      <a href="../../">chkbuild</a>
+      <a href="../summary.html">summary</a>
+      <a href="../recent.html">recent</a>
+      <a href="../last.html.gz">last</a>
+      <a href=<%=ha "../"+@compressed_diffhtml_relpath %>>difference</a>
+      <a href=<%=ha "../"+@compressed_loghtml_relpath %>>fulllog</a>
     </p>
     <ul>
 % list_tags(log).each {|tag, success|
       <li><a href=<%=ha("#"+u(tag)) %>><%=h tag %></a><%= success ? "" : " failed" %></li>
 % }
     </ul>
-    <pre><%= markup log %></pre>
+    <pre><%= markup_log log %></pre>
     <hr>
     <p>
-      <a href="../">chkbuild</a>
-      <a href="summary.html">summary</a>
-      <a href="recent.html">recent</a>
-      <a href=<%=ha permalink %>>permalink</a>
-% if has_diff
-      <a href=<%=ha diff_permalink %>>diff</a>
-% end
+      <a href="../../">chkbuild</a>
+      <a href="s../ummary.html">summary</a>
+      <a href="r../ecent.html">recent</a>
+      <a href="../last.html.gz">last</a>
+      <a href=<%=ha "../"+@compressed_diffhtml_relpath %>>difference</a>
+      <a href=<%=ha "../"+@compressed_loghtml_relpath %>>fulllog</a>
     </p>
   </body>
 </html>
 End
 
-  def make_html_log(log_filename, title, has_diff, dst)
-    log = File.read(log_filename)
+  def make_loghtml(title, has_diff)
+    log = File.read(@log_filename)
     log.force_encoding("ascii-8bit") if log.respond_to? :force_encoding
-    permalink = @compressed_log_relpath
-    diff_permalink = @compressed_diff_relpath
-    content = ERB.new(LAST_HTMLTemplate, nil, '%').result(binding)
-    atomic_make_file(dst, content)
+    content = ERB.new(LOG_HTMLTemplate, nil, '%').result(binding)
+    atomic_make_compressed_file(@public+@compressed_loghtml_relpath, content)
   end
 
   def compress_file(src, dst)
@@ -587,15 +685,17 @@ End
           }
       time_seq.pop
     end
-    return nil if time_seq.empty?
+    output_path = @public+@compressed_rawdiff_relpath
+    if time_seq.empty?
+      Zlib::GzipWriter.wrap(open(output_path, "w")) {}
+      return nil
+    end
     time1 = time_seq.last
     different_sections = nil
-    output_path = @public+@compressed_diff_relpath
     Zlib::GzipWriter.wrap(open(output_path, "w")) {|z|
       different_sections = output_diff(time1, time2, z)
     }
     if !different_sections
-      output_path.unlink
       return nil
     end
     return different_sections

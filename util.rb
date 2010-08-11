@@ -33,6 +33,7 @@ require "tempfile"
 require "find"
 require "pathname"
 require "rbconfig"
+require "stringio"
 
 require "erb"
 include ERB::Util
@@ -250,6 +251,15 @@ module Util
     f << content
     f.close
     File.rename tmp, filename
+  end
+
+  def atomic_make_compressed_file(filename, content)
+    str = ""
+    strio = StringIO.new(str)
+    Zlib::GzipWriter.wrap(strio) {|z|
+      z << content
+    }
+    atomic_make_file(filename, str)
   end
 
   def with_tempfile(content) # :yield: tempfile
