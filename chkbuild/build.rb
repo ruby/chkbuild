@@ -705,8 +705,6 @@ End
   end
 
   RSS_CONTENT_HTMLTemplate = <<'End'
-<h1><%=h title %></h1>
-<p><a href=<%=ha @compressed_loghtml_relpath %>>full log</a></p>
 % if has_diff
 <pre>
 %   @diff_reader.each_line {|line|
@@ -716,6 +714,7 @@ End
 % else
 <p>no differences since the previous build</p>
 % end
+<p><a href=<%=ha @compressed_loghtml_relpath %>>full log</a></p>
 End
 
   def make_rss_html_content(title, has_diff)
