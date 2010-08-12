@@ -519,7 +519,14 @@ End
     tags
   end
 
+  def encode_invalid(str)
+    str.gsub(/[^\t\r\n -~]+/) {|invalid|
+      "[" + invalid.unpack("H*")[0] + "]"
+    }
+  end
+
   def markup_log_line(line)
+    line = encode_invalid(line)
     result = ''
     if /\A== (\S+)/ =~ line
       tag = $1
@@ -546,6 +553,7 @@ End
   end
 
   def markup_diff_line(line)
+    line = encode_invalid(line)
     result = ''
     i = 0
     line.scan(/#{URI.regexp(['http'])}/o) {
