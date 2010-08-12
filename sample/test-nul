@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+require 'chkbuild'
+
+ChkBuild.def_target("nul") {|b|
+  b.run("ruby", "-e", "puts \"{\\0}\", Time.now")
+}
+
+ChkBuild.main
