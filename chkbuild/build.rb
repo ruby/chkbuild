@@ -321,7 +321,7 @@ class ChkBuild::Build
     @compressed_rawdiff_relpath = "log/#{t}.diff.txt.gz"
     @compressed_loghtml_relpath = "log/#{t}.log.html.gz"
     @compressed_diffhtml_relpath = "log/#{t}.diff.html.gz"
-    @rss_relpath = "index.rdf"
+    @rss_relpath = "rss"
     @public_uri = "#{ChkBuild.top_uri}#{u self.depsuffixed_name}/"
     compress_file(@log_filename, @public+@compressed_rawlog_relpath)
     different_sections = make_diff
@@ -455,7 +455,7 @@ class ChkBuild::Build
     <title><%=h title %></title>
     <meta name="author" content="chkbuild">
     <meta name="generator" content="chkbuild">
-    <link rel="alternate" type="application/rss+xml" title="RSS" href=<%=ha @public_uri+"index.rdf" %>>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href=<%=ha @public_uri+@rss_relpath %>>
   </head>
   <body>
     <h1><%=h title %></h1>
@@ -571,7 +571,7 @@ End
     <title><%=h title %></title>
     <meta name="author" content="chkbuild">
     <meta name="generator" content="chkbuild">
-    <link rel="alternate" type="application/rss+xml" title="RSS" href=<%=ha @public_uri+"index.rdf" %>>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href=<%=ha @public_uri+@rss_relpath %>>
   </head>
   <body>
     <h1><%=h title %></h1>
@@ -617,7 +617,7 @@ End
     <title><%=h title %></title>
     <meta name="author" content="chkbuild">
     <meta name="generator" content="chkbuild">
-    <link rel="alternate" type="application/rss+xml" title="RSS" href=<%=ha @public_uri+"index.rdf" %>>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href=<%=ha @public_uri+@rss_relpath %>>
   </head>
   <body>
     <h1><%=h title %></h1>
@@ -663,7 +663,7 @@ End
     <title><%=h title %></title>
     <meta name="author" content="chkbuild">
     <meta name="generator" content="chkbuild">
-    <link rel="alternate" type="application/rss+xml" title="RSS" href=<%=ha @public_uri+"index.rdf" %>>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href=<%=ha @public_uri+@rss_relpath %>>
   </head>
   <body>
     <h1><%=h title %></h1>
