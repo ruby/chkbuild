@@ -322,6 +322,7 @@ class ChkBuild::Build
     @compressed_loghtml_relpath = "log/#{t}.log.html.gz"
     @compressed_diffhtml_relpath = "log/#{t}.diff.html.gz"
     @rss_relpath = "index.rdf"
+    @public_uri = "#{ChkBuild.top_uri}#{u self.depsuffixed_name}/"
     compress_file(@log_filename, @public+@compressed_rawlog_relpath)
     different_sections = make_diff
     @diff_reader = LineReader.new(@public+@compressed_rawdiff_relpath)
@@ -454,7 +455,7 @@ class ChkBuild::Build
     <title><%=h title %></title>
     <meta name="author" content="chkbuild">
     <meta name="generator" content="chkbuild">
-    <link rel="alternate" type="application/rss+xml" title="RSS" href="index.rdf">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href=<%=ha @public_uri+"index.rdf" %>>
   </head>
   <body>
     <h1><%=h title %></h1>
@@ -570,7 +571,7 @@ End
     <title><%=h title %></title>
     <meta name="author" content="chkbuild">
     <meta name="generator" content="chkbuild">
-    <link rel="alternate" type="application/rss+xml" title="RSS" href="index.rdf">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href=<%=ha @public_uri+"index.rdf" %>>
   </head>
   <body>
     <h1><%=h title %></h1>
@@ -616,7 +617,7 @@ End
     <title><%=h title %></title>
     <meta name="author" content="chkbuild">
     <meta name="generator" content="chkbuild">
-    <link rel="alternate" type="application/rss+xml" title="RSS" href="../index.rdf">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href=<%=ha @public_uri+"index.rdf" %>>
   </head>
   <body>
     <h1><%=h title %></h1>
@@ -662,7 +663,7 @@ End
     <title><%=h title %></title>
     <meta name="author" content="chkbuild">
     <meta name="generator" content="chkbuild">
-    <link rel="alternate" type="application/rss+xml" title="RSS" href="../index.rdf">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href=<%=ha @public_uri+"index.rdf" %>>
   </head>
   <body>
     <h1><%=h title %></h1>
