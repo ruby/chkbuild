@@ -1,6 +1,6 @@
-# chkbuild.rb - chkbuild library entry file
+# chkbuild/config.rb - chkbuild config routines.
 #
-# Copyright (C) 2006-2010 Tanaka Akira  <akr@fsij.org>
+# Copyright (C) 2010 Tanaka Akira  <akr@fsij.org>
 # 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -24,20 +24,9 @@
 # IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
 # OF SUCH DAMAGE.
 
-Encoding.default_external = "ASCII-8BIT" if defined?(Encoding.default_external = nil)
-
-require 'chkbuild/main'
-require 'chkbuild/config'
-require 'chkbuild/lock'
-require 'chkbuild/cvs'
-require 'chkbuild/svn'
-require 'chkbuild/git'
-require 'chkbuild/xforge'
-require "util"
-require 'chkbuild/target'
-require 'chkbuild/build'
-
 module ChkBuild
-  autoload :Ruby, 'chkbuild/ruby'
-  autoload :GCC, 'chkbuild/gcc'
+  @top_uri = "file://#{ChkBuild.public_top}/"
+  class << self
+    attr_accessor :top_uri
+  end
 end

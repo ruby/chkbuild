@@ -31,6 +31,7 @@ require "uri"
 require "tempfile"
 require "pathname"
 require "rbconfig"
+require "rss"
 
 require 'escape'
 require 'timeoutcom'
@@ -315,20 +316,23 @@ class ChkBuild::Build
     title, title_version = gen_title
     send_title_to_parent(title_version)
     force_link @current_txt, @public+'last.txt' if @current_txt.file?
-    @compressed_rawlog_relpath = "log/#{prebuilt_start_time}.log.txt.gz"
-    @compressed_rawdiff_relpath = "log/#{prebuilt_start_time}.diff.txt.gz"
-    @compressed_loghtml_relpath = "log/#{prebuilt_start_time}.log.html.gz"
-    @compressed_diffhtml_relpath = "log/#{prebuilt_start_time}.diff.html.gz"
+    t = prebuilt_start_time
+    @compressed_rawlog_relpath = "log/#{t}.log.txt.gz"
+    @compressed_rawdiff_relpath = "log/#{t}.diff.txt.gz"
+    @compressed_loghtml_relpath = "log/#{t}.log.html.gz"
+    @compressed_diffhtml_relpath = "log/#{t}.diff.html.gz"
+    @rss_relpath = "index.rdf"
     compress_file(@log_filename, @public+@compressed_rawlog_relpath)
     different_sections = make_diff
     @diff_reader = LineReader.new(@public+@compressed_rawdiff_relpath)
     @log_reader = LineReader.new(@log_filename)
     update_summary(title, different_sections)
     update_recent
-    make_html_log(title, different_sections, @public+"last.html")
+    make_last_html(title, different_sections, @public+"last.html")
     compress_file(@public+"last.html", @public+"last.html.gz")
     make_loghtml(title, different_sections)
     make_diffhtml(title, different_sections)
+    make_rss(title, different_sections)
     ChkBuild.run_upload_hooks(self.suffixed_name)
   end
 
@@ -450,6 +454,7 @@ class ChkBuild::Build
     <title><%=h title %></title>
     <meta name="author" content="chkbuild">
     <meta name="generator" content="chkbuild">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="index.rdf">
   </head>
   <body>
     <h1><%=h title %></h1>
@@ -565,6 +570,7 @@ End
     <title><%=h title %></title>
     <meta name="author" content="chkbuild">
     <meta name="generator" content="chkbuild">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="index.rdf">
   </head>
   <body>
     <h1><%=h title %></h1>
@@ -583,7 +589,7 @@ End
 %     }
     </pre>
 % else
-    <p>no differences since the previous build (<a href=<%=ha @compressed_loghtml_relpath %>>full log</a>)</p>
+    <p>no differences since the previous build (<a href=<%=ha "../"+@compressed_loghtml_relpath %>>full log</a>)</p>
 % end
     <hr>
     <p>
@@ -598,7 +604,7 @@ End
 </html>
 End
 
-  def make_html_log(title, has_diff, dst)
+  def make_last_html(title, has_diff, dst)
     atomic_make_file(dst) {|_erbout|
       ERBIO.new(LAST_HTMLTemplate, nil, '%').result(binding)
     }
@@ -610,6 +616,7 @@ End
     <title><%=h title %></title>
     <meta name="author" content="chkbuild">
     <meta name="generator" content="chkbuild">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="../index.rdf">
   </head>
   <body>
     <h1><%=h title %></h1>
@@ -655,6 +662,7 @@ End
     <title><%=h title %></title>
     <meta name="author" content="chkbuild">
     <meta name="generator" content="chkbuild">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="../index.rdf">
   </head>
   <body>
     <h1><%=h title %></h1>
@@ -693,6 +701,62 @@ End
     atomic_make_compressed_file(@public+@compressed_loghtml_relpath) {|_erbout|
       ERBIO.new(LOG_HTMLTemplate, nil, '%').result(binding)
     }
+  end
+
+  RSS_CONTENT_HTMLTemplate = <<'End'
+<h1><%=h title %></h1>
+<p><a href=<%=ha @compressed_loghtml_relpath %>>full log</a></p>
+% if has_diff
+<pre>
+%   @diff_reader.each_line {|line|
+<%=   markup_diff_line line.chomp %>
+%   }
+</pre>
+% else
+<p>no differences since the previous build</p>
+% end
+End
+
+  def make_rss_html_content(title, has_diff)
+    ERB.new(RSS_CONTENT_HTMLTemplate, nil, '%').result(binding)
+  end
+
+  def make_rss(title, has_diff)
+    latest_url = "#{ChkBuild.top_uri}#{u self.depsuffixed_name}/#{@compressed_diffhtml_relpath}"
+    t = prebuilt_start_time_obj.getutc
+    t = Time.utc(t.year, t.month, t.day, t.hour, t.min, t.sec)
+    if (@public+@rss_relpath).exist?
+      rss = RSS::Parser.parse((@public+@rss_relpath).read)
+      olditems = rss.items
+      n = 24
+      if n < olditems.length
+        olditems = olditems.sort_by {|item| item.date }[-n,n]
+      end
+    else
+      olditems = []
+    end
+    rss = RSS::Maker.make("1.0") {|maker|
+      maker.channel.about = latest_url
+      maker.channel.title = self.depsuffixed_name
+      maker.channel.description = "chkbuild #{self.depsuffixed_name}"
+      maker.channel.link = "#{ChkBuild.top_uri}#{u self.depsuffixed_name}/"
+      maker.items.do_sort = true
+      olditems.each {|olditem|
+        maker.items.new_item {|item|
+          item.link = olditem.link
+          item.title = olditem.title
+          item.date = olditem.date
+          item.content_encoded = olditem.content_encoded
+        }
+      }
+      maker.items.new_item {|item|
+        item.link = latest_url
+        item.title = title
+        item.date = t
+        item.content_encoded = make_rss_html_content(title, has_diff)
+      }
+    }
+    atomic_make_file(@public+@rss_relpath) {|f| f.puts rss.to_s }
   end
 
   def compress_file(src, dst)

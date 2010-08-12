@@ -2,7 +2,7 @@
 
 # sample/build-ruby - build script for ruby
 #
-# Copyright (C) 2005,2006,2007,2009 Tanaka Akira  <akr@fsij.org>
+# Copyright (C) 2005-2010 Tanaka Akira  <akr@fsij.org>
 # 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -29,6 +29,9 @@
 require 'chkbuild'
 
 ChkBuild.limit(:data=>1024*1024*800, :as=>1024*1024*800)
+
+# ChkBuild.top_uri is used for RSS.
+# ChkBuild.top_uri = "file://#{ChkBuild.public_top}/"
 
 ChkBuild::Ruby.def_target(
   ChkBuild::Ruby::MaintainedBranches,
