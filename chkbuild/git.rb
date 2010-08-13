@@ -69,7 +69,8 @@ class ChkBuild::Build
     if opts[:github]
       urigen = GitHub.new(*opts[:github])
     end
-    if shared_dir = opts[:shared_gitdir]
+    shared_dir = ChkBuild.build_top
+    if shared_dir
       opts_shared = opts.dup
       opts_shared[:section] += "(shared)"
       Dir.chdir(shared_dir) {

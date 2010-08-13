@@ -78,7 +78,7 @@ End
 
     def def_target(*args)
       opts = Hash === args.last ? args.pop : {}
-      default_opts = {:separated_srcdir=>false, :shared_gitdir=>ChkBuild.build_top}
+      default_opts = {:separated_srcdir=>false}
       opts = default_opts.merge(opts)
       opts[:limit_combination] = method(:limit_combination)
       args.push opts
