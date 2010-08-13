@@ -715,10 +715,19 @@ End
   RSS_CONTENT_HTMLTemplate = <<'End'
 % if has_diff
 <pre>
+%   n = 0
 %   @diff_reader.each_line {|line|
+%     n += 1
+%     break if max_diff_lines < n
 <%=   markup_diff_line line.chomp %>
 %   }
+%   if max_diff_lines < n
+...(omitted)...
+%   end
 </pre>
+%   if max_diff_lines < n
+<p><a href=<%=ha @compressed_diffhtml_relpath %>>all differences</a>.</p>
+%   end
 % else
 <p>no differences since the previous build</p>
 % end
@@ -726,6 +735,7 @@ End
 End
 
   def make_rss_html_content(title, has_diff)
+    max_diff_lines = 500
     ERB.new(RSS_CONTENT_HTMLTemplate, nil, '%').result(binding)
   end
 
