@@ -92,13 +92,15 @@ class ChkBuild::Target
   def add_failure_hook(secname, &block) @failure_hook << [secname, block] end
   def each_failure_hook(&block) @failure_hook.each(&block) end
 
-  CHANGE_LINE_PAT = /^(ADD|DEL|CHG) .*\t.*->.*\n|^COMMIT .*\n|^last commit:\n/
+  CHANGE_LINE_PAT = /^((ADD|DEL|CHG) .*\t.*->.*|COMMIT .*|last commit:)\n/
+  CHANGE_LINE_PAT2 = /^(DIRECTORY .*|FILE .*)\n/
 
   def init_default_diff_preprocess_hooks
     add_diff_preprocess_gsub(/ # \d{4,}-\d\d-\d\dT\d\d:\d\d:\d\d[-+]\d\d:\d\d$/) {|match|
       ' # <time>'
     }
     add_diff_preprocess_gsub(CHANGE_LINE_PAT) {|match| '' }
+    add_diff_preprocess_gsub(CHANGE_LINE_PAT2) {|match| '' }
     add_diff_preprocess_gsub(/timeout: the process group \d+ is alive/) {|match|
       "timeout: the process group <pgid> is alive"
     }

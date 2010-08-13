@@ -826,7 +826,8 @@ End
   end
 
   def output_diff(t1, t2, out)
-    has_change_line = output_change_lines(t2, out)
+    has_change_line = output_change_lines2(t1, t2, out)
+    has_change_line |= output_change_lines(t2, out)
     tmp1 = make_diff_content(t1)
     tmp2 = make_diff_content(t2)
     header1 = "--- #{t1}\n"
@@ -855,6 +856,72 @@ End
       end
     }
     has_diff
+  end
+
+  def collect_checkout_log(t)
+    result = []
+    open_gziped_log(t) {|f|
+      lines = nil
+      f.each {|line|
+        # CHECKOUT svn http://svn.ruby-lang.org/repos/ruby trunk
+	# VIEWER ViewVC http://svn.ruby-lang.org/cgi-bin/viewvc.cgi?diff_format=u
+	# DIRECTORY .     28972
+	# FILE .document  27092   sha256:88112f5a76d27b7a4b0623a1cbda18d2dd0bc4b3847fc47812fb3a3052f2bcee
+	if !lines
+	  if /\ACHECKOUT / =~ line
+	    result << lines if lines
+	    lines = [line]
+	  end
+	else
+	  case line
+	  when /\AVIEWER /, /\ADIRECTORY /, /\AFILE /
+	    lines << line
+	  else
+	    result << lines
+	    lines = nil
+	  end
+	end
+      }
+      result << lines if lines
+    }
+    result
+  end
+
+  def output_change_lines2(t1, t2, out)
+    has_change_line = false
+    a1 = collect_checkout_log(t1)
+    h1 = {}
+    a1.each {|lines| h1[lines[0]] = lines }
+    a2 = collect_checkout_log(t2)
+    h2 = {}
+    a2.each {|lines| h2[lines[0]] = lines }
+    checkout_lines = a1.map {|lines| lines[0] }
+    checkout_lines |= a2.map {|lines| lines[0] }
+    checkout_lines.each {|checkout_line|
+      lines1 = h1[checkout_line]
+      lines2 = h2[checkout_line]
+      next if lines1 == lines2
+      has_change_line = true
+      if lines1 && lines2
+        if /\ACHECKOUT\s+([a-z]+)/ =~ checkout_line
+	  reptype = $1
+	  meth = "output_#{reptype}_change_lines"
+	  if self.respond_to? meth
+	    self.send(meth, lines1, lines2, out)
+	  else
+	    out.puts "CHG #{checkout_line}"
+	  end
+	end
+      else
+        if lines1
+	  out.puts "DEL #{checkout_line}"
+	else
+	  out.puts "ADD #{checkout_line}"
+	end
+      end
+    }
+    out.puts if has_change_line
+    has_change_line
   end
 
   def different_sections(tmp1, tmp2)
