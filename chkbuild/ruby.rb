@@ -580,7 +580,8 @@ End
 
       # rubyspec:
       # 2932 files, 13911 examples, 182945 expectations, 34 failures, 24 errors
-      t.add_diff_preprocess_gsub(/^(\d+ files, \d+ examples, )\d+( expectations, \d+ failures, \d+ errors)$/) {|match|
+      # 1 file, 36 examples, 52766 expectations, 0 failures, 0 errors
+      t.add_diff_preprocess_gsub(/^(\d+ files?, \d+ examples?, )\d+( expectations?, \d+ failures?, \d+ errors?)$/) {|match|
         match[1] + "<num>" + match[2]
       }
 
