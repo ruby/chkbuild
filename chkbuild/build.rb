@@ -316,15 +316,17 @@ class ChkBuild::Build
     title, title_version = gen_title
     send_title_to_parent(title_version)
     force_link @current_txt, @public+'last.txt' if @current_txt.file?
-    t = prebuilt_start_time
-    @compressed_rawlog_relpath = "log/#{t}.log.txt.gz"
-    @compressed_rawdiff_relpath = "log/#{t}.diff.txt.gz"
-    @compressed_loghtml_relpath = "log/#{t}.log.html.gz"
-    @compressed_diffhtml_relpath = "log/#{t}.diff.html.gz"
+    @t = prebuilt_start_time
+    @compressed_rawlog_relpath = "log/#{@t}.log.txt.gz"
+    @compressed_rawdiff_relpath = "log/#{@t}.diff.txt.gz"
+    @compressed_loghtml_relpath = "log/#{@t}.log.html.gz"
+    @compressed_diffhtml_relpath = "log/#{@t}.diff.html.gz"
     @rss_relpath = "rss"
     @public_uri = "#{ChkBuild.top_uri}#{u self.depsuffixed_name}/"
     compress_file(@log_filename, @public+@compressed_rawlog_relpath)
-    different_sections = make_diff
+    @older_time = find_diff_target_time(@t)
+    @compressed_older_loghtml_relpath = "log/#{@older_time}.log.html.gz"
+    different_sections = make_diff(@older_time, @t)
     @diff_reader = LineReader.new(@public+@compressed_rawdiff_relpath)
     @log_reader = LineReader.new(@log_filename)
     update_summary(title, different_sections)
@@ -592,13 +594,20 @@ End
       <a href=<%=ha @compressed_loghtml_relpath %>>fulllog</a>
     </p>
 % if has_diff
+    <p>
+      <a href=<%=ha @compressed_older_loghtml_relpath %>><%=h @older_time %></a> -&gt;
+      <a href=<%=ha @compressed_loghtml_relpath %>><%=h @t %></a>
+    </p>
     <pre>
 %     @diff_reader.each_line {|line|
 <%=     markup_diff_line line.chomp %>
 %     }
     </pre>
 % else
-    <p>no differences since the previous build (<a href=<%=ha @compressed_loghtml_relpath %>>full log</a>)</p>
+    <p>no differences since
+      <a href=<%=ha @compressed_older_loghtml_relpath %>><%=h @older_time %></a> to
+      <a href=<%=ha @compressed_loghtml_relpath  %>><%=h @t %></a>.
+    </p>
 % end
     <hr>
     <p>
@@ -638,13 +647,20 @@ End
       <a href=<%=ha "../"+@compressed_loghtml_relpath %>>fulllog</a>
     </p>
 % if has_diff
+    <p>
+      <a href=<%=ha "../"+@compressed_older_loghtml_relpath %>><%=h @older_time %></a> -&gt;
+      <a href=<%=ha "../"+@compressed_loghtml_relpath %>><%=h @t %></a>
+    </p>
     <pre>
 %     @diff_reader.each_line {|line|
 <%=     markup_diff_line line.chomp %>
 %     }
     </pre>
 % else
-    <p>no differences since the previous build (<a href=<%=ha "../"+@compressed_loghtml_relpath %>>full log</a>)</p>
+    <p>no differences since
+      <a href=<%=ha "../"+@compressed_older_loghtml_relpath %>><%=h @older_time %></a> to
+      <a href=<%=ha "../"+@compressed_loghtml_relpath  %>><%=h @t %></a>.
+    </p>
 % end
     <hr>
     <p>
@@ -729,7 +745,10 @@ End
 <p><a href=<%=ha @compressed_diffhtml_relpath %>>all differences</a>.</p>
 %   end
 % else
-<p>no differences since the previous build</p>
+<p>no differences since
+  <a href=<%=ha @compressed_older_loghtml_relpath %>><%=h @older_time %></a> to
+  <a href=<%=ha @compressed_loghtml_relpath  %>><%=h @t %></a>.
+</p>
 % end
 <p><a href=<%=ha @compressed_loghtml_relpath %>>full log</a></p>
 End
@@ -790,8 +809,7 @@ End
     err.backtrace.each {|pos| puts "| #{pos}" }
   end
 
-  def make_diff
-    time2 = prebuilt_start_time
+  def find_diff_target_time(time2)
     entries = Dir.entries(@public_log)
     time_seq = []
     entries.each {|f|
@@ -819,12 +837,15 @@ End
           }
       time_seq.pop
     end
+    time_seq.last
+  end
+
+  def make_diff(time1, time2)
     output_path = @public+@compressed_rawdiff_relpath
-    if time_seq.empty?
+    if !time1
       Zlib::GzipWriter.wrap(open(output_path, "w")) {}
       return nil
     end
-    time1 = time_seq.last
     different_sections = nil
     Zlib::GzipWriter.wrap(open(output_path, "w")) {|z|
       different_sections = output_diff(time1, time2, z)
