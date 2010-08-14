@@ -93,7 +93,7 @@ class ChkBuild::Target
   def each_failure_hook(&block) @failure_hook.each(&block) end
 
   CHANGE_LINE_PAT = /^((ADD|DEL|CHG) .*\t.*->.*|COMMIT .*|last commit:)\n/
-  CHANGE_LINE_PAT2 = /^(DIRECTORY .*|FILE .*|LASTCOMMIT )\n/
+  CHANGE_LINE_PAT2 = /^(DIRECTORY .*|FILE .*|LASTCOMMIT .*)\n/
 
   def init_default_diff_preprocess_hooks
     add_diff_preprocess_gsub(/ # \d{4,}-\d\d-\d\dT\d\d:\d\d:\d\d[-+]\d\d:\d\d$/) {|match|

@@ -1,6 +1,6 @@
 # chkbuild/git.rb - git access method
 #
-# Copyright (C) 2008,2009 Tanaka Akira  <akr@fsij.org>
+# Copyright (C) 2008-2010 Tanaka Akira  <akr@fsij.org>
 # 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -116,9 +116,9 @@ class ChkBuild::Build
       }
     end
     Dir.chdir(working_dir) {
-      new_head = git_head_commit
+      new_head, new_head_log = git_head_oneline_log
       puts "CHECKOUT git #{cloneurl} #{working_dir}"
-      puts "LASTCOMMIT #{new_head}"
+      puts "LASTCOMMIT #{new_head} #{new_head_log}"
     }
   end
 
@@ -128,22 +128,18 @@ class ChkBuild::Build
     git("git://github.com/#{user}/#{project}.git", working_dir, opts)
   end
 
-  def git_oneline_logs(old_head=nil)
+  def git_head_oneline_log
     result = []
-    if old_head
-      command = "git log --pretty=oneline #{old_head}..HEAD"
-    else
-      command = "git log --pretty=oneline --max-count=1"
-    end
+    command = "git log --pretty=oneline HEAD"
     IO.popen(command) {|f|
       f.each_line {|line|
         # <sha1><sp><title line>
         if /\A([0-9a-fA-F]+)\s+(.*)/ =~ line
-          result << [$1, $2]
+	  return [$1, $2]
         end
       }
     }
-    result
+    return nil
   end
 
   def git_oneline_logs2(old_head, new_head)
@@ -250,9 +246,9 @@ class ChkBuild::Build
     end
 
     lastcommit1 = lines1.find {|line| /\ALASTCOMMIT / =~ line }
-    lastrev1 = $1 if lastcommit1 && /\ALASTCOMMIT ([0-9a-fA-F]+)\n/ =~ lastcommit1
+    lastrev1 = $1 if lastcommit1 && /\ALASTCOMMIT ([0-9a-fA-F]+)/ =~ lastcommit1
     lastcommit2 = lines2.find {|line| /\ALASTCOMMIT / =~ line }
-    lastrev2 = $1 if lastcommit2 && /\ALASTCOMMIT ([0-9a-fA-F]+)\n/ =~ lastcommit2
+    lastrev2 = $1 if lastcommit2 && /\ALASTCOMMIT ([0-9a-fA-F]+)/ =~ lastcommit2
     if !lastrev1 || !lastrev2
       out.puts "no last revision found."
       return 
