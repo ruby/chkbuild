@@ -157,6 +157,7 @@ class ChkBuild::Build
         end
       }
     }
+    result.reverse!
     result
   end
 
