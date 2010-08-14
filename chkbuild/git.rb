@@ -69,36 +69,34 @@ class ChkBuild::Build
     if opts[:github]
       urigen = GitHub.new(*opts[:github])
     end
-    shared_dir = ChkBuild.build_top
-    if shared_dir
-      opts_shared = opts.dup
-      opts_shared[:section] += "(shared)"
-      Dir.chdir(shared_dir) {
-        if File.directory?(working_dir) && File.exist?("#{working_dir}/.git")
-	  Dir.chdir(working_dir) {
-	    git_logfile(opts_shared) {|opts2|
-	      self.run("git", "pull", opts2)
-	    }
-	  }
-	else
-	  FileUtils.rm_rf(working_dir) if File.exist?(working_dir)
-	  pdir = File.dirname(working_dir)
-	  FileUtils.mkdir_p(pdir) if !File.directory?(pdir)
+    shared_dir = ChkBuild.build_top + 'git-repos'
+    FileUtils.mkdir_p(shared_dir)
+    opts_shared = opts.dup
+    opts_shared[:section] += "(shared)"
+    Dir.chdir(shared_dir) {
+      if File.directory?(working_dir) && File.exist?("#{working_dir}/.git")
+	Dir.chdir(working_dir) {
 	  git_logfile(opts_shared) {|opts2|
-	    self.run "git", "clone", "-q", cloneurl, working_dir, opts2
+	    self.run("git", "pull", opts2)
 	  }
-	end
-	cloneurl = "#{shared_dir}/#{working_dir}"
-      }
-    end
+	}
+      else
+	FileUtils.rm_rf(working_dir) if File.exist?(working_dir)
+	pdir = File.dirname(working_dir)
+	FileUtils.mkdir_p(pdir) if !File.directory?(pdir)
+	git_logfile(opts_shared) {|opts2|
+	  self.run "git", "clone", "-q", cloneurl, working_dir, opts2
+	}
+      end
+    }
+    cloneurl2 = "#{shared_dir}/#{working_dir}"
+    old_head = nil
     if File.exist?(working_dir) && File.exist?("#{working_dir}/.git")
       Dir.chdir(working_dir) {
         old_head = git_head_commit
         git_logfile(opts) {|opts2|
           self.run "git", "pull", opts2
         }
-        logs = git_oneline_logs(old_head)
-        git_print_logs(old_head, logs, urigen)
       }
     else
       FileUtils.rm_rf(working_dir) if File.exist?(working_dir)
@@ -113,13 +111,16 @@ class ChkBuild::Build
         }
       end
       git_logfile(opts) {|opts2|
-        self.run "git", "clone", "-q", cloneurl, working_dir, opts2
-      }
-      Dir.chdir(working_dir) {
-        logs = git_oneline_logs(old_head)
-        git_print_logs(old_head, logs, urigen)
+        self.run "git", "clone", "-q", cloneurl2, working_dir, opts2
       }
     end
+    Dir.chdir(working_dir) {
+      new_head = git_head_commit
+      puts "CHECKOUT git #{cloneurl} #{working_dir}"
+      puts "LASTCOMMIT #{new_head}"
+      logs = git_oneline_logs(old_head)
+      git_print_logs(old_head, logs, urigen)
+    }
   end
 
   def github(user, project, working_dir, opts={})
