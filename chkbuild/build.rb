@@ -556,15 +556,21 @@ End
 
   def markup_diff_line(line)
     line = encode_invalid(line)
-    result = ''
-    i = 0
-    line.scan(/#{URI.regexp(['http'])}/o) {
-      result << h(line[i...$~.begin(0)]) if i < $~.begin(0)
-      result << "<a href=#{ha $&}>#{h $&}</a>"
-      i = $~.end(0)
-    }
-    result << h(line[i...line.length]) if i < line.length
-    result
+    if %r{\A((?:CHG|ADD|DEL|COMMIT) .*)\s(http://\S*)} =~ line
+      content = $1
+      url = $2
+      "<a href=#{ha url}>#{h content.strip}</a>"
+    else
+      result = ''
+      i = 0
+      line.scan(/#{URI.regexp(['http'])}/o) {
+	result << h(line[i...$~.begin(0)]) if i < $~.begin(0)
+	result << "<a href=#{ha $&}>#{h $&}</a>"
+	i = $~.end(0)
+      }
+      result << h(line[i...line.length]) if i < line.length
+      result
+    end
   end
 
   def markup_diff(str)
