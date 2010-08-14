@@ -42,7 +42,7 @@ module ChkBuild
     end
     print <<"End"
 usage:
-  #{command} [build [--procmemsize]]
+  #{command} [build [--procmemsize] [depsuffixed_name...]]
   #{command} list
   #{command} title [depsuffixed_name...]
   #{command} logdiff [depsuffixed_name [date1 [date2]]]
@@ -70,7 +70,13 @@ End
     ChkBuild.build_top.mkpath
     ChkBuild.lock_start
     @target_list.each {|t|
-      t.make_result
+      t.make_result {|b|
+        if ARGV.empty?
+          true
+        else
+          ARGV.include?(b.depsuffixed_name)
+        end
+      }
     }
   end
 

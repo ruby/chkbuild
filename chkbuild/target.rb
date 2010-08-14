@@ -159,6 +159,7 @@ class ChkBuild::Target
     return @result if defined? @result
     succeed = Result.new
     each_build_obj {|build|
+      next if block_given? && !yield(build)
       if build.depbuilds.all? {|depbuild| depbuild.success? }
         succeed.add(build) if build.build
       end
