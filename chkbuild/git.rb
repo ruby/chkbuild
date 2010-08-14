@@ -62,6 +62,8 @@ class ChkBuild::Build
     }
   end
 
+  GIT_SHARED_DIR = ChkBuild.build_top + 'git-repos'
+
   def git_internal(cloneurl, working_dir, opts={})
     urigen = nil
     opts = opts.dup
@@ -69,11 +71,10 @@ class ChkBuild::Build
     if opts[:github]
       urigen = GitHub.new(*opts[:github])
     end
-    shared_dir = ChkBuild.build_top + 'git-repos'
-    FileUtils.mkdir_p(shared_dir)
+    FileUtils.mkdir_p(GIT_SHARED_DIR)
     opts_shared = opts.dup
     opts_shared[:section] += "(shared)"
-    Dir.chdir(shared_dir) {
+    Dir.chdir(GIT_SHARED_DIR) {
       if File.directory?(working_dir) && File.exist?("#{working_dir}/.git")
 	Dir.chdir(working_dir) {
 	  git_logfile(opts_shared) {|opts2|
@@ -89,7 +90,7 @@ class ChkBuild::Build
 	}
       end
     }
-    cloneurl2 = "#{shared_dir}/#{working_dir}"
+    cloneurl2 = "#{GIT_SHARED_DIR}/#{working_dir}"
     old_head = nil
     if File.exist?(working_dir) && File.exist?("#{working_dir}/.git")
       Dir.chdir(working_dir) {
@@ -118,8 +119,6 @@ class ChkBuild::Build
       new_head = git_head_commit
       puts "CHECKOUT git #{cloneurl} #{working_dir}"
       puts "LASTCOMMIT #{new_head}"
-      logs = git_oneline_logs(old_head)
-      git_print_logs(old_head, logs, urigen)
     }
   end
 
@@ -136,6 +135,20 @@ class ChkBuild::Build
     else
       command = "git log --pretty=oneline --max-count=1"
     end
+    IO.popen(command) {|f|
+      f.each_line {|line|
+        # <sha1><sp><title line>
+        if /\A([0-9a-fA-F]+)\s+(.*)/ =~ line
+          result << [$1, $2]
+        end
+      }
+    }
+    result
+  end
+
+  def git_oneline_logs2(old_head, new_head)
+    result = []
+    command = "git log --pretty=oneline #{old_head}..#{new_head}"
     IO.popen(command) {|f|
       f.each_line {|line|
         # <sha1><sp><title line>
@@ -210,10 +223,7 @@ class ChkBuild::Build
     end
   end
 
-  def git_print_logs(old_head, logs, urigen=nil)
-    if !old_head
-      puts "last commit:"
-    end
+  def git_print_logs(logs, urigen, out)
     logs.each {|commit_hash, title_line|
       if urigen
         commit = urigen.commit_uri(commit_hash)
@@ -221,7 +231,35 @@ class ChkBuild::Build
         commit = commit_hash
       end
       line = "COMMIT #{title_line}\t#{commit}"
-      puts line
+      out.puts line
+    }
+  end
+
+  def output_git_change_lines(lines1, lines2, out)
+    checkout_line = lines2[0]
+    if /CHECKOUT git (\S+) (\S+)/ !~ checkout_line
+      out.puts "unexpected checkout line: #{checkout_line}"
+      return 
+    end
+    cloneurl = $1
+    working_dir = $2
+    urigen = nil
+    if %r{\Agit://github.com/([^/]+)/([^/]+).git\z} =~ cloneurl
+      urigen = GitHub.new($1, $2)
+    end
+
+    lastcommit1 = lines1.find {|line| /\ALASTCOMMIT / =~ line }
+    lastrev1 = $1 if lastcommit1 && /\ALASTCOMMIT ([0-9a-fA-F]+)\n/ =~ lastcommit1
+    lastcommit2 = lines2.find {|line| /\ALASTCOMMIT / =~ line }
+    lastrev2 = $1 if lastcommit2 && /\ALASTCOMMIT ([0-9a-fA-F]+)\n/ =~ lastcommit2
+    if !lastrev1 || !lastrev2
+      out.puts "no last revision found."
+      return 
+    end
+
+    Dir.chdir(GIT_SHARED_DIR + working_dir) {
+      logs = git_oneline_logs2(lastrev1, lastrev2)
+      git_print_logs(logs, urigen, out)
     }
   end
 end
