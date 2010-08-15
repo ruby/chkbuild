@@ -326,6 +326,7 @@ class ChkBuild::Build
     compress_file(@log_filename, @public+@compressed_rawlog_relpath)
     @older_time = find_diff_target_time(@t)
     @compressed_older_loghtml_relpath = @older_time ? "log/#{@older_time}.log.html.gz" : nil
+    @compressed_older_diffhtml_relpath = @older_time ? "log/#{@older_time}.diff.html.gz" : nil
     different_sections = make_diff(@older_time, @t)
     @diff_reader = LineReader.new(@public+@compressed_rawdiff_relpath)
     @log_reader = LineReader.new(@log_filename)
@@ -336,7 +337,32 @@ class ChkBuild::Build
     make_loghtml(title, different_sections)
     make_diffhtml(title, different_sections)
     make_rss(title, different_sections)
+    update_previous_page if @older_time
     ChkBuild.run_upload_hooks(self.suffixed_name)
+  end
+
+  def update_previous_page
+    block = lambda {|src, dst|
+      src.each_line {|line|
+        line = line.gsub(/<!--placeholder_start-->nextdiff<!--placeholder_end-->/) {
+	  "<a href=#{ha "../"+@compressed_diffhtml_relpath }>nextdiff</a>"
+	}
+        line = line.gsub(/<!--placeholder_start-->nextlog<!--placeholder_end-->/) {
+	  "<a href=#{ha "../"+@compressed_loghtml_relpath }>#{@t}</a>"
+	}
+	dst.print line
+      }
+    }
+    update_gziped_file(@public+@compressed_older_loghtml_relpath, &block)
+    update_gziped_file(@public+@compressed_older_diffhtml_relpath, &block)
+  end
+
+  def update_gziped_file(filename)
+    atomic_make_compressed_file(filename) {|dst|
+      Zlib::GzipReader.wrap(open(filename)) {|src|
+	yield src, dst
+      }
+    }
   end
 
   def gen_title
@@ -599,12 +625,14 @@ End
       <a href=<%=ha @compressed_diffhtml_relpath %>>permalink</a>
       <a href=<%=ha @compressed_loghtml_relpath %>>fulllog</a>
     </p>
-% if @older_time
     <p>
+% if @older_time
+      <a href=<%=ha @compressed_older_diffhtml_relpath %>>prevdiff</a> -&gt;
       <a href=<%=ha @compressed_older_loghtml_relpath %>><%=h @older_time %></a> -&gt;
+% end
+      <a href=<%=ha @compressed_diffhtml_relpath %>>thisdiff</a> -&gt;
       <a href=<%=ha @compressed_loghtml_relpath %>><%=h @t %></a>
     </p>
-% end
 % if has_diff
     <pre>
 %     @diff_reader.each_line {|line|
@@ -614,6 +642,14 @@ End
 % else
     <p>no differences</p>
 % end
+    <p>
+% if @older_time
+      <a href=<%=ha @compressed_older_diffhtml_relpath %>>prevdiff</a> -&gt;
+      <a href=<%=ha @compressed_older_loghtml_relpath %>><%=h @older_time %></a> -&gt;
+% end
+      <a href=<%=ha @compressed_diffhtml_relpath %>>thisdiff</a> -&gt;
+      <a href=<%=ha @compressed_loghtml_relpath %>><%=h @t %></a>
+    </p>
     <hr>
     <p>
       <a href="../">chkbuild</a>
@@ -651,12 +687,15 @@ End
       <a href=<%=ha "../"+@compressed_diffhtml_relpath %>>difference</a>
       <a href=<%=ha "../"+@compressed_loghtml_relpath %>>fulllog</a>
     </p>
-% if @older_time
     <p>
+% if @older_time
+      <a href=<%=ha "../"+@compressed_older_diffhtml_relpath %>>prevdiff</a> -&gt;
       <a href=<%=ha "../"+@compressed_older_loghtml_relpath %>><%=h @older_time %></a> -&gt;
-      <a href=<%=ha "../"+@compressed_loghtml_relpath %>><%=h @t %></a>
-    </p>
 % end
+      <a href=<%=ha "../"+@compressed_diffhtml_relpath %>>thisdiff</a> -&gt;
+      <a href=<%=ha "../"+@compressed_loghtml_relpath %>><%=h @t %></a> -&gt;
+      <!--placeholder_start-->nextdiff<!--placeholder_end-->
+    </p>
 % if has_diff
     <pre>
 %     @diff_reader.each_line {|line|
@@ -666,6 +705,15 @@ End
 % else
     <p>no differences</p>
 % end
+    <p>
+% if @older_time
+      <a href=<%=ha "../"+@compressed_older_diffhtml_relpath %>>prevdiff</a> -&gt;
+      <a href=<%=ha "../"+@compressed_older_loghtml_relpath %>><%=h @older_time %></a> -&gt;
+% end
+      <a href=<%=ha "../"+@compressed_diffhtml_relpath %>>thisdiff</a> -&gt;
+      <a href=<%=ha "../"+@compressed_loghtml_relpath %>><%=h @t %></a> -&gt;
+      <!--placeholder_start-->nextdiff<!--placeholder_end-->
+    </p>
     <hr>
     <p>
       <a href="../../">chkbuild</a>
@@ -703,6 +751,15 @@ End
       <a href=<%=ha "../"+@compressed_diffhtml_relpath %>>difference</a>
       <a href=<%=ha "../"+@compressed_loghtml_relpath %>>fulllog</a>
     </p>
+    <p>
+% if @older_time
+      <a href=<%=ha "../"+@compressed_older_loghtml_relpath %>><%=h @older_time %></a> -&gt;
+      <a href=<%=ha "../"+@compressed_diffhtml_relpath %>>prevdiff</a> -&gt;
+% end
+      <a href=<%=ha "../"+@compressed_loghtml_relpath %>><%=h @t %></a> -&gt;
+      <!--placeholder_start-->nextdiff<!--placeholder_end--> -&gt;
+      <!--placeholder_start-->nextlog<!--placeholder_end-->
+    </p>
     <ul>
 % list_tags(@log_reader).each {|tag, success|
       <li><a href=<%=ha("#"+u(tag)) %>><%=h tag %></a><%= success ? "" : " failed" %></li>
@@ -713,11 +770,20 @@ End
 <%= markup_log_line line.chomp %>
 % }
     </pre>
+    <p>
+% if @older_time
+      <a href=<%=ha "../"+@compressed_older_loghtml_relpath %>><%=h @older_time %></a> -&gt;
+      <a href=<%=ha "../"+@compressed_diffhtml_relpath %>>prevdiff</a> -&gt;
+% end
+      <a href=<%=ha "../"+@compressed_loghtml_relpath %>><%=h @t %></a> -&gt;
+      <!--placeholder_start-->nextdiff<!--placeholder_end--> -&gt;
+      <!--placeholder_start-->nextlog<!--placeholder_end-->
+    </p>
     <hr>
     <p>
       <a href="../../">chkbuild</a>
-      <a href="s../ummary.html">summary</a>
-      <a href="r../ecent.html">recent</a>
+      <a href="../summary.html">summary</a>
+      <a href="../recent.html">recent</a>
       <a href="../last.html.gz">last</a>
       <a href=<%=ha "../"+@compressed_diffhtml_relpath %>>difference</a>
       <a href=<%=ha "../"+@compressed_loghtml_relpath %>>fulllog</a>
@@ -733,12 +799,14 @@ End
   end
 
   RSS_CONTENT_HTMLTemplate = <<'End'
-% if @older_time
 <p>
+% if @older_time
+  <a href=<%=ha @compressed_older_diffhtml_relpath %>>prevdiff</a> -&gt;
   <a href=<%=ha @compressed_older_loghtml_relpath %>><%=h @older_time %></a> -&gt;
+% end
+  <a href=<%=ha @compressed_diffhtml_relpath %>>thisdiff</a> -&gt;
   <a href=<%=ha @compressed_loghtml_relpath %>><%=h @t %></a>
 </p>
-% end
 % if has_diff
 <pre>
 %   n = 0
@@ -758,6 +826,14 @@ End
 <p>no differences</p>
 % end
 <p><a href=<%=ha @compressed_loghtml_relpath %>>full log</a></p>
+<p>
+% if @older_time
+  <a href=<%=ha @compressed_older_diffhtml_relpath %>>prevdiff</a> -&gt;
+  <a href=<%=ha @compressed_older_loghtml_relpath %>><%=h @older_time %></a> -&gt;
+% end
+  <a href=<%=ha @compressed_diffhtml_relpath %>>thisdiff</a> -&gt;
+  <a href=<%=ha @compressed_loghtml_relpath %>><%=h @t %></a>
+</p>
 End
 
   def make_rss_html_content(title, has_diff)
