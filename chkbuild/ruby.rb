@@ -252,6 +252,7 @@ End
         Dir.chdir(ruby_build_dir)
         if use_rubyspec
 	  rubybin = ruby_build_dir + "bin/ruby"
+          excludes = ["rubyspec/optional/ffi"]
           b.catch_error {
 	    FileUtils.rmtree "rubyspec_temp"
             if %r{branches/ruby_1_8} =~ ruby_branch
@@ -260,7 +261,8 @@ End
               config = Dir.pwd + "/rubyspec/ruby.1.9.mspec"
             end
             command = %W[bin/ruby mspec/bin/mspec -V -f s -B #{config} -t #{rubybin}]
-            command << "rubyspec"
+            # command << "rubyspec"
+	    command.concat rubyspec_exclude_directories(excludes, ["rubyspec"])
             command << {
               "ENV:PATH"=>"#{bindir}:#{ENV['PATH']}",
               :section=>"rubyspec"
@@ -272,6 +274,7 @@ End
 	      d.stable_find {|f|
 		Find.prune if %w[.git fixtures nbproject shared tags].include? f.basename.to_s
 		next if /_spec\.rb\z/ !~ f.basename.to_s
+                Find.prune if excludes.include? f.to_s
 		s = f.lstat
 		next if !s.file?
 		b.catch_error {
@@ -606,6 +609,26 @@ End
       else
         n.to_s
       end
+    end
+
+    def rubyspec_exclude_directories(excludes = ["rubyspec/optional/ffi"], args = ["rubyspec"])
+      excludes = excludes.map {|f| File.directory?(f) ? "#{f}/" : f }
+      args = args.map {|f| File.directory?(f) ? "#{f}/" : f }
+      while !excludes.empty?
+	args = args.map {|arg|
+	  if %r{/\z} =~ arg && excludes.any? {|e| e.start_with?(arg) }
+	    Dir["#{arg}*"].sort.map {|n| File.directory?(n) ? "#{n}/" : /_spec\.rb\z/ =~ n ? n : [] }
+	  else
+	    arg
+	  end
+	}
+	args.flatten!
+	matched = args & excludes
+	args -= matched
+	excludes -= matched
+      end
+      args = args.map {|arg| arg.chomp("/") }
+      args
     end
   end
 end
