@@ -324,6 +324,7 @@ class ChkBuild::Build
     @rss_relpath = "rss"
     @public_uri = "#{ChkBuild.top_uri}#{u self.depsuffixed_name}/"
     compress_file(@log_filename, @public+@compressed_rawlog_relpath)
+    @has_neterror = has_neterror?(@t)
     @older_time = find_diff_target_time(@t)
     @compressed_older_loghtml_relpath = @older_time ? "log/#{@older_time}.log.html.gz" : nil
     @compressed_older_diffhtml_relpath = @older_time ? "log/#{@older_time}.diff.html.gz" : nil
@@ -337,7 +338,7 @@ class ChkBuild::Build
     make_loghtml(title, different_sections)
     make_diffhtml(title, different_sections)
     make_rss(title, different_sections)
-    update_previous_page if @older_time
+    update_previous_page if @older_time && !@has_neterror
     ChkBuild.run_upload_hooks(self.suffixed_name)
   end
 
@@ -892,6 +893,18 @@ End
     err.backtrace.each {|pos| puts "| #{pos}" }
   end
 
+  def has_neterror?(time)
+    open_gziped_log(time) {|f|
+      f.each_line {|line|
+	line.force_encoding("ascii-8bit") if line.respond_to? :force_encoding
+	if /\A== neterror / =~ line
+	  return true
+	end
+      }
+    }
+    false
+  end
+
   def find_diff_target_time(time2)
     entries = Dir.entries(@public_log)
     time_seq = []
@@ -902,22 +915,7 @@ End
     }
     time_seq.sort!
     time_seq.delete time2
-    while !time_seq.empty? &&
-          open_gziped_log(time_seq.last) {|f|
-            neterror = false
-            f.each_line {|line|
-              line.force_encoding("ascii-8bit") if line.respond_to? :force_encoding
-              if /\A== neterror / =~ line
-                neterror = true
-                break
-              end
-            }
-            if neterror
-              true
-            else
-              false
-            end
-          }
+    while !time_seq.empty? && has_neterror?(time_seq.last)
       time_seq.pop
     end
     time_seq.last
