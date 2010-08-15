@@ -69,6 +69,14 @@ class String
       self
     end
   end
+
+  if !"".respond_to?(:start_with?)
+    def start_with?(arg, *rest)
+      [arg, *rest].any? {|prefix|
+        prefix.length <= self.length && prefix == self[0, prefix.length]
+      }
+    end
+  end
 end
 
 unless File.respond_to? :identical?
