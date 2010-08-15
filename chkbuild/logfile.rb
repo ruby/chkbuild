@@ -101,9 +101,9 @@ class ChkBuild::LogFile
     return [] unless log = self.get_section('dependencies')
     r = []
     log.each_line {|line|
-      if /^(\S+) (\d+T\d+) \((.*)\)$/ =~ line
+      if /^(\S+) (\d+T\d+Z?) \((.*)\)$/ =~ line
         r << [$1, $2, $3]
-      elsif /^(\S+) (\d+T\d+)$/ =~ line
+      elsif /^(\S+) (\d+T\d+Z?)$/ =~ line
         r << [$1, $2, $1]
       end
     }

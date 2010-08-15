@@ -88,11 +88,17 @@ class ChkBuild::Build
     }
   end
 
+  def sort_times(times)
+    u, l = times.partition {|d| /Z\z/ =~ d }
+    u.sort!
+    l.sort!
+    l + u # chkbuild used localtime at old time.
+  end
+
   def build_time_sequence
     dirs = @target_dir.entries.map {|e| e.to_s }
-    dirs.reject! {|d| /\A\d{8}T\d{6}\z/ !~ d } # year 10000 problem
-    dirs.sort!
-    dirs
+    dirs.reject! {|d| /\A\d{8}T\d{6}Z?\z/ !~ d } # year 10000 problem
+    sort_times(dirs)
   end
 
   def log_time_sequence
@@ -100,10 +106,9 @@ class ChkBuild::Build
     names = @public_log.entries.map {|e| e.to_s }
     result = []
     names.each {|n|
-      result << $1 if /\A(\d{8}T\d{6})(?:\.log)?\.txt\.gz\z/ =~ n
+      result << $1 if /\A(\d{8}T\d{6}Z?)(?:\.log)?\.txt\.gz\z/ =~ n
     }
-    result.sort!
-    result
+    sort_times(result)
   end
 
   ################
@@ -136,7 +141,7 @@ class ChkBuild::Build
   end
 
   def prebuilt_start_time_obj
-    BuiltHash[depsuffixed_name][0]
+    BuiltHash[depsuffixed_name][0].utc
   end
 
   def prebuilt_start_time
@@ -160,8 +165,9 @@ class ChkBuild::Build
       raise "already built"
     end
     branch_info = @suffixes + dep_dirs
-    start_time_obj = Time.now
-    start_time = start_time_obj.strftime("%Y%m%dT%H%M%S")
+    t = Time.now.utc
+    start_time_obj = Time.utc(t.year, t.month, t.day, t.hour, t.min, t.sec)
+    start_time = start_time_obj.strftime("%Y%m%dT%H%M%SZ")
     set_prebuilt_info(start_time_obj, start_time)
     dir = ChkBuild.build_top + self.depsuffixed_name
     dir.mkpath
@@ -844,8 +850,7 @@ End
 
   def make_rss(title, has_diff)
     latest_url = "#{ChkBuild.top_uri}#{u self.depsuffixed_name}/#{@compressed_diffhtml_relpath}"
-    t = prebuilt_start_time_obj.getutc
-    t = Time.utc(t.year, t.month, t.day, t.hour, t.min, t.sec)
+    t = prebuilt_start_time_obj
     if (@public+@rss_relpath).exist?
       rss = RSS::Parser.parse((@public+@rss_relpath).read)
       olditems = rss.items
@@ -909,11 +914,11 @@ End
     entries = Dir.entries(@public_log)
     time_seq = []
     entries.each {|f|
-      if /\A(\d{8}T\d{6})(?:\.log)?\.txt\.gz\z/ =~ f # year 10000 problem
+      if /\A(\d{8}T\d{6}Z?)(?:\.log)?\.txt\.gz\z/ =~ f # year 10000 problem
         time_seq << $1
       end
     }
-    time_seq.sort!
+    time_seq = sort_times(time_seq)
     time_seq.delete time2
     while !time_seq.empty? && has_neterror?(time_seq.last)
       time_seq.pop
