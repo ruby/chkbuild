@@ -242,7 +242,12 @@ End
 	      s = File.lstat("test/#{t}")
 	      if s.directory? || (s.file? && /\Atest_/ =~ t)
 		b.catch_error {
-		  b.make("test-all", "TESTS=-v test/#{t}", "RUBYOPT=-w", make_options.merge(:section=>"test/#{t}"))
+		  if /\A-/ =~ t
+		    testpath = "test/#{t}" # prevent to interpret -ext- as an option
+		  else
+		    testpath = t # "TESTS=-v test/foo" doesn't work on Ruby 1.8
+		  end
+		  b.make("test-all", "TESTS=-v #{testpath}", "RUBYOPT=-w", make_options.merge(:section=>"test/#{t}"))
 		}
 	      end
 	    }
