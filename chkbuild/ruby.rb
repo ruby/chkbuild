@@ -221,7 +221,8 @@ End
         if %r{trunk} =~ ruby_branch
           b.make("main", make_options)
         end
-        b.make(make_options)
+	# :stderr=>:separate is for doxygen which mix stdout and stderr.
+        b.make(make_options.merge(:stderr=>:separate))
         b.catch_error { b.run("./ruby", "-v", :section=>"version") }
         b.make("install-nodoc", make_options)
         bindir = ruby_build_dir+'bin'

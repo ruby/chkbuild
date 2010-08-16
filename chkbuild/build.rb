@@ -1155,6 +1155,12 @@ End
       opts[:output_interval_timeout] = '10min'
     end
 
+    separated_stderr = nil
+    if opts[:stderr] == :separate
+      separated_stderr = Tempfile.new("chkbuild")
+      opts[:stderr] = separated_stderr.path
+    end
+
     alt_commands = opts.fetch(:alt_commands, [])
 
     commands = [command, *alt_commands]
@@ -1180,6 +1186,14 @@ End
           attr_accessor :reason
         end
         exc.reason = secname
+      end
+    end
+    if separated_stderr
+      separated_stderr.rewind
+      if separated_stderr.size != 0
+        puts "stderr:"
+	FileUtils.copy_stream(separated_stderr, STDOUT)
+	separated_stderr.close(true)
       end
     end
     begin
