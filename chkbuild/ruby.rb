@@ -164,7 +164,8 @@ End
 	end
 
         use_rubyspec = false
-        if ENV['PATH'].split(/:/).any? {|d| File.executable?("#{d}/git") }
+        if /ruby_1_9_1/ !~ ruby_branch &&
+	   ENV['PATH'].split(/:/).any? {|d| File.executable?("#{d}/git") }
           use_rubyspec = true
         end
 
