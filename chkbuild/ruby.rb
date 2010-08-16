@@ -280,7 +280,7 @@ End
 	      d.stable_find {|f|
 		Find.prune if %w[.git fixtures nbproject shared tags].include? f.basename.to_s
 		next if /_spec\.rb\z/ !~ f.basename.to_s
-                Find.prune if excludes.include? f.to_s
+                Find.prune if excludes.any? {|e| f.to_s.start_with?("#{e}/") }
 		s = f.lstat
 		next if !s.file?
 		b.catch_error {
@@ -627,7 +627,17 @@ End
       while !excludes.empty?
 	args = args.map {|arg|
 	  if %r{/\z} =~ arg && excludes.any? {|e| e.start_with?(arg) }
-	    Dir["#{arg}*"].sort.map {|n| File.directory?(n) ? "#{n}/" : /_spec\.rb\z/ =~ n ? n : [] }
+	    Dir["#{arg}*"].sort.map {|n|
+	      if %w[.git fixtures nbproject shared tags].include? File.basename(n)
+	        []
+	      elsif File.directory?(n)
+	        "#{n}/"
+	      elsif /_spec\.rb\z/ =~ n
+	        n
+	      else
+		[]
+	      end
+	    }
 	  else
 	    arg
 	  end
