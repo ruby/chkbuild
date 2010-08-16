@@ -241,7 +241,8 @@ class ChkBuild::Build
     h1.delete '.'
     h2.delete '.'
     return if top_r1 == top_r2
-    svn_print_chg_line('.', top_r1, top_r2, svn_rev_uri(viewvc, top_r2), out)
+    svn_print_oldrev_line(top_r1, svn_rev_uri(viewvc, top_r1), out)
+    svn_print_newrev_line(top_r2, svn_rev_uri(viewvc, top_r2), out)
     svn_path_sort(h1.keys|h2.keys).each {|f|
       r1, d1 = h1[f] || ['none', nil]
       r2, d2 = h2[f] || ['none', nil]
@@ -259,6 +260,18 @@ class ChkBuild::Build
 			      svn_markup_uri(viewvc, rep_dir, f, top_r2), out) if r2 != 'none'
       end
     }
+  end
+
+  def svn_print_oldrev_line(r, uri, out)
+    line = "OLDREV #{r}"
+    line << "\t" << uri.to_s if uri
+    out.puts line
+  end
+
+  def svn_print_newrev_line(r, uri, out)
+    line = "NEWREV #{r}"
+    line << "\t" << uri.to_s if uri
+    out.puts line
   end
 
   def svn_print_chg_line(f, r1, r2, uri, out)
