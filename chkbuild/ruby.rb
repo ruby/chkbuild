@@ -414,7 +414,7 @@ End
 
       # file.c:884: warning: comparison between signed and unsigned
       # vm.c:2012:5: warning: "OPT_BASIC_OPERATIONS" is not defined
-      t.add_diff_preprocess_gsub_state(/([^:]*:)(\d+)(:(?:\d+:)? warning: .*)/) {|match, state|
+      t.add_diff_preprocess_gsub_state(/([^:]*:)(\d+)(:(?:\d+:)? [Ww]arning: .*)/) {|match, state|
         pre, linenum, post = match[1], match[2], match[3]
         warnhash = state[:warnhash] ||= {}
         key = "#{pre}<linenum>#{post}"
