@@ -808,11 +808,11 @@ End
   RSS_CONTENT_HTMLTemplate = <<'End'
 <p>
 % if @older_time
-  <a href=<%=ha @compressed_older_diffhtml_relpath %>>OlderDiff</a> &lt;
-  <a href=<%=ha @compressed_older_loghtml_relpath %>><%=h @older_time %></a> &lt;
+  <a href=<%=ha @public_uri+@compressed_older_diffhtml_relpath %>>OlderDiff</a> &lt;
+  <a href=<%=ha @public_uri+@compressed_older_loghtml_relpath %>><%=h @older_time %></a> &lt;
 % end
-  <a href=<%=ha @compressed_diffhtml_relpath %>>ThisDiff</a> &gt;
-  <a href=<%=ha @compressed_loghtml_relpath %>><%=h @t %></a>
+  <a href=<%=ha @public_uri+@compressed_diffhtml_relpath %>>ThisDiff</a> &gt;
+  <a href=<%=ha @public_uri+@compressed_loghtml_relpath %>><%=h @t %></a>
 </p>
 % if has_diff
 <pre>
@@ -827,19 +827,19 @@ End
 %   end
 </pre>
 %   if max_diff_lines < n
-<p><a href=<%=ha @compressed_diffhtml_relpath %>>read more differences</a></p>
+<p><a href=<%=ha @public_uri+@compressed_diffhtml_relpath %>>read more differences</a></p>
 %   end
 % else
 <p>no differences</p>
 % end
-<p><a href=<%=ha @compressed_loghtml_relpath %>>full log</a></p>
+<p><a href=<%=ha @public_uri+@compressed_loghtml_relpath %>>full log</a></p>
 <p>
 % if @older_time
-  <a href=<%=ha @compressed_older_diffhtml_relpath %>>OlderDiff</a> &lt;
-  <a href=<%=ha @compressed_older_loghtml_relpath %>><%=h @older_time %></a> &lt;
+  <a href=<%=ha @public_uri+@compressed_older_diffhtml_relpath %>>OlderDiff</a> &lt;
+  <a href=<%=ha @public_uri+@compressed_older_loghtml_relpath %>><%=h @older_time %></a> &lt;
 % end
-  <a href=<%=ha @compressed_diffhtml_relpath %>>ThisDiff</a> &gt;
-  <a href=<%=ha @compressed_loghtml_relpath %>><%=h @t %></a>
+  <a href=<%=ha @public_uri+@compressed_diffhtml_relpath %>>ThisDiff</a> &gt;
+  <a href=<%=ha @public_uri+@compressed_loghtml_relpath %>><%=h @t %></a>
 </p>
 End
 
