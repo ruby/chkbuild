@@ -862,7 +862,7 @@ End
       olditems = []
     end
     rss = RSS::Maker.make("1.0") {|maker|
-      maker.channel.about = latest_url
+      maker.channel.about = @public_uri+@rss_relpath
       maker.channel.title = "#{self.depsuffixed_name} (#{Util.simple_hostname})"
       maker.channel.description = "chkbuild #{self.depsuffixed_name}"
       maker.channel.link = "#{ChkBuild.top_uri}#{u self.depsuffixed_name}/"
