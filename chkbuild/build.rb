@@ -56,11 +56,15 @@ class ChkBuild::Build
     @suffixes = suffixes
     @depbuilds = depbuilds
 
-    @target_dir = ChkBuild.build_top + self.depsuffixed_name
-    @public = ChkBuild.public_top + self.depsuffixed_name
-    @public_log = @public+"log"
-    @current_txt = @public+"current.txt"
-  #p [:pid, $$, self.depsuffixed_name]
+    @depsuffixed_name = self.depsuffixed_name
+    @target_dir = ChkBuild.build_top + @depsuffixed_name
+    @log_relpath = "#{@depsuffixed_name}/log"
+    @public_log = ChkBuild.public_top+@log_relpath
+    @current_txt_relpath = "#{@depsuffixed_name}/current.txt"
+    @current_txt = ChkBuild.public_top+@current_txt_relpath
+    @page_uri_from_top = nil
+    @page_uri_absolute = nil
+  #p [:pid, $$, @depsuffixed_name]
   end
   attr_reader :target, :suffixes, :depbuilds
   attr_reader :target_dir
@@ -169,7 +173,7 @@ class ChkBuild::Build
     start_time_obj = Time.utc(t.year, t.month, t.day, t.hour, t.min, t.sec)
     start_time = start_time_obj.strftime("%Y%m%dT%H%M%SZ")
     set_prebuilt_info(start_time_obj, start_time)
-    dir = ChkBuild.build_top + self.depsuffixed_name
+    dir = ChkBuild.build_top + @depsuffixed_name
     dir.mkpath
     dir += start_time
     dir.mkdir
@@ -177,7 +181,7 @@ class ChkBuild::Build
     target_output_name = dir + "result.marshal"
     File.open(target_params_name, "wb") {|f| Marshal.dump([branch_info, ChkBuild::Build::BuiltHash], f) }
     ruby_command = RbConfig.ruby
-    system(ruby_command, "-I#{ChkBuild::TOP_DIRECTORY}", $0, "internal-build", self.depsuffixed_name, start_time, target_params_name.to_s, target_output_name.to_s)
+    system(ruby_command, "-I#{ChkBuild::TOP_DIRECTORY}", $0, "internal-build", @depsuffixed_name, start_time, target_params_name.to_s, target_output_name.to_s)
     status = $?
     str = File.open(target_output_name, "rb") {|f| f.read }
     begin
@@ -202,7 +206,6 @@ class ChkBuild::Build
     #p BuiltHash[depsuffixed_name]
       raise "already built: #{depsuffixed_name}"
     end
-    dir = ChkBuild.build_top + self.depsuffixed_name + prebuilt_start_time
     marshal_data = ''
     if child_build_wrapper(target_output_name, nil, *branch_info)
       exit 0
@@ -244,7 +247,7 @@ class ChkBuild::Build
   end
 
   def child_build_wrapper(target_output_name, parent_pipe, *branch_info)
-    ret = ChkBuild.lock_puts(self.depsuffixed_name) {
+    ret = ChkBuild.lock_puts(@depsuffixed_name) {
       @errors = []
       child_build_target(target_output_name, *branch_info)
     }
@@ -277,7 +280,7 @@ class ChkBuild::Build
     Dir.chdir prebuilt_start_time
     @logfile = ChkBuild::LogFile.write_open(@log_filename, self)
     @logfile.change_default_output
-    @public.mkpath
+    (ChkBuild.public_top+@depsuffixed_name).mkpath
     @public_log.mkpath
     force_link "log", @current_txt
     make_local_tmpdir
@@ -318,29 +321,75 @@ class ChkBuild::Build
     end
   end
 
+  def with_page_uri_from_top(relpath, absolute_arg=nil)
+    if @page_uri_from_top != nil
+      raise "with_page_uri_from_top is called recursively"
+    end
+    begin
+      @page_uri_from_top = relpath
+      @page_uri_absolute = absolute_arg
+      yield
+    ensure
+      @page_uri_from_top = nil
+      @page_uri_absolute = nil
+    end
+  end
+
+  def uri_from_top(relpath, absolute_arg=nil)
+    abs = if absolute_arg != nil
+	    absolute_arg
+	  elsif @page_uri_absolute != nil
+	    @page_uri_absolute
+	  else
+	    false
+	  end
+    if abs
+      reluri = relpath.gsub(%r{[^/]+}) { u($&) }
+      "#{ChkBuild.top_uri}#{reluri}"
+    else
+      n = @page_uri_from_top.count("/")
+      r = relpath
+      while 0 < n && %r{/} =~ r
+        n -= 1
+	r = $'
+      end
+      reluri = r.gsub(%r{[^/]+}) { u($&) }
+      if 0 < n
+	reluri = "../" * n + (reluri == '.' ? '' : reluri)
+      end
+      reluri
+    end
+  end
+
   def update_result
+    @t = prebuilt_start_time
+    @last_txt_relpath = "#{@depsuffixed_name}/last.txt"
+    @last_html_relpath = "#{@depsuffixed_name}/last.html"
+    @last_html_gz_relpath = "#{@depsuffixed_name}/last.html.gz"
+    @summary_html_relpath = "#{@depsuffixed_name}/summary.html"
+    @summary_txt_relpath = "#{@depsuffixed_name}/summary.txt"
+    @recent_html_relpath = "#{@depsuffixed_name}/recent.html"
+    @rss_relpath = "#{@depsuffixed_name}/rss"
+    @compressed_rawlog_relpath = "#{@depsuffixed_name}/log/#{@t}.log.txt.gz"
+    @compressed_rawdiff_relpath = "#{@depsuffixed_name}/log/#{@t}.diff.txt.gz"
+    @compressed_loghtml_relpath = "#{@depsuffixed_name}/log/#{@t}.log.html.gz"
+    @compressed_diffhtml_relpath = "#{@depsuffixed_name}/log/#{@t}.diff.html.gz"
+
     title, title_version = gen_title
     send_title_to_parent(title_version)
-    force_link @current_txt, @public+'last.txt' if @current_txt.file?
-    @t = prebuilt_start_time
-    @compressed_rawlog_relpath = "log/#{@t}.log.txt.gz"
-    @compressed_rawdiff_relpath = "log/#{@t}.diff.txt.gz"
-    @compressed_loghtml_relpath = "log/#{@t}.log.html.gz"
-    @compressed_diffhtml_relpath = "log/#{@t}.diff.html.gz"
-    @rss_relpath = "rss"
-    @public_uri = "#{ChkBuild.top_uri}#{u self.depsuffixed_name}/"
-    compress_file(@log_filename, @public+@compressed_rawlog_relpath)
+    force_link @current_txt, ChkBuild.public_top+@last_txt_relpath if @current_txt.file?
+    compress_file(@log_filename, ChkBuild.public_top+@compressed_rawlog_relpath)
     @has_neterror = has_neterror?(@t)
     @older_time = find_diff_target_time(@t)
-    @compressed_older_loghtml_relpath = @older_time ? "log/#{@older_time}.log.html.gz" : nil
-    @compressed_older_diffhtml_relpath = @older_time ? "log/#{@older_time}.diff.html.gz" : nil
+    @compressed_older_loghtml_relpath = @older_time ? "#{@depsuffixed_name}/log/#{@older_time}.log.html.gz" : nil
+    @compressed_older_diffhtml_relpath = @older_time ? "#{@depsuffixed_name}/log/#{@older_time}.diff.html.gz" : nil
     different_sections = make_diff(@older_time, @t)
-    @diff_reader = LineReader.new(@public+@compressed_rawdiff_relpath)
+    @diff_reader = LineReader.new(ChkBuild.public_top+@compressed_rawdiff_relpath)
     @log_reader = LineReader.new(@log_filename)
     update_summary(title, different_sections)
     update_recent
-    make_last_html(title, different_sections, @public+"last.html")
-    compress_file(@public+"last.html", @public+"last.html.gz")
+    make_last_html(title, different_sections)
+    compress_file(ChkBuild.public_top+@last_html_relpath, ChkBuild.public_top+@last_html_gz_relpath)
     make_loghtml(title, different_sections)
     make_diffhtml(title, different_sections)
     make_rss(title, different_sections)
@@ -352,16 +401,20 @@ class ChkBuild::Build
     block = lambda {|src, dst|
       src.each_line {|line|
         line = line.gsub(/<!--placeholder_start-->(?:nextdiff|newerdiff|NewerDiff)<!--placeholder_end-->/) {
-	  "<a href=#{ha "../"+@compressed_diffhtml_relpath }>NewerDiff</a>"
+	  "<a href=#{ha uri_from_top(@compressed_diffhtml_relpath) }>NewerDiff</a>"
 	}
         line = line.gsub(/<!--placeholder_start-->(?:nextlog|newerlog|NewerLog)<!--placeholder_end-->/) {
-	  "<a href=#{ha "../"+@compressed_loghtml_relpath }>#{@t}</a>"
+	  "<a href=#{ha uri_from_top(@compressed_loghtml_relpath) }>#{@t}</a>"
 	}
 	dst.print line
       }
     }
-    update_gziped_file(@public+@compressed_older_loghtml_relpath, &block)
-    update_gziped_file(@public+@compressed_older_diffhtml_relpath, &block)
+    with_page_uri_from_top(@compressed_older_loghtml_relpath) {
+      update_gziped_file(ChkBuild.public_top+@compressed_older_loghtml_relpath, &block)
+    }
+    with_page_uri_from_top(@compressed_older_diffhtml_relpath) {
+      update_gziped_file(ChkBuild.public_top+@compressed_older_diffhtml_relpath, &block)
+    }
   end
 
   def update_gziped_file(filename)
@@ -463,24 +516,27 @@ class ChkBuild::Build
         diff_txt = "diff:#{different_sections.join(',')}"
       end
     end
-    open(@public+"summary.txt", "a") {|f|
+    open(ChkBuild.public_top+@summary_txt_relpath, "a") {|f|
       f.print "#{start_time} #{title}"
       f.print " (#{diff_txt})" if diff_txt
       f.puts
     }
-    open(@public+"summary.html", "a") {|f|
-      if f.stat.size == 0
-        f.puts "<title>#{h self.depsuffixed_name} build summary</title>"
-        f.puts "<h1>#{h self.depsuffixed_name} build summary</h1>"
-        f.puts "<p><a href=\"../\">chkbuild</a></p>"
-      end
-      f.print "<a href=#{ha @compressed_loghtml_relpath} name=#{ha start_time}>#{h start_time}</a> #{h title}"
-      if diff_txt
-        f.print " (<a href=#{ha @compressed_diffhtml_relpath}>#{h diff_txt}</a>)"
-      else
-        f.print " (<a href=#{ha @compressed_diffhtml_relpath}>no diff</a>)"
-      end
-      f.puts "<br>"
+    with_page_uri_from_top(@summary_html_relpath) {
+      open(ChkBuild.public_top+@summary_html_relpath, "a") {|f|
+	if f.stat.size == 0
+	  page_title = "#{@depsuffixed_name} build summary (#{Util.simple_hostname})"
+	  f.puts "<title>#{h page_title}</title>"
+	  f.puts "<h1>#{h page_title}</h1>"
+	  f.puts "<p><a href=#{ha uri_from_top('.')}>chkbuild</a></p>"
+	end
+	f.print "<a href=#{ha uri_from_top(@compressed_loghtml_relpath)} name=#{ha start_time}>#{h start_time}</a> #{h title}"
+	if diff_txt
+	  f.print " (<a href=#{ha uri_from_top(@compressed_diffhtml_relpath)}>#{h diff_txt}</a>)"
+	else
+	  f.print " (<a href=#{ha uri_from_top(@compressed_diffhtml_relpath)}>no diff</a>)"
+	end
+	f.puts "<br>"
+      }
     }
   end
 
@@ -490,23 +546,23 @@ class ChkBuild::Build
     <title><%=h title %></title>
     <meta name="author" content="chkbuild">
     <meta name="generator" content="chkbuild">
-    <link rel="alternate" type="application/rss+xml" title="RSS" href=<%=ha @public_uri+@rss_relpath %>>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href=<%=ha uri_from_top(@rss_relpath, true) %>>
   </head>
   <body>
     <h1><%=h title %></h1>
     <p>
-      <a href="../">chkbuild</a>
-      <a href="summary.html">summary</a>
-      <a href="recent.html">recent</a>
-      <a href="last.html.gz">last</a>
+      <a href=<%=ha uri_from_top(".") %>>chkbuild</a>
+      <a href=<%=ha uri_from_top(@summary_html_relpath) %>>summary</a>
+      <a href=<%=ha uri_from_top(@recent_html_relpath) %>>recent</a>
+      <a href=<%=ha uri_from_top(@last_html_gz_relpath) %>>last</a>
     </p>
 <%= recent_summary.chomp %>
     <hr>
     <p>
-      <a href="../">chkbuild</a>
-      <a href="summary.html">summary</a>
-      <a href="recent.html">recent</a>
-      <a href="last.html.gz">last</a>
+      <a href=<%=ha uri_from_top(".") %>>chkbuild</a>
+      <a href=<%=ha uri_from_top(@summary_html_relpath) %>>summary</a>
+      <a href=<%=ha uri_from_top(@recent_html_relpath) %>>recent</a>
+      <a href=<%=ha uri_from_top(@last_html_gz_relpath) %>>last</a>
     </p>
   </body>
 </html>
@@ -514,7 +570,7 @@ End
 
   def update_recent
     start_time = prebuilt_start_time
-    summary_path = @public+"summary.html"
+    summary_path = ChkBuild.public_top+@summary_html_relpath
     lines = []
     summary_path.open {|f|
       while l = f.gets
@@ -525,12 +581,14 @@ End
     while !lines.empty? && /\A<a / !~ lines[0]
       lines.shift
     end
-    title = "#{self.depsuffixed_name} recent build summary (#{Util.simple_hostname})"
+    title = "#{@depsuffixed_name} recent build summary (#{Util.simple_hostname})"
 
     recent_summary = lines.reverse.join
-    content = ERB.new(RECENT_HTMLTemplate).result(binding)
+    content = with_page_uri_from_top(@recent_html_relpath) {
+      ERB.new(RECENT_HTMLTemplate).result(binding)
+    }
 
-    recent_path = @public+"recent.html"
+    recent_path = ChkBuild.public_top+@recent_html_relpath
     atomic_make_file(recent_path) {|f| f << content }
   end
 
@@ -620,25 +678,25 @@ End
     <title><%=h title %></title>
     <meta name="author" content="chkbuild">
     <meta name="generator" content="chkbuild">
-    <link rel="alternate" type="application/rss+xml" title="RSS" href=<%=ha @public_uri+@rss_relpath %>>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href=<%=ha uri_from_top(@rss_relpath, true) %>>
   </head>
   <body>
     <h1><%=h title %></h1>
     <p>
-      <a href="../">chkbuild</a>
-      <a href="summary.html">summary</a>
-      <a href="recent.html">recent</a>
-      <a href="last.html.gz">last</a>
-      <a href=<%=ha @compressed_diffhtml_relpath %>>permalink</a>
-      <a href=<%=ha @compressed_loghtml_relpath %>>fulllog</a>
+      <a href=<%=ha uri_from_top(".") %>>chkbuild</a>
+      <a href=<%=ha uri_from_top(@summary_html_relpath) %>>summary</a>
+      <a href=<%=ha uri_from_top(@recent_html_relpath) %>>recent</a>
+      <a href=<%=ha uri_from_top(@last_html_gz_relpath) %>>last</a>
+      <a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>permalink</a>
+      <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>>fulllog</a>
     </p>
     <p>
 % if @older_time
-      <a href=<%=ha @compressed_older_diffhtml_relpath %>>OlderDiff</a> &lt;
-      <a href=<%=ha @compressed_older_loghtml_relpath %>><%=h @older_time %></a> &lt;
+      <a href=<%=ha uri_from_top(@compressed_older_diffhtml_relpath) %>>OlderDiff</a> &lt;
+      <a href=<%=ha uri_from_top(@compressed_older_loghtml_relpath) %>><%=h @older_time %></a> &lt;
 % end
-      <a href=<%=ha @compressed_diffhtml_relpath %>>ThisDiff</a> &gt;
-      <a href=<%=ha @compressed_loghtml_relpath %>><%=h @t %></a>
+      <a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>ThisDiff</a> &gt;
+      <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>><%=h @t %></a>
     </p>
 % if has_diff
     <pre>
@@ -651,28 +709,30 @@ End
 % end
     <p>
 % if @older_time
-      <a href=<%=ha @compressed_older_diffhtml_relpath %>>OlderDiff</a> &lt;
-      <a href=<%=ha @compressed_older_loghtml_relpath %>><%=h @older_time %></a> &lt;
+      <a href=<%=ha uri_from_top(@compressed_older_diffhtml_relpath) %>>OlderDiff</a> &lt;
+      <a href=<%=ha uri_from_top(@compressed_older_loghtml_relpath) %>><%=h @older_time %></a> &lt;
 % end
-      <a href=<%=ha @compressed_diffhtml_relpath %>>ThisDiff</a> &gt;
-      <a href=<%=ha @compressed_loghtml_relpath %>><%=h @t %></a>
+      <a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>ThisDiff</a> &gt;
+      <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>><%=h @t %></a>
     </p>
     <hr>
     <p>
-      <a href="../">chkbuild</a>
-      <a href="summary.html">summary</a>
-      <a href="recent.html">recent</a>
-      <a href="last.html.gz">last</a>
-      <a href=<%=ha @compressed_diffhtml_relpath %>>permalink</a>
-      <a href=<%=ha @compressed_loghtml_relpath %>>fulllog</a>
+      <a href=<%=ha uri_from_top(".") %>>chkbuild</a>
+      <a href=<%=ha uri_from_top(@summary_html_relpath) %>>summary</a>
+      <a href=<%=ha uri_from_top(@recent_html_relpath) %>>recent</a>
+      <a href=<%=ha uri_from_top(@last_html_gz_relpath) %>>last</a>
+      <a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>permalink</a>
+      <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>>fulllog</a>
     </p>
   </body>
 </html>
 End
 
-  def make_last_html(title, has_diff, dst)
-    atomic_make_file(dst) {|_erbout|
-      ERBIO.new(LAST_HTMLTemplate, nil, '%').result(binding)
+  def make_last_html(title, has_diff)
+    atomic_make_file(ChkBuild.public_top+@last_html_relpath) {|_erbout|
+      with_page_uri_from_top(@last_html_relpath) {
+	ERBIO.new(LAST_HTMLTemplate, nil, '%').result(binding)
+      }
     }
   end
 
@@ -682,25 +742,25 @@ End
     <title><%=h title %></title>
     <meta name="author" content="chkbuild">
     <meta name="generator" content="chkbuild">
-    <link rel="alternate" type="application/rss+xml" title="RSS" href=<%=ha @public_uri+@rss_relpath %>>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href=<%=ha uri_from_top(@rss_relpath, true) %>>
   </head>
   <body>
     <h1><%=h title %></h1>
     <p>
-      <a href="../../">chkbuild</a>
-      <a href="../summary.html">summary</a>
-      <a href="../recent.html">recent</a>
-      <a href="../last.html.gz">last</a>
-      <a href=<%=ha "../"+@compressed_diffhtml_relpath %>>difference</a>
-      <a href=<%=ha "../"+@compressed_loghtml_relpath %>>fulllog</a>
+      <a href=<%=ha uri_from_top(".") %>>chkbuild</a>
+      <a href=<%=ha uri_from_top(@summary_html_relpath) %>>summary</a>
+      <a href=<%=ha uri_from_top(@recent_html_relpath) %>>recent</a>
+      <a href=<%=ha uri_from_top(@last_html_gz_relpath) %>>last</a>
+      <a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>difference</a>
+      <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>>fulllog</a>
     </p>
     <p>
 % if @older_time
-      <a href=<%=ha "../"+@compressed_older_diffhtml_relpath %>>OlderDiff</a> &lt;
-      <a href=<%=ha "../"+@compressed_older_loghtml_relpath %>><%=h @older_time %></a> &lt;
+      <a href=<%=ha uri_from_top(@compressed_older_diffhtml_relpath) %>>OlderDiff</a> &lt;
+      <a href=<%=ha uri_from_top(@compressed_older_loghtml_relpath) %>><%=h @older_time %></a> &lt;
 % end
-      <a href=<%=ha "../"+@compressed_diffhtml_relpath %>>ThisDiff</a> &gt;
-      <a href=<%=ha "../"+@compressed_loghtml_relpath %>><%=h @t %></a> &gt;
+      <a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>ThisDiff</a> &gt;
+      <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>><%=h @t %></a> &gt;
       <!--placeholder_start-->NewerDiff<!--placeholder_end-->
     </p>
 % if has_diff
@@ -714,29 +774,31 @@ End
 % end
     <p>
 % if @older_time
-      <a href=<%=ha "../"+@compressed_older_diffhtml_relpath %>>OlderDiff</a> &lt;
-      <a href=<%=ha "../"+@compressed_older_loghtml_relpath %>><%=h @older_time %></a> &lt;
+      <a href=<%=ha uri_from_top(@compressed_older_diffhtml_relpath) %>>OlderDiff</a> &lt;
+      <a href=<%=ha uri_from_top(@compressed_older_loghtml_relpath) %>><%=h @older_time %></a> &lt;
 % end
-      <a href=<%=ha "../"+@compressed_diffhtml_relpath %>>ThisDiff</a> &gt;
-      <a href=<%=ha "../"+@compressed_loghtml_relpath %>><%=h @t %></a> &gt;
+      <a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>ThisDiff</a> &gt;
+      <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>><%=h @t %></a> &gt;
       <!--placeholder_start-->NewerDiff<!--placeholder_end-->
     </p>
     <hr>
     <p>
-      <a href="../../">chkbuild</a>
-      <a href="../summary.html">summary</a>
-      <a href="../recent.html">recent</a>
-      <a href="../last.html.gz">last</a>
-      <a href=<%=ha "../"+@compressed_diffhtml_relpath %>>difference</a>
-      <a href=<%=ha "../"+@compressed_loghtml_relpath %>>fulllog</a>
+      <a href=<%=ha uri_from_top(".") %>>chkbuild</a>
+      <a href=<%=ha uri_from_top(@summary_html_relpath) %>>summary</a>
+      <a href=<%=ha uri_from_top(@recent_html_relpath) %>>recent</a>
+      <a href=<%=ha uri_from_top(@last_html_gz_relpath) %>>last</a>
+      <a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>difference</a>
+      <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>>fulllog</a>
     </p>
   </body>
 </html>
 End
 
   def make_diffhtml(title, has_diff)
-    atomic_make_compressed_file(@public+@compressed_diffhtml_relpath) {|_erbout|
-      ERBIO.new(DIFF_HTMLTemplate, nil, '%').result(binding)
+    atomic_make_compressed_file(ChkBuild.public_top+@compressed_diffhtml_relpath) {|_erbout|
+      with_page_uri_from_top(@compressed_diffhtml_relpath) {
+	ERBIO.new(DIFF_HTMLTemplate, nil, '%').result(binding)
+      }
     }
   end
 
@@ -746,24 +808,24 @@ End
     <title><%=h title %></title>
     <meta name="author" content="chkbuild">
     <meta name="generator" content="chkbuild">
-    <link rel="alternate" type="application/rss+xml" title="RSS" href=<%=ha @public_uri+@rss_relpath %>>
+    <link rel="alternate" type="application/rss+xml" title="RSS" href=<%=ha uri_from_top(@rss_relpath, true) %>>
   </head>
   <body>
     <h1><%=h title %></h1>
     <p>
-      <a href="../../">chkbuild</a>
-      <a href="../summary.html">summary</a>
-      <a href="../recent.html">recent</a>
-      <a href="../last.html.gz">last</a>
-      <a href=<%=ha "../"+@compressed_diffhtml_relpath %>>difference</a>
-      <a href=<%=ha "../"+@compressed_loghtml_relpath %>>fulllog</a>
+      <a href=<%=ha uri_from_top(".") %>>chkbuild</a>
+      <a href=<%=ha uri_from_top(@summary_html_relpath) %>>summary</a>
+      <a href=<%=ha uri_from_top(@recent_html_relpath) %>>recent</a>
+      <a href=<%=ha uri_from_top(@last_html_gz_relpath) %>>last</a>
+      <a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>difference</a>
+      <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>>fulllog</a>
     </p>
     <p>
 % if @older_time
-      <a href=<%=ha "../"+@compressed_older_loghtml_relpath %>><%=h @older_time %></a> &lt;
-      <a href=<%=ha "../"+@compressed_diffhtml_relpath %>>OlderDiff</a> &lt;
+      <a href=<%=ha uri_from_top(@compressed_older_loghtml_relpath) %>><%=h @older_time %></a> &lt;
+      <a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>OlderDiff</a> &lt;
 % end
-      <a href=<%=ha "../"+@compressed_loghtml_relpath %>><%=h @t %></a> &gt;
+      <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>><%=h @t %></a> &gt;
       <!--placeholder_start-->NewerDiff<!--placeholder_end--> &gt;
       <!--placeholder_start-->NewerLog<!--placeholder_end-->
     </p>
@@ -779,40 +841,42 @@ End
     </pre>
     <p>
 % if @older_time
-      <a href=<%=ha "../"+@compressed_older_loghtml_relpath %>><%=h @older_time %></a> &lt;
-      <a href=<%=ha "../"+@compressed_diffhtml_relpath %>>OlderDiff</a> &lt;
+      <a href=<%=ha uri_from_top(@compressed_older_loghtml_relpath) %>><%=h @older_time %></a> &lt;
+      <a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>OlderDiff</a> &lt;
 % end
-      <a href=<%=ha "../"+@compressed_loghtml_relpath %>><%=h @t %></a> &gt;
+      <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>><%=h @t %></a> &gt;
       <!--placeholder_start-->NewerDiff<!--placeholder_end--> &gt;
       <!--placeholder_start-->NewerLog<!--placeholder_end-->
     </p>
     <hr>
     <p>
-      <a href="../../">chkbuild</a>
-      <a href="../summary.html">summary</a>
-      <a href="../recent.html">recent</a>
-      <a href="../last.html.gz">last</a>
-      <a href=<%=ha "../"+@compressed_diffhtml_relpath %>>difference</a>
-      <a href=<%=ha "../"+@compressed_loghtml_relpath %>>fulllog</a>
+      <a href=<%=ha uri_from_top(".") %>>chkbuild</a>
+      <a href=<%=ha uri_from_top(@summary_html_relpath) %>>summary</a>
+      <a href=<%=ha uri_from_top(@recent_html_relpath) %>>recent</a>
+      <a href=<%=ha uri_from_top(@last_html_gz_relpath) %>>last</a>
+      <a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>difference</a>
+      <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>>fulllog</a>
     </p>
   </body>
 </html>
 End
 
   def make_loghtml(title, has_diff)
-    atomic_make_compressed_file(@public+@compressed_loghtml_relpath) {|_erbout|
-      ERBIO.new(LOG_HTMLTemplate, nil, '%').result(binding)
+    atomic_make_compressed_file(ChkBuild.public_top+@compressed_loghtml_relpath) {|_erbout|
+      with_page_uri_from_top(@compressed_loghtml_relpath) {
+	ERBIO.new(LOG_HTMLTemplate, nil, '%').result(binding)
+      }
     }
   end
 
   RSS_CONTENT_HTMLTemplate = <<'End'
 <p>
 % if @older_time
-  <a href=<%=ha @public_uri+@compressed_older_diffhtml_relpath %>>OlderDiff</a> &lt;
-  <a href=<%=ha @public_uri+@compressed_older_loghtml_relpath %>><%=h @older_time %></a> &lt;
+  <a href=<%=ha uri_from_top(@compressed_older_diffhtml_relpath) %>>OlderDiff</a> &lt;
+  <a href=<%=ha uri_from_top(@compressed_older_loghtml_relpath) %>><%=h @older_time %></a> &lt;
 % end
-  <a href=<%=ha @public_uri+@compressed_diffhtml_relpath %>>ThisDiff</a> &gt;
-  <a href=<%=ha @public_uri+@compressed_loghtml_relpath %>><%=h @t %></a>
+  <a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>ThisDiff</a> &gt;
+  <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>><%=h @t %></a>
 </p>
 % if has_diff
 <pre>
@@ -827,19 +891,19 @@ End
 %   end
 </pre>
 %   if max_diff_lines < n
-<p><a href=<%=ha @public_uri+@compressed_diffhtml_relpath %>>read more differences</a></p>
+<p><a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>read more differences</a></p>
 %   end
 % else
 <p>no differences</p>
 % end
-<p><a href=<%=ha @public_uri+@compressed_loghtml_relpath %>>full log</a></p>
+<p><a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>>full log</a></p>
 <p>
 % if @older_time
-  <a href=<%=ha @public_uri+@compressed_older_diffhtml_relpath %>>OlderDiff</a> &lt;
-  <a href=<%=ha @public_uri+@compressed_older_loghtml_relpath %>><%=h @older_time %></a> &lt;
+  <a href=<%=ha uri_from_top(@compressed_older_diffhtml_relpath) %>>OlderDiff</a> &lt;
+  <a href=<%=ha uri_from_top(@compressed_older_loghtml_relpath) %>><%=h @older_time %></a> &lt;
 % end
-  <a href=<%=ha @public_uri+@compressed_diffhtml_relpath %>>ThisDiff</a> &gt;
-  <a href=<%=ha @public_uri+@compressed_loghtml_relpath %>><%=h @t %></a>
+  <a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>ThisDiff</a> &gt;
+  <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>><%=h @t %></a>
 </p>
 End
 
@@ -849,40 +913,42 @@ End
   end
 
   def make_rss(title, has_diff)
-    latest_url = "#{ChkBuild.top_uri}#{u self.depsuffixed_name}/#{@compressed_diffhtml_relpath}"
-    t = prebuilt_start_time_obj
-    if (@public+@rss_relpath).exist?
-      rss = RSS::Parser.parse((@public+@rss_relpath).read)
-      olditems = rss.items
-      n = 24
-      if n < olditems.length
-        olditems = olditems.sort_by {|item| item.date }[-n,n]
+    with_page_uri_from_top(@rss_relpath, true) {
+      latest_url = uri_from_top(@compressed_diffhtml_relpath)
+      t = prebuilt_start_time_obj
+      if (ChkBuild.public_top+@rss_relpath).exist?
+	rss = RSS::Parser.parse((ChkBuild.public_top+@rss_relpath).read)
+	olditems = rss.items
+	n = 24
+	if n < olditems.length
+	  olditems = olditems.sort_by {|item| item.date }[-n,n]
+	end
+      else
+	olditems = []
       end
-    else
-      olditems = []
-    end
-    rss = RSS::Maker.make("1.0") {|maker|
-      maker.channel.about = @public_uri+@rss_relpath
-      maker.channel.title = "#{self.depsuffixed_name} (#{Util.simple_hostname})"
-      maker.channel.description = "chkbuild #{self.depsuffixed_name}"
-      maker.channel.link = "#{ChkBuild.top_uri}#{u self.depsuffixed_name}/"
-      maker.items.do_sort = true
-      olditems.each {|olditem|
-        maker.items.new_item {|item|
-          item.link = olditem.link
-          item.title = olditem.title
-          item.date = olditem.date
-          item.content_encoded = olditem.content_encoded
-        }
+      rss = RSS::Maker.make("1.0") {|maker|
+	maker.channel.about = uri_from_top(@rss_relpath)
+	maker.channel.title = "#{@depsuffixed_name} (#{Util.simple_hostname})"
+	maker.channel.description = "chkbuild #{@depsuffixed_name}"
+	maker.channel.link = uri_from_top(@depsuffixed_name)
+	maker.items.do_sort = true
+	olditems.each {|olditem|
+	  maker.items.new_item {|item|
+	    item.link = olditem.link
+	    item.title = olditem.title
+	    item.date = olditem.date
+	    item.content_encoded = olditem.content_encoded
+	  }
+	}
+	maker.items.new_item {|item|
+	  item.link = latest_url
+	  item.title = title
+	  item.date = t
+	  item.content_encoded = make_rss_html_content(title, has_diff)
+	}
       }
-      maker.items.new_item {|item|
-        item.link = latest_url
-        item.title = title
-        item.date = t
-        item.content_encoded = make_rss_html_content(title, has_diff)
-      }
+      atomic_make_file(ChkBuild.public_top+@rss_relpath) {|f| f.puts rss.to_s }
     }
-    atomic_make_file(@public+@rss_relpath) {|f| f.puts rss.to_s }
   end
 
   def compress_file(src, dst)
@@ -927,7 +993,7 @@ End
   end
 
   def make_diff(time1, time2)
-    output_path = @public+@compressed_rawdiff_relpath
+    output_path = ChkBuild.public_top+@compressed_rawdiff_relpath
     if !time1
       Zlib::GzipWriter.wrap(open(output_path, "w")) {}
       return nil
