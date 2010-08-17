@@ -116,9 +116,13 @@ class ChkBuild::Build
       }
     end
     Dir.chdir(working_dir) {
-      new_head, new_head_log = git_head_oneline_log
+      new_head = git_head_commit
+      new_head_log = git_single_log(new_head)
+      new_head_log.each_line {|line|
+	puts "LASTLOG #{line}"
+      }
       puts "CHECKOUT git #{cloneurl} #{working_dir}"
-      puts "LASTCOMMIT #{new_head} #{new_head_log}"
+      puts "LASTCOMMIT #{new_head}"
     }
   end
 
@@ -128,18 +132,12 @@ class ChkBuild::Build
     git("git://github.com/#{user}/#{project}.git", working_dir, opts)
   end
 
-  def git_head_oneline_log
+  def git_single_log(rev)
     result = []
-    command = "git log --pretty=oneline HEAD"
+    command = "git log --max-count=1 #{rev}"
     IO.popen(command) {|f|
-      f.each_line {|line|
-        # <sha1><sp><title line>
-        if /\A([0-9a-fA-F]+)\s+(.*)/ =~ line
-	  return [$1, $2]
-        end
-      }
+      f.read
     }
-    return nil
   end
 
   def git_oneline_logs2(old_head, new_head)

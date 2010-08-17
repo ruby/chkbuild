@@ -94,6 +94,7 @@ class ChkBuild::Build
         opts[:section] = nil
         self.run "svn", "update", "-q", opts
         h2 = svn_revisions
+	svn_print_lastlog(h2['.'][0])
 	svn_print_revisions(svnroot, rep_dir, h2, viewvc)
         self.run "svn", "info", opts_info
       }
@@ -110,6 +111,7 @@ class ChkBuild::Build
       opts[:section] = nil
       Dir.chdir(working_dir) {
         h2 = svn_revisions
+	svn_print_lastlog(h2['.'][0])
 	svn_print_revisions(svnroot, rep_dir, h2, viewvc)
         self.run "svn", "info", opts
       }
@@ -134,6 +136,14 @@ class ChkBuild::Build
       end
     }
     h
+  end
+
+  def svn_print_lastlog(rev)
+    IO.popen("svn log -r #{rev}") {|f|
+      f.each_line {|line|
+        puts "LASTLOG #{line}"
+      }
+    }
   end
 
   def svn_print_revisions(svnroot, rep_dir, h, viewvc)
