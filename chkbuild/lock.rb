@@ -34,7 +34,7 @@ module ChkBuild
     if @lock_io.flock(File::LOCK_EX|File::LOCK_NB) == false
       raise "another chkbuild is running."
     end
-    if 10240 < @lock_io.stat.size
+    if 102400 < @lock_io.stat.size
       @lock_io.truncate(0)
     end
     @lock_io.sync = true
