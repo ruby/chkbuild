@@ -687,8 +687,6 @@ End
       <a href=<%=ha uri_from_top(@summary_html_relpath) %>>summary</a>
       <a href=<%=ha uri_from_top(@recent_html_relpath) %>>recent</a>
       <a href=<%=ha uri_from_top(@last_html_gz_relpath) %>>last</a>
-      <a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>permalink</a>
-      <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>>fulllog</a>
     </p>
     <p>
 % if @older_time
@@ -721,8 +719,6 @@ End
       <a href=<%=ha uri_from_top(@summary_html_relpath) %>>summary</a>
       <a href=<%=ha uri_from_top(@recent_html_relpath) %>>recent</a>
       <a href=<%=ha uri_from_top(@last_html_gz_relpath) %>>last</a>
-      <a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>permalink</a>
-      <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>>fulllog</a>
     </p>
   </body>
 </html>
@@ -751,8 +747,6 @@ End
       <a href=<%=ha uri_from_top(@summary_html_relpath) %>>summary</a>
       <a href=<%=ha uri_from_top(@recent_html_relpath) %>>recent</a>
       <a href=<%=ha uri_from_top(@last_html_gz_relpath) %>>last</a>
-      <a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>difference</a>
-      <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>>fulllog</a>
     </p>
     <p>
 % if @older_time
@@ -787,8 +781,6 @@ End
       <a href=<%=ha uri_from_top(@summary_html_relpath) %>>summary</a>
       <a href=<%=ha uri_from_top(@recent_html_relpath) %>>recent</a>
       <a href=<%=ha uri_from_top(@last_html_gz_relpath) %>>last</a>
-      <a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>difference</a>
-      <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>>fulllog</a>
     </p>
   </body>
 </html>
@@ -817,14 +809,12 @@ End
       <a href=<%=ha uri_from_top(@summary_html_relpath) %>>summary</a>
       <a href=<%=ha uri_from_top(@recent_html_relpath) %>>recent</a>
       <a href=<%=ha uri_from_top(@last_html_gz_relpath) %>>last</a>
-      <a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>difference</a>
-      <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>>fulllog</a>
     </p>
     <p>
 % if @older_time
       <a href=<%=ha uri_from_top(@compressed_older_loghtml_relpath) %>><%=h @older_time %></a> &lt;
-      <a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>OlderDiff</a> &lt;
 % end
+      <a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>OlderDiff</a> &lt;
       <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>><%=h @t %></a> &gt;
       <!--placeholder_start-->NewerDiff<!--placeholder_end--> &gt;
       <!--placeholder_start-->NewerLog<!--placeholder_end-->
@@ -842,8 +832,8 @@ End
     <p>
 % if @older_time
       <a href=<%=ha uri_from_top(@compressed_older_loghtml_relpath) %>><%=h @older_time %></a> &lt;
-      <a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>OlderDiff</a> &lt;
 % end
+      <a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>OlderDiff</a> &lt;
       <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>><%=h @t %></a> &gt;
       <!--placeholder_start-->NewerDiff<!--placeholder_end--> &gt;
       <!--placeholder_start-->NewerLog<!--placeholder_end-->
@@ -854,8 +844,6 @@ End
       <a href=<%=ha uri_from_top(@summary_html_relpath) %>>summary</a>
       <a href=<%=ha uri_from_top(@recent_html_relpath) %>>recent</a>
       <a href=<%=ha uri_from_top(@last_html_gz_relpath) %>>last</a>
-      <a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>difference</a>
-      <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>>fulllog</a>
     </p>
   </body>
 </html>
