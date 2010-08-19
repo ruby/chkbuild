@@ -672,6 +672,18 @@ End
     result
   end
 
+  def no_differences_message(title)
+    if /success/ =~ title
+      "<p>Success</p>"
+    elsif @older_time
+      "<p>Failed as the <a href=#{ha uri_from_top(@compressed_older_loghtml_relpath)}>previous build</a>.\n" +
+      "See the <a href=#{ha uri_from_top(@compressed_loghtml_relpath)}>current full build log</a>.</p>"
+    else
+      "<p>Failed.\n" +
+      "See the <a href=#{ha uri_from_top(@compressed_loghtml_relpath)}>full build log</a>.</p>"
+    end
+  end
+
   LAST_HTMLTemplate = <<'End'
 <html>
   <head>
@@ -703,7 +715,7 @@ End
 %     }
     </pre>
 % else
-    <p>no differences</p>
+    <%= no_differences_message(title) %>
 % end
     <p>
 % if @older_time
@@ -764,7 +776,7 @@ End
 %     }
     </pre>
 % else
-    <p>no differences</p>
+    <%= no_differences_message(title) %>
 % end
     <p>
 % if @older_time
@@ -882,7 +894,7 @@ End
 <p><a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>read more differences</a></p>
 %   end
 % else
-<p>no differences</p>
+<%= no_differences_message(title) %>
 % end
 <p><a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>>full log</a></p>
 <p>
