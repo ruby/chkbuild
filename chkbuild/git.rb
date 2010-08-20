@@ -34,25 +34,39 @@ module ChkBuild; end # for testing
 class ChkBuild::Build
   def git_with_file(basename)
     n = 1
-    until !File.exist?(name = "#{self.build_dir}/#{basename}#{n}")
+    begin
+      name = "#{self.build_dir}/#{basename}#{n}"
+      f = File.open(name, File::RDWR|File::CREAT|File::EXCL)
+    rescue Errno::EEXIST
       n += 1
+      retry
     end
-    yield name
+    begin
+      yield name, f
+    ensure
+      f.close
+    end
   end
 
   def git_logfile(opts)
-    git_with_file("git.log.") {|errfile|
-      opts2 = opts.dup
-      opts2[:stderr] = errfile
-      begin
-        yield opts2
-      ensure
-        if File.exist?(errfile)
-          errcontent = File.read(errfile)
-          errcontent.gsub!(/^.*[\r\e].*\n/, "")
-          puts errcontent if !errcontent.empty?
-        end
-      end
+    git_with_file("git.out.") {|outfile, outio|
+      git_with_file("git.err.") {|errfile, errio|
+	opts2 = opts.dup
+	opts2[:stdout] = outfile
+	opts2[:stderr] = errfile
+	begin
+	  yield opts2
+	ensure
+	  outio.rewind
+	  outcontent = outio.read
+	  outcontent.gsub!(/^.*[\r\e].*\n/, "")
+	  outcontent.each_line {|line| puts "GITOUT #{line}" }
+	  errio.rewind
+	  errcontent = errio.read
+	  errcontent.gsub!(/^.*[\r\e].*\n/, "")
+	  errcontent.each_line {|line| puts "GITERR #{line}" }
+	end
+      }
     }
   end
 
