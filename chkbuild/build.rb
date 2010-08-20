@@ -524,7 +524,7 @@ class ChkBuild::Build
     with_page_uri_from_top(@summary_html_relpath) {
       open(ChkBuild.public_top+@summary_html_relpath, "a") {|f|
 	if f.stat.size == 0
-	  page_title = "#{@depsuffixed_name} build summary (#{Util.simple_hostname})"
+	  page_title = "#{@depsuffixed_name} build summary (#{ChkBuild.nickname})"
 	  f.puts "<title>#{h page_title}</title>"
 	  f.puts "<h1>#{h page_title}</h1>"
 	  f.puts "<p><a href=#{ha uri_from_top('.')}>chkbuild</a></p>"
@@ -581,7 +581,7 @@ End
     while !lines.empty? && /\A<a / !~ lines[0]
       lines.shift
     end
-    title = "#{@depsuffixed_name} recent build summary (#{Util.simple_hostname})"
+    title = "#{@depsuffixed_name} recent build summary (#{ChkBuild.nickname})"
 
     recent_summary = lines.reverse.join
     content = with_page_uri_from_top(@recent_html_relpath) {
@@ -928,7 +928,7 @@ End
       end
       rss = RSS::Maker.make("1.0") {|maker|
 	maker.channel.about = uri_from_top(@rss_relpath)
-	maker.channel.title = "#{@depsuffixed_name} (#{Util.simple_hostname})"
+	maker.channel.title = "#{@depsuffixed_name} (#{ChkBuild.nickname})"
 	maker.channel.description = "chkbuild #{@depsuffixed_name}"
 	maker.channel.link = uri_from_top(@depsuffixed_name)
 	maker.items.do_sort = true

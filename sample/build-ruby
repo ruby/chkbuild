@@ -30,6 +30,11 @@ require 'chkbuild'
 
 ChkBuild.limit(:data=>1024*1024*800, :as=>1024*1024*800)
 
+# ChkBuild.nickname identify chkbuild installation.
+# It is used for title of HTML, etc.
+# The default is the hostname (without domain).
+# ChkBuild.nickname = 'nickname'
+
 # ChkBuild.top_uri is used for RSS.
 # ChkBuild.top_uri = "file://#{ChkBuild.public_top}/"
 

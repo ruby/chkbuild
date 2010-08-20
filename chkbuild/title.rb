@@ -33,7 +33,7 @@ class ChkBuild::Title
     @title = {}
     @title[:version] = @logfile.suffixed_name
     @title[:dep_versions] = []
-    @title[:hostname] = "(#{Util.simple_hostname})"
+    @title[:hostname] = "(#{ChkBuild.nickname})"
     @title_order = [:version, :dep_versions, :hostname, :warn, :mark, :status]
     @logfile.each_secname {|secname|
       if @logfile.failed_section?(secname)

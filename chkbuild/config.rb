@@ -24,9 +24,16 @@
 # IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
 # OF SUCH DAMAGE.
 
+require 'util'
+
 module ChkBuild
   @top_uri = "file://#{ChkBuild.public_top}/"
   class << self
     attr_accessor :top_uri
+  end
+
+  @nickname = Util.simple_hostname
+  class << self
+    attr_accessor :nickname
   end
 end
