@@ -896,7 +896,6 @@ End
 % else
 <%= no_differences_message(title) %>
 % end
-<p><a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>>full log</a></p>
 <p>
 % if @older_time
   <a href=<%=ha uri_from_top(@compressed_older_diffhtml_relpath) %>>OlderDiff</a> &lt;
