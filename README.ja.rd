@@ -21,9 +21,9 @@ chkbuild は、定期的にソフトウェアをビルドし、
 
 * 過去の記録は自動的に gzip 圧縮されます
 
-* 前回の記録との diff を生成します
+* 前回の記録との比較を行います
   このときコマンドを実行した時刻など、毎回異なるのが当然なものは事前に置換され、
-  diff には表れません。
+  比較結果には表れません。
   個々のビルド固有の設定で置換する対象を設定することも可能です。
 
 * cvs, svn でソースを取得する場合、ViewVC による diff へのリンクを生成できます。
@@ -114,18 +114,58 @@ chkbuild は、定期的にソフトウェアをビルドし、
     デフォルトの設定のまま /home/chkbuild 以下でビルドしたい場合にはこのように
     シンボリックリンクを作るのが簡単です。
 
-(6) 定期実行の設定
+(5) rsync によるファイルのアップロード
+
+    chkbuild を動かすホストと chkbuild が生成したファイルを公開する
+    HTTP サーバが異なる場合、rsync でコピーすることができます。
+    (実装は chkbuild/upload.rb です。説明はまだありません。)
+
+(6) HTTP サーバの設定
+
+    chkbuild はディスクと帯域を節約するため、ファイルを gzip 圧縮します。
+    圧縮したファイルは *.html.gz や *.txt.gz というファイル名になります。
+    これらのファイルをブラウザから閲覧するためには以下のようなヘッダが
+    HTTP サーバからブラウザに送られなければなりません。
+
+      Content-Type: text/html
+      Content-Encoding: gzip
+
+    また、rss というファイルでは RSS を提供するので、以下のヘッダをつけます。
+
+      Content-Type: application/rss+xml
+
+    これらを行う設定方法は HTTP サーバに依存しますが、
+    Apache の場合は mod_mime でヘッダを制御できます。
+    http://httpd.apache.org/docs/2.2/mod/mod_mime.html
+
+    状況によって具体的な設定は異なりますが、例えば以下のような設定を
+    .htaccess に入れることで上記を実現できるかもしれません。
+
+    # サーバ全体の設定にある .gz に対する AddType を抑制し、
+    # .gz なファイルで Content-Encoding: gzip とする
+    # .html に対して Content-Type: text/html とするのはサーバ全体の設定で
+    # やってあるものとしてここでは行わない
+    RemoveType .gz
+    AddEncoding gzip .gz
+
+    # rss というファイルは Content-Type: application/rss+xml とする
+    <Files rss>
+    ForceType application/rss+xml
+    </Files>
+
+(7) 定期実行の設定
 
       # vi /etc/crontab
 
-    たとえば、毎日午前 3時33分に実行するには /etc/crontab に以下の行を挿入します。
+    たとえば、毎日午前 3時33分に実行するには /etc/crontab に以下の行を
+    挿入します。
 
       33 3 * * * root cd /home/foo/chkbuild; su chkbuild
 
     su chkbuild により、chkbuild ユーザに設定したシェルとして設定した
     /home/foo/chkbuild/start-build が起動します。
 
-(7) 公開・アナウンス
+(8) アナウンス
 
     Ruby 開発者に見て欲しいなら、Ruby hotlinks に登録するといいかも知れません。
 
