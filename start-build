@@ -28,6 +28,8 @@
 
 #ENV['PATH'] = "/usr/local/bin:#{ENV['PATH']}"
 
+$:.unshift File.dirname(File.expand_path(__FILE__))
+
 require 'chkbuild'
 
 #ChkBuild.rsync_ssh_upload_target("remoteuser@http-server::upload/dir", "/home/chkbuild/.ssh/chkbuild-upload")
