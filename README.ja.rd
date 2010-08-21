@@ -205,10 +205,10 @@ chkbuild は、定期的にソフトウェアをビルドし、
 
       # vi /etc/crontab
 
-    たとえば、毎日午前 3時33分に実行するには /etc/crontab に以下の行を
-    挿入します。
+    たとえば、毎日午前 3時33分に実行するには root の crontab で以下のような
+    設定を行います。
 
-      33 3 * * * root cd /home/$U/chkbuild; su chkbuild -c /home/$U/chkbuild/start-build
+      33 3 * * * cd /home/$U/chkbuild; su chkbuild -c /home/$U/chkbuild/start-build
 
     su chkbuild により、chkbuild ユーザで start-build を起動します。
 
