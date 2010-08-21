@@ -180,6 +180,10 @@ End
         Dir.chdir(checkout_dir)
         b.svn("http://svn.ruby-lang.org/repos/ruby", ruby_branch, 'ruby',
           :viewvc=>'http://svn.ruby-lang.org/cgi-bin/viewvc.cgi?diff_format=u')
+	b.svn_info('ruby')
+	svn_info_section = b.logfile.get_section('svn-info/ruby')
+	ruby_svn_rev = svn_info_section[/Last Changed Rev: (\d+)/, 1].to_i
+
         Dir.chdir("ruby")
         b.run(autoconf_command)
 
@@ -299,6 +303,25 @@ End
 	    }
           end
         end
+
+	Dir.chdir('ruby') {
+	  relname = nil
+	  case ruby_branch
+	  when 'branches/ruby_1_9_2',
+	       'branches/ruby_1_9_1',
+	       'branches/ruby_1_8',
+	       'branches/ruby_1_8_7',
+	       'branches/ruby_1_8_6',
+	       'branches/ruby_1_8_5'
+	    # "make dist" doesn't support BRANCH@rev.
+	    relname = nil
+	  else
+	    relname = "#{ruby_branch}@#{ruby_svn_rev}"
+	  end
+	  if relname
+	    b.make("dist", "RELNAME=#{relname}")
+	  end
+	}
       }
 
       t.add_title_hook("configure") {|title, log|
@@ -601,6 +624,43 @@ End
 
       # - returns self as a symbol literal for :$*
       t.add_diff_preprocess_sort(/\A- returns self as a symbol literal for :/)
+
+      # make dist
+      # + make dist RELNAME=trunk@29063
+      # ruby ./tool/make-snapshot tmp trunk@29063
+      # Exporting trunk@29063
+      # Exported revision 29063.
+      t.add_diff_preprocess_gsub(%r{(RELNAME=[0-9A-Za-z_.-]+@)\d+}) {|match| "#{match[1]}<rev>" }
+      t.add_diff_preprocess_gsub(%r{(make-snapshot tmp [0-9A-Za-z_.-]+@)\d+}) {|match| "#{match[1]}<rev>" }
+      t.add_diff_preprocess_gsub(%r{(Exporting [0-9A-Za-z_.-]+@)\d+}) {|match| "#{match[1]}<rev>" }
+      t.add_diff_preprocess_gsub(%r{(Exported revision )\d+}) {|match| "#{match[1]}<rev>" }
+
+      # make dist
+      # make[1]: Entering directory `/home/akr/chkbuild/tmp/build/ruby-trunk/<buildtime>/tmp/ruby-snapshot20100821-16136-p60p7s/ruby-1.9.3-r29063'
+      t.add_diff_preprocess_gsub(%r{ruby-snapshot\d+-\d+-[0-9a-z]+/ruby-[0-9a-z.-]+}) {|match|
+        "ruby-snapshot<tmp>/ruby-<verrev>"
+      }
+
+      # make dist
+      # creating bzip tarball... /home/akr/chkbuild/tmp/build/ruby-trunk/<buildtime>/ruby/tmp/ruby-1.9.3-r29063.tar.bz2 done
+      # creating gzip tarball... /home/akr/chkbuild/tmp/build/ruby-trunk/<buildtime>/ruby/tmp/ruby-1.9.3-r29063.tar.gz done
+      # creating zip archive... /home/akr/chkbuild/tmp/build/ruby-trunk/<buildtime>/ruby/tmp/ruby-1.9.3-r29063.zip done
+      t.add_diff_preprocess_gsub(%r{ruby-[0-9a-z.-]+\.(?:tar|zip)}) {|match|
+        "ruby-<verrev>.#{match[1]}"
+      }
+
+      # make dist
+      #   SIZE:   8727493 bytes
+      t.add_diff_preprocess_gsub(%r{^( *SIZE:\s+)[0-9]+}) {|match|
+        "#{match[1]}<size>"
+      }
+
+      # make dist
+      #   MD5:    fc3ac1bff7e906cbca72c3dffce638b0
+      #   SHA256: 677a188cb312453da596e21d5b843ba96d332f8ff93a247cd6c88d93f5e74093
+      t.add_diff_preprocess_gsub(%r{^( *(MD5|SHA256):\s+)[0-9a-f]+}) {|match|
+        "#{match[1]}<digest>"
+      }
 
       t
     end

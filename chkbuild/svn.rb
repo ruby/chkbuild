@@ -96,7 +96,6 @@ class ChkBuild::Build
         h2 = svn_revisions
 	svn_print_lastlog(h2['.'][0])
 	svn_print_revisions(svnroot, rep_dir, h2, viewvc)
-        self.run "svn", "info", opts_info
       }
     else
       if File.exist?(working_dir)
@@ -113,9 +112,17 @@ class ChkBuild::Build
         h2 = svn_revisions
 	svn_print_lastlog(h2['.'][0])
 	svn_print_revisions(svnroot, rep_dir, h2, viewvc)
-        self.run "svn", "info", opts
       }
     end
+  end
+
+  def svn_info(working_dir, opts={})
+    opts = opts.dup
+    opts["ENV:LC_ALL"] = "C"
+    opts[:section] ||= "svn-info/#{working_dir}"
+    Dir.chdir(working_dir) {
+      self.run "svn", "info", opts
+    }
   end
 
   def svn_revisions
