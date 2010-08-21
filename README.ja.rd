@@ -55,7 +55,8 @@ chkbuild は、定期的にソフトウェアをビルドし、
 
 (1) chkbuild のダウンロード・展開
 
-      % cd /home/foo
+      % export U=foo
+      % cd /home/$U
       % cvs -d :pserver:anonymous@cvs.m17n.org:/cvs/ruby co chkbuild
 
 (2) chkbuild の設定
@@ -70,10 +71,14 @@ chkbuild は、定期的にソフトウェアをビルドし、
 
     設定内容について詳しくは次節で述べます。
 
+    とくに注意が必要なのは、RSS を使う場合は絶対 URL を結果に埋め込む必要があるため、
+    結果を公開する URL を ChkBuild.top_uri = "..." と設定する必要があります。
+    これについては sample/build-ruby にコメントがあります。
+    (この設定を行わない場合、不適切な URL が HTML に埋め込まれます。)
+
     なお、設定の内容を変更せず、ruby start-build として実行した場合は、
-    Ruby の main trunk と ruby_1_8 branch を
-    それぞれ --enable-pthread 無しと有りの設定として
-    計4種類を /home/foo/chkbuild/tmp 以下でビルドします。
+    Ruby の main trunk といくつかのブランチを
+    /home/foo/chkbuild/tmp 以下でビルドします。
 
     foo ユーザでビルドした場合、次の chkbuild ユーザでのビルドの邪魔になりますので、
     ビルド結果を削除しておきます。
@@ -83,33 +88,32 @@ chkbuild は、定期的にソフトウェアをビルドし、
 (3) chkbuild ユーザの作成
 
     chkbuild の動作専用のユーザ・グループを作ります。
-    セキュリティ上の理由もあり、必ず専用ユーザ・グループを作ってください。
+    セキュリティのため、必ず専用ユーザ・グループを作ってください。
     また、chkbuild グループに foo を加えた上で
     また、以下のようなオーナ・グループ・モードでディレクトリを作り、
     chkbuild ユーザ自身は build, public_html 以下にしか書き込めないようにします。
 
-      /home/chkbuild              user=foo group=chkbuild mode=2750
+      /home/chkbuild              user=foo group=chkbuild mode=2755
       /home/chkbuild/build        user=foo group=chkbuild mode=2775
       /home/chkbuild/public_html  user=foo group=chkbuild mode=2775
 
       % su
-      # adduser --disabled-login --no-create-home --shell /home/foo/chkbuild/start-build chkbuild
-      # usermod -G ...,chkbuild foo
+      # adduser --disabled-login --no-create-home chkbuild
+      ## adduser --disabled-login --no-create-home --shell /home/$U/chkbuild/start-build chkbuild
+      # usermod -G ...,chkbuild $U
       # cd /home
       # mkdir chkbuild
-      # chown foo:chkbuild chkbuild
-      # chmod 2750 chkbuild
-      # su foo
-      % cd chkbuild
-      % mkdir build public_html
-      % chgrp chkbuild build public_html
-      % chmod 2775 build public_html
-      % exit
+      # chown $U:chkbuild chkbuild
+      # chmod 2755 chkbuild
+      # mkdir chkbuild/build
+      # mkdir chkbuild/public_html
+      # chown $U:chkbuild chkbuild/build chkbuild/public_html
+      # chmod 2775 chkbuild/build chkbuild/public_html
       # exit
 
 (4) 生成ディレクトリの設定
 
-      % ln -s /home/chkbuild tmp
+      % ln -s /home/chkbuild /home/$U/chkbuild/tmp
 
     デフォルトの設定のまま /home/chkbuild 以下でビルドしたい場合にはこのように
     シンボリックリンクを作るのが簡単です。
@@ -117,8 +121,52 @@ chkbuild は、定期的にソフトウェアをビルドし、
 (5) rsync によるファイルのアップロード
 
     chkbuild を動かすホストと chkbuild が生成したファイルを公開する
-    HTTP サーバが異なる場合、rsync でコピーすることができます。
-    (実装は chkbuild/upload.rb です。説明はまだありません。)
+    HTTP サーバが異なる場合、ssh 経由の rsync でコピーすることができます。
+
+    このためには、まず通信に使用する (パスフレーズのない) ssh 鍵対を生成します。
+
+      % ssh-keygen -N '' -t rsa -f chkbuild-upload -C chkbuild-upload
+
+    アップロードしたファイルを格納するディレクトリを HTTP サーバで作ります
+    ここでは /home/$U/public_html/chkbuild を使うことにします。
+
+      % mkdir -p /home/$U/public_html/chkbuild
+ 
+    HTTP サーバでアップロードを受け取るための rsync daemon の設定を作ります。
+    ここでは /home/$U/.ssh/chkbuild-rsyncd.conf に作るとします。
+
+      /home/$U/.ssh/chkbuild-rsyncd.conf :
+      [upload]
+      path = /home/$U/public_html/chkbuild
+      use chroot = no
+      read only = no
+      write only = yes
+    
+    HTTP サーバでアップロードを受け取るユーザの ~/.ssh/authorized_keys に
+    以下を加えます。
+
+      command="/usr/bin/rsync --server --daemon --config=/home/$U/.ssh/chkbuild-rsyncd.conf .",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty 上記で生成した公開鍵 chkbuild-upload.pub の内容
+
+    chkbuild を動作させるホストで、HTTP サーバの ssh fingerprint を記録します。
+    HTTP サーバのホスト名を http-server とします。
+
+      % mkdir /home/chkbuild/.ssh                                         
+      % ssh-keyscan -t rsa http-server > /home/chkbuild/.ssh/known_hosts
+
+    上で生成した鍵対の秘密鍵を chkbuild を動作させるホストの /home/chkbuild/.ssh/ にコピーします
+    そして、秘密鍵を chkbild ユーザが読めるようグループパーミッションを設定します。
+
+      % cp chkbuild-upload chkbuild-upload.pub  /home/chkbuild/.ssh/
+      % su
+      # chgrp chkbuild /home/chkbuild/.ssh/chkbuild-upload
+      # chmod g+r /home/chkbuild/.ssh/chkbuild-upload
+
+    そして、start-build 内で以下の行を有効にします。
+
+      ChkBuild.rsync_ssh_upload_target("remoteuser@http-server::upload/dir", "/home/chkbuild/.ssh/chkbuild-upload")
+
+    これにより HTTP サーバの /home/$U/public_html/chkbuild/dir にコピーされる
+    ようになります。
 
 (6) HTTP サーバの設定
 
@@ -138,8 +186,8 @@ chkbuild は、定期的にソフトウェアをビルドし、
     Apache の場合は mod_mime でヘッダを制御できます。
     http://httpd.apache.org/docs/2.2/mod/mod_mime.html
 
-    状況によって具体的な設定は異なりますが、例えば以下のような設定を
-    .htaccess に入れることで上記を実現できるかもしれません。
+    大域な設定の状況によって具体的な設定は異なりますが、例えば以下のような
+    設定を .htaccess に入れることで上記を実現できるかもしれません。
 
     # サーバ全体の設定にある .gz に対する AddType を抑制し、
     # .gz なファイルで Content-Encoding: gzip とする
@@ -160,10 +208,9 @@ chkbuild は、定期的にソフトウェアをビルドし、
     たとえば、毎日午前 3時33分に実行するには /etc/crontab に以下の行を
     挿入します。
 
-      33 3 * * * root cd /home/foo/chkbuild; su chkbuild
+      33 3 * * * root cd /home/$U/chkbuild; su chkbuild -c /home/$U/chkbuild/start-build
 
-    su chkbuild により、chkbuild ユーザに設定したシェルとして設定した
-    /home/foo/chkbuild/start-build が起動します。
+    su chkbuild により、chkbuild ユーザで start-build を起動します。
 
 (8) アナウンス
 
