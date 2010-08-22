@@ -190,20 +190,21 @@ chkbuild は、定期的にソフトウェアをビルドし、
     Apache の場合は mod_mime モジュールでヘッダを制御できます。
     http://httpd.apache.org/docs/2.2/mod/mod_mime.html
 
-    大域な設定の状況によって具体的なやりかたは異なりますが、例えば以下のような
-    設定を .htaccess に入れることで上記を実現できるかもしれません。
+    大域的な設定の状況によって具体的なやりかたは異なりますが、
+    例えば以下のような設定を /home/$U/public_html/.htaccess に入れることで
+    上記を実現できるかもしれません。
 
-    # サーバ全体の設定にある .gz に対する AddType を抑制し、
-    # .gz なファイルで Content-Encoding: gzip とする
-    # .html に対して Content-Type: text/html とするのはサーバ全体の設定で
-    # やってあるものとしてここでは行わない
-    RemoveType .gz
-    AddEncoding gzip .gz
+      # サーバ全体の設定にある .gz に対する AddType を抑制し、
+      # .gz なファイルで Content-Encoding: gzip とする
+      # .html に対して Content-Type: text/html とするのはサーバ全体の設定で
+      # やってあるものとしてここでは行わない
+      RemoveType .gz
+      AddEncoding gzip .gz
 
-    # rss というファイルは Content-Type: application/rss+xml とする
-    <Files rss>
-    ForceType application/rss+xml
-    </Files>
+      # rss という名前のファイルは Content-Type: application/rss+xml とする
+      <Files rss>
+      ForceType application/rss+xml
+      </Files>
 
 (7) 定期実行の設定
 
