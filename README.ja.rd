@@ -134,6 +134,8 @@ chkbuild は、定期的にソフトウェアをビルドし、
  
     HTTP サーバでアップロードを受け取るための rsync daemon の設定を作ります。
     ここでは /home/$U/.ssh/chkbuild-rsyncd.conf に作るとします。
+    この設定を使った rsync daemon は /home/$U/public_html/chkbuild 下への
+    書き込み専用になります。
 
       /home/$U/.ssh/chkbuild-rsyncd.conf :
       [upload]
@@ -144,6 +146,7 @@ chkbuild は、定期的にソフトウェアをビルドし、
     
     HTTP サーバでアップロードを受け取るユーザの ~/.ssh/authorized_keys に
     以下を加えます。
+    これはここで使う鍵対が上記の設定での rsync daemon の起動専用にするものです。
 
       command="/usr/bin/rsync --server --daemon --config=/home/$U/.ssh/chkbuild-rsyncd.conf .",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty 上記で生成した公開鍵 chkbuild-upload.pub の内容
 
@@ -153,10 +156,12 @@ chkbuild は、定期的にソフトウェアをビルドし、
       % mkdir /home/chkbuild/.ssh                                         
       % ssh-keyscan -t rsa http-server > /home/chkbuild/.ssh/known_hosts
 
-    上で生成した鍵対の秘密鍵を chkbuild を動作させるホストの /home/chkbuild/.ssh/ にコピーします
-    そして、秘密鍵を chkbild ユーザが読めるようグループパーミッションを設定します。
+    上で生成した鍵対の秘密鍵を chkbuild を動作させるホストの
+    /home/chkbuild/.ssh/ にコピーします
+    そして秘密鍵を chkbild ユーザが読めるようなグループパーミッションを
+    設定します。
 
-      % cp chkbuild-upload chkbuild-upload.pub  /home/chkbuild/.ssh/
+      % cp chkbuild-upload chkbuild-upload.pub /home/chkbuild/.ssh/
       % su
       # chgrp chkbuild /home/chkbuild/.ssh/chkbuild-upload
       # chmod g+r /home/chkbuild/.ssh/chkbuild-upload
@@ -183,10 +188,10 @@ chkbuild は、定期的にソフトウェアをビルドし、
       Content-Type: application/rss+xml
 
     これらを行う設定方法は HTTP サーバに依存しますが、
-    Apache の場合は mod_mime でヘッダを制御できます。
+    Apache の場合は mod_mime モジュールでヘッダを制御できます。
     http://httpd.apache.org/docs/2.2/mod/mod_mime.html
 
-    大域な設定の状況によって具体的な設定は異なりますが、例えば以下のような
+    大域な設定の状況によって具体的なやりかたは異なりますが、例えば以下のような
     設定を .htaccess に入れることで上記を実現できるかもしれません。
 
     # サーバ全体の設定にある .gz に対する AddType を抑制し、
