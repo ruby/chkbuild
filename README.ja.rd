@@ -38,7 +38,6 @@ chkbuild は、定期的にソフトウェアをビルドし、
   % ruby start-build
 
   % w3m tmp/public_html/ruby-trunk/summary.html 
-  % w3m tmp/public_html/ruby-trunk-pth/summary.html 
   % w3m tmp/public_html/ruby-1.8/summary.html 
   % w3m tmp/public_html/ruby-1.8-pth/summary.html 
 
@@ -51,7 +50,8 @@ chkbuild は、定期的にソフトウェアをビルドし、
 
 以下の例では、あなたのユーザ名が foo で、
 /home/foo/chkbuild に chkbuild を設置することを仮定します。
-他のディレクトリに設置する場合は適当に変更してください。
+ただし、コマンド例や設定例の中に $U とあるところは実際には foo もしくは
+実際の設置対象にあわせて適切に変更してください。
 
 (1) chkbuild のダウンロード・展開
 
@@ -78,9 +78,9 @@ chkbuild は、定期的にソフトウェアをビルドし、
 
     なお、設定の内容を変更せず、ruby start-build として実行した場合は、
     Ruby の main trunk といくつかのブランチを
-    /home/foo/chkbuild/tmp 以下でビルドします。
+    /home/$U/chkbuild/tmp 以下でビルドします。
 
-    foo ユーザでビルドした場合、次の chkbuild ユーザでのビルドの邪魔になりますので、
+    $U ユーザでビルドした場合、次の chkbuild ユーザでのビルドの邪魔になりますので、
     ビルド結果を削除しておきます。
 
       % rm -rf tmp
@@ -89,17 +89,16 @@ chkbuild は、定期的にソフトウェアをビルドし、
 
     chkbuild の動作専用のユーザ・グループを作ります。
     セキュリティのため、必ず専用ユーザ・グループを作ってください。
-    また、chkbuild グループに foo を加えた上で
+    また、chkbuild グループに $U を加えた上で
     また、以下のようなオーナ・グループ・モードでディレクトリを作り、
     chkbuild ユーザ自身は build, public_html 以下にしか書き込めないようにします。
 
-      /home/chkbuild              user=foo group=chkbuild mode=2755
-      /home/chkbuild/build        user=foo group=chkbuild mode=2775
-      /home/chkbuild/public_html  user=foo group=chkbuild mode=2775
+      /home/chkbuild              user=$U group=chkbuild mode=2755
+      /home/chkbuild/build        user=$U group=chkbuild mode=2775
+      /home/chkbuild/public_html  user=$U group=chkbuild mode=2775
 
       % su
       # adduser --disabled-login --no-create-home chkbuild
-      ## adduser --disabled-login --no-create-home --shell /home/$U/chkbuild/start-build chkbuild
       # usermod -G ...,chkbuild $U
       # cd /home
       # mkdir chkbuild
