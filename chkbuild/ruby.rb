@@ -304,24 +304,27 @@ End
           end
         end
 
-	Dir.chdir('ruby') {
-	  relname = nil
-	  case ruby_branch
-	  when 'branches/ruby_1_9_2',
-	       'branches/ruby_1_9_1',
-	       'branches/ruby_1_8',
-	       'branches/ruby_1_8_7',
-	       'branches/ruby_1_8_6',
-	       'branches/ruby_1_8_5'
-	    # "make dist" doesn't support BRANCH@rev.
+        b.catch_error {
+	  Dir.chdir('ruby') {
 	    relname = nil
-	  else
-	    relname = "#{ruby_branch}@#{ruby_svn_rev}"
-	  end
-	  if relname
-	    b.make("dist", "RELNAME=#{relname}")
-	  end
+	    case ruby_branch
+	    when 'branches/ruby_1_9_2',
+		 'branches/ruby_1_9_1',
+		 'branches/ruby_1_8',
+		 'branches/ruby_1_8_7',
+		 'branches/ruby_1_8_6',
+		 'branches/ruby_1_8_5'
+	      # "make dist" doesn't support BRANCH@rev.
+	      relname = nil
+	    else
+	      relname = "#{ruby_branch}@#{ruby_svn_rev}"
+	    end
+	    if relname
+	      b.make("dist", "RELNAME=#{relname}")
+	    end
+	  }
 	}
+
       }
 
       t.add_title_hook("configure") {|title, log|
