@@ -132,6 +132,7 @@ chkbuild は、定期的にソフトウェアをビルドし、
       % mkdir -p /home/$U/public_html/chkbuild
  
     HTTP サーバでアップロードを受け取るための rsync daemon の設定を作ります。
+    (daemon といっても常に動かしておくわけではありませんが。)
     ここでは /home/$U/.ssh/chkbuild-rsyncd.conf に作るとします。
     この設定を使った rsync daemon は /home/$U/public_html/chkbuild 下への
     書き込み専用になります。
@@ -197,7 +198,7 @@ chkbuild は、定期的にソフトウェアをビルドし、
       # サーバ全体の設定にある .gz に対する AddType を抑制し、
       # .gz なファイルで Content-Encoding: gzip とする
       # .html に対して Content-Type: text/html とするのはサーバ全体の設定で
-      # やってあるものとしてここでは行わない
+      # 行われているものとしてここでは行わない
       RemoveType .gz
       AddEncoding gzip .gz
 
