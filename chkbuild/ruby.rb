@@ -467,6 +467,20 @@ End
         "Revision: <rev>"
       }
 
+      # svn info prints the last changed revision.
+      # Last Changed Author: nobu
+      # Last Changed Rev: 29180
+      # Last Changed Date: 2010-09-04 10:41:04 +0900 (Sat, 04 Sep 2010)
+      t.add_diff_preprocess_gsub(/^Last Changed Author: (.*)/) {|match|
+        "Last Changed Author: <author>"
+      }
+      t.add_diff_preprocess_gsub(/^Last Changed Rev: (.*)/) {|match|
+        "Last Changed Rev: <rev>"
+      }
+      t.add_diff_preprocess_gsub(/^Last Changed Date: (.*)/) {|match|
+        "Last Changed Date: <date>"
+      }
+
       # done.  (0.07user 0.01system 0.05elapsed)
       t.add_diff_preprocess_gsub(/^done\.  \(\d+\.\d\duser \d+\.\d\dsystem \d+\.\d\delapsed\)/) {|match|
         "done.  (X.XXuser X.XXsystem X.XXelapsed)"
