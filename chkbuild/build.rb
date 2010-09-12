@@ -713,7 +713,7 @@ End
 %     @diff_reader.each_line {|line|
 <%=     markup_diff_line line.chomp %>
 %     }
-    </pre>
+</pre>
 % else
     <%= no_differences_message(title) %>
 % end
@@ -774,7 +774,7 @@ End
 %     @diff_reader.each_line {|line|
 <%=     markup_diff_line line.chomp %>
 %     }
-    </pre>
+</pre>
 % else
     <%= no_differences_message(title) %>
 % end
@@ -840,7 +840,7 @@ End
 % @log_reader.each_line {|line|
 <%= markup_log_line line.chomp %>
 % }
-    </pre>
+</pre>
     <p>
 % if @older_time
       <a href=<%=ha uri_from_top(@compressed_older_loghtml_relpath) %>><%=h @older_time %></a> &lt;
