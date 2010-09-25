@@ -303,18 +303,31 @@ class ChkBuild::Build
     end
 
     def each_line
+      empty_lines = []
       if /\.gz\z/ =~ @filename.to_s
         Zlib::GzipReader.wrap(open(@filename)) {|f|
           f.each_line {|line|
             line.force_encoding("ascii-8bit") if line.respond_to? :force_encoding
-            yield line
+	    if /\A\s*\z/ =~ line
+	      empty_lines << line
+	    else
+	      empty_lines.each {|el| yield el }
+	      empty_lines = []
+	      yield line
+	    end
           }
         }
       else
         open(@filename) {|f|
           f.each_line {|line|
             line.force_encoding("ascii-8bit") if line.respond_to? :force_encoding
-            yield line
+	    if /\A\s*\z/ =~ line
+	      empty_lines << line
+	    else
+	      empty_lines.each {|el| yield el }
+	      empty_lines = []
+	      yield line
+	    end
           }
         }
       end
