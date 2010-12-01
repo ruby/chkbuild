@@ -579,6 +579,12 @@ End
         "Finished in <t> seconds"
       }
 
+      # miniunit:
+      # Finished tests in 527.896930s, 16.5241 tests/s, 4174.6880 assertions/s.
+      t.add_diff_preprocess_gsub(%r{^Finished tests in [0-9.]+s, [0-9.]+ tests/s, [0-9.]+ assertions/s\.}) {|match|
+        "Finished tests in <n>s, <n> tests/s, <n> assertions/s."
+      }
+
       # /tmp/test_rubygems_18634
       t.add_diff_preprocess_gsub(%r{/tmp/test_rubygems_\d+}o) {|match|
         '/tmp/test_rubygems_<pid>'
@@ -594,6 +600,12 @@ End
       # Test_REXMLStreamParser#test_fault: -0.58 s: .
       t.add_diff_preprocess_gsub(%r{-?\d+\.\d\d s: }) {|match|
 	'<elapsed> s: '
+      }
+
+      # miniunit:
+      # CGIMultipartTest#test_cgi_multipart_badbody = 0.01 s = .
+      t.add_diff_preprocess_gsub(%r{= -?\d+\.\d\d s =}) {|match|
+	'= <elapsed> s ='
       }
 
       # Errno::ENOENT: No such file or directory - /home/akr/chkbuild/tmp/build/ruby-trunk/<buildtime>/tmp/generate_test_12905.csv
