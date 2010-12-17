@@ -604,8 +604,8 @@ End
 
       # miniunit:
       # CGIMultipartTest#test_cgi_multipart_badbody = 0.01 s = .
-      t.add_diff_preprocess_gsub(%r{= -?\d+\.\d\d s =}) {|match|
-	'= <elapsed> s ='
+      t.add_diff_preprocess_gsub(%r{-?\d+\.\d\d s =}) {|match|
+	'<elapsed> s ='
       }
 
       # Errno::ENOENT: No such file or directory - /home/akr/chkbuild/tmp/build/ruby-trunk/<buildtime>/tmp/generate_test_12905.csv
