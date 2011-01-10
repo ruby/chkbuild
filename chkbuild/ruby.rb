@@ -567,6 +567,11 @@ End
         '#<Addrinfo: [::1]:<port>'
       }
 
+      # NoMethodError: undefined method `mode' for #<File:fd 17>
+      t.add_diff_preprocess_gsub(%r{\#<File:fd \d+>}o) {|match|
+        '#<File:fd n>'
+      }
+
       t.add_diff_preprocess_gsub(/^Elapsed: [0-9.]+s/) {|match|
         "Elapsed: <t>s"
       }
