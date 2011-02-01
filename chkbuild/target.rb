@@ -41,22 +41,33 @@ class ChkBuild::Target
   attr_reader :target_name, :opts, :build_proc
 
   def init_target(*args)
-    @dep_targets = []
-    suffixes_ary = []
-    args.each {|arg|
-      if ChkBuild::Target === arg
-        @dep_targets << arg
+    args = args.map {|a|
+      if Array === a
+        a
       else
-        suffixes_ary << arg
+        [a]
       end
     }
     @branches = []
-    Util.rproduct(*suffixes_ary) {|suffixes|
+    Util.rproduct(*args) {|a|
+      suffixes2 = []
+      opts = {}
+      dep_targets = []
+      a.flatten.each {|v|
+        case v
+	when nil
+	when ChkBuild::Target
+	  dep_targets << v
+	when Hash
+	  opts.update(v) {|k, v1, v2| v1 }
+        else
+	  suffixes2 << v
+	end
+      }
       if @opts[:limit_combination]
-        next if !@opts[:limit_combination].call(*suffixes)
+        next if !@opts[:limit_combination].call(*suffixes2)
       end
-      suffixes.compact!
-      @branches << suffixes
+      @branches << [suffixes2, opts, dep_targets]
     }
   end
 
@@ -131,8 +142,14 @@ class ChkBuild::Target
   end
 
   def each_suffixes
-    @branches.each {|suffixes|
+    @branches.each {|suffixes, opts|
       yield suffixes
+    }
+  end
+
+  def each_suffixes_opts_deptargets
+    @branches.each {|suffixes, opts, dep_targets|
+      yield suffixes, @opts.dup.update(opts), dep_targets
     }
   end
 
@@ -143,10 +160,10 @@ class ChkBuild::Target
   def make_build_objs
     return @builds if defined? @builds
     builds = []
-    each_suffixes {|suffixes|
-      dep_builds = @dep_targets.map {|dep_target| dep_target.make_build_objs }
+    each_suffixes_opts_deptargets {|suffixes, opts, dep_targets|
+      dep_builds = dep_targets.map {|dep_target| dep_target.make_build_objs }
       Util.rproduct(*dep_builds) {|dependencies|
-        builds << ChkBuild::Build.new(self, suffixes, dependencies)
+        builds << ChkBuild::Build.new(self, suffixes, opts, dependencies)
       }
     }
     @builds = builds

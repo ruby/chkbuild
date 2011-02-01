@@ -51,9 +51,10 @@ require 'chkbuild/upload'
 class ChkBuild::Build
   include Util
 
-  def initialize(target, suffixes, depbuilds)
+  def initialize(target, suffixes, opts, depbuilds)
     @target = target
     @suffixes = suffixes
+    @opts = opts
     @depbuilds = depbuilds
 
     @depsuffixed_name = self.depsuffixed_name
@@ -67,7 +68,7 @@ class ChkBuild::Build
   #p [:pid, $$, @depsuffixed_name]
   end
   attr_reader :target, :suffixes, :depbuilds
-  attr_reader :target_dir
+  attr_reader :target_dir, :opts
 
   def suffixed_name
     name = @target.target_name.dup
@@ -261,9 +262,13 @@ class ChkBuild::Build
   end
 
   def child_build_target(target_output_name, *branch_info)
-    opts = setup_build(target_output_name)
+    setup_build(target_output_name)
     @logfile.start_section 'start'
-    ret = do_build(opts, branch_info)
+    @opts.keys.sort_by {|k| k.to_s }.each {|k|
+      v = @opts[k]
+      puts "option #{k.inspect} => #{v.inspect}"
+    }
+    ret = do_build(branch_info)
     @logfile.start_section 'end'
     puts "elapsed #{format_elapsed_time(Time.now - prebuilt_start_time_obj)}"
     update_result
@@ -272,7 +277,6 @@ class ChkBuild::Build
   end
 
   def setup_build(target_output_name)
-    opts = @target.opts
     @build_dir = @target_dir + prebuilt_start_time
     @log_filename = @build_dir + 'log'
     mkcd @target_dir
@@ -284,13 +288,12 @@ class ChkBuild::Build
     @public_log.mkpath
     force_link "log", @current_txt
     make_local_tmpdir
-    remove_old_build(prebuilt_start_time, opts.fetch(:old, ChkBuild.num_oldbuilds))
-    opts
+    remove_old_build(prebuilt_start_time, @opts.fetch(:old, ChkBuild.num_oldbuilds))
   end
 
-  def do_build(opts, branch_info)
+  def do_build(branch_info)
     ret = nil
-    with_procmemsize(opts) {
+    with_procmemsize(@opts) {
       ret = catch_error { @target.build_proc.call(self, *branch_info) }
       output_status_section
     }
@@ -1219,7 +1222,7 @@ End
     attr_accessor :reason
   end
   def run(command, *args, &block)
-    opts = @target.opts.dup
+    opts = @opts.dup
     opts.update args.pop if Hash === args.last
 
     if opts.include?(:section)
