@@ -45,7 +45,10 @@ ChkBuild::Ruby.def_target(
 
   # ['o0', 'o1', nil, 'o3', 'os'],
 
-  [nil, "pth"],
+  [
+    nil,
+    ["pth", { :output_interval_timeout => '5min' }]
+  ],
 
   # ['m32', 'm64'],
 
