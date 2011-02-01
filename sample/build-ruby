@@ -52,7 +52,7 @@ ChkBuild::Ruby.def_target(
 
   # ['m32', 'm64'],
 
-  # :limit_combination => lambda {|*suffixes| true },
+  # :combination_limit => lambda {|*suffixes| true },
 
   # :old => 1,
 
