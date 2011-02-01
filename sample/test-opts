@@ -4,10 +4,12 @@ require 'chkbuild'
 
 ChkBuild.def_target("opts",
   [
-    ["a", {:foo=>"a"}],
-    ["b", {:foo=>"b"}]
-  ]) {|b|
-  p b.opts
+    ["a", {:foo=>"a", :bar=>"x"}],
+    ["b", {:foo=>"b", :bar=>"y"}]
+  ],
+  :bar=>"z",
+  :baz=>"A") {|b|
+  pp b.opts
 }
 
 ChkBuild.main
