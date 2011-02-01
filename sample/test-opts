@@ -1,0 +1,13 @@
+#!/usr/bin/env ruby
+
+require 'chkbuild'
+
+ChkBuild.def_target("opts",
+  [
+    ["a", {:foo=>"a"}],
+    ["b", {:foo=>"b"}]
+  ]) {|b|
+  p b.opts
+}
+
+ChkBuild.main
