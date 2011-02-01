@@ -64,8 +64,8 @@ class ChkBuild::Target
 	  suffixes2 << v
 	end
       }
-      if @opts[:limit_combination]
-        next if !@opts[:limit_combination].call(*suffixes2)
+      if @opts[:combination_limit]
+        next if !@opts[:combination_limit].call(*suffixes2)
       end
       @branches << [suffixes2, opts, dep_targets]
     }

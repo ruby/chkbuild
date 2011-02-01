@@ -67,7 +67,7 @@ End
 
     module_function
 
-    def limit_combination(*suffixes)
+    def combination_limit(*suffixes)
       if suffixes.include?("pth")
         return false if suffixes.grep(/\A1\.8/).empty? && !suffixes.include?("matzruby")
       end
@@ -80,7 +80,7 @@ End
       opts = Hash === args.last ? args.pop : {}
       default_opts = {:separated_srcdir=>false}
       opts = default_opts.merge(opts)
-      opts[:limit_combination] = method(:limit_combination)
+      opts[:combination_limit] = method(:combination_limit)
       args.push opts
       opts = Hash === args.last ? args.last : {}
       separated_srcdir = opts[:separated_srcdir]
