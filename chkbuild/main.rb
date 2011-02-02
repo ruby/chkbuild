@@ -1,6 +1,6 @@
 # chkbuild/main.rb - chkbuild main routines.
 #
-# Copyright (C) 2006,2009,2010 Tanaka Akira  <akr@fsij.org>
+# Copyright (C) 2006-2011 Tanaka Akira  <akr@fsij.org>
 # 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -124,6 +124,15 @@ End
     }
   end
 
+  def ChkBuild.main_options
+    @target_list.each {|t|
+      t.each_build_obj {|build|
+        puts build.depsuffixed_name
+	pp build.opts
+      }
+    }
+  end
+
   def ChkBuild.main_title
     @target_list.each {|t|
       t.each_build_obj {|build|
@@ -168,6 +177,7 @@ End
     when 'build' then ChkBuild.main_build
     when 'internal-build' then ChkBuild.main_internal_build
     when 'list' then ChkBuild.main_list
+    when 'options' then ChkBuild.main_options
     when 'title' then ChkBuild.main_title
     when 'logdiff' then ChkBuild.main_logdiff
     else
