@@ -41,16 +41,17 @@ class ChkBuild::Target
   attr_reader :target_name, :opts, :build_proc
 
   def init_target(*args)
+    i = 0
     args = args.map {|a|
+      i += 1
       if Array === a
-        a
+        a.map {|v| String === v ? {"suffix_#{i}".intern => v} : v }
       else
         [a]
       end
     }
     @branches = []
     Util.rproduct(*args) {|a|
-      suffixes2 = []
       opts = {}
       dep_targets = []
       a.flatten.each {|v|
@@ -61,9 +62,14 @@ class ChkBuild::Target
 	when Hash
 	  opts.update(v) {|k, v1, v2| v1 }
         else
-	  suffixes2 << v
+	  raise "unexpected option: #{v.inspect}"
 	end
       }
+      h = {}
+      opts.each {|k, v|
+	h[$1.to_i] = v if /\Asuffix_(\d+)\z/ =~ k.to_s
+      }
+      suffixes2 = h.to_a.sort_by {|k, v| k }.map {|k, v| v }
       if @opts[:combination_limit]
         next if !@opts[:combination_limit].call(*suffixes2)
       end

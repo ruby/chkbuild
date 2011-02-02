@@ -37,18 +37,27 @@ ChkBuild.limit(:data=>1024*1024*800, :as=>1024*1024*800)
 
 # ChkBuild.top_uri is used for RSS.
 # ChkBuild.top_uri = "file://#{ChkBuild.public_top}/"
+# ChkBuild.top_uri = nil # use relative URL
 
 ChkBuild::Ruby.def_target(
-  ChkBuild::Ruby::MaintainedBranches,
+  [
+    { :suffix_1 => 'trunk', :output_interval_timeout => '10min' },
+    '1.9.2',
+    '1.9.1',
+    '1.8',
+    '1.8.7',
+    '1.8.6'
+  ],
+
+  # ChkBuild::Ruby::MaintainedBranches,
   # %w[trunk 1.8],
+  # %w[trunk 1.9.2 1.9.1],
+  # %w[1.9.1],
   # %w[trunk],
 
   # ['o0', 'o1', nil, 'o3', 'os'],
 
-  [
-    nil,
-    ["pth", { :output_interval_timeout => '5min' }]
-  ],
+  [nil, "pth"],
 
   # ['m32', 'm64'],
 
