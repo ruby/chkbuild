@@ -65,11 +65,7 @@ class ChkBuild::Target
 	  raise "unexpected option: #{v.inspect}"
 	end
       }
-      h = {}
-      opts.each {|k, v|
-	h[$1.to_i] = v if /\Asuffix_(\d+)\z/ =~ k.to_s
-      }
-      suffixes2 = h.to_a.sort_by {|k, v| k }.map {|k, v| v }
+      suffixes2 = ChkBuild.opts2suffixes(opts)
       if @opts[:combination_limit]
         next if !@opts[:combination_limit].call(*suffixes2)
       end
@@ -211,4 +207,13 @@ class ChkBuild::Target
       @list.each {|elt| yield elt }
     end
   end
+end
+
+def ChkBuild.opts2suffixes(opts)
+  h = {}
+  opts.each {|k, v|
+    h[$1.to_i] = v if /\Asuffix_(\d+)\z/ =~ k.to_s
+  }
+  suffixes = h.to_a.sort_by {|k, v| k }.map {|k, v| v }
+  suffixes
 end

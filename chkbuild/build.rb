@@ -169,7 +169,7 @@ class ChkBuild::Build
     if has_built_info?
       raise "already built"
     end
-    branch_info = @suffixes + dep_dirs
+    branch_info = [@opts, *dep_dirs]
     t = Time.now.utc
     start_time_obj = Time.utc(t.year, t.month, t.day, t.hour, t.min, t.sec)
     start_time = start_time_obj.strftime("%Y%m%dT%H%M%SZ")
@@ -197,18 +197,19 @@ class ChkBuild::Build
   def internal_build(start_time, target_params_name, target_output_name)
     #p [:internal_build, depsuffixed_name]
     branch_info, builthash = File.open(target_params_name) {|f| Marshal.load(f) }
+    @opts, *dep_dirs = branch_info
     #pp builthash
     ChkBuild::Build::BuiltHash.update builthash
-    self.build_and_exit(branch_info, start_time, target_output_name)
+    self.build_and_exit(dep_dirs, start_time, target_output_name)
   end
 
-  def build_and_exit(branch_info, start_time, target_output_name)
+  def build_and_exit(dep_dirs, start_time, target_output_name)
     if has_built_info?
     #p BuiltHash[depsuffixed_name]
       raise "already built: #{depsuffixed_name}"
     end
     marshal_data = ''
-    if child_build_wrapper(target_output_name, nil, *branch_info)
+    if child_build_wrapper(target_output_name, nil, *dep_dirs)
       exit 0
     else
       exit 1
@@ -247,10 +248,10 @@ class ChkBuild::Build
     raise "#{self.suffixed_name}: no version yet"
   end
 
-  def child_build_wrapper(target_output_name, parent_pipe, *branch_info)
+  def child_build_wrapper(target_output_name, parent_pipe, *dep_dirs)
     ret = ChkBuild.lock_puts(@depsuffixed_name) {
       @errors = []
-      child_build_target(target_output_name, *branch_info)
+      child_build_target(target_output_name, *dep_dirs)
     }
     ret
   end
@@ -261,14 +262,14 @@ class ChkBuild::Build
     ENV['TMPDIR'] = tmpdir.to_s
   end
 
-  def child_build_target(target_output_name, *branch_info)
+  def child_build_target(target_output_name, *dep_dirs)
     setup_build(target_output_name)
     @logfile.start_section 'start'
     @opts.keys.sort_by {|k| k.to_s }.each {|k|
       v = @opts[k]
       puts "option #{k.inspect} => #{v.inspect}"
     }
-    ret = do_build(branch_info)
+    ret = do_build(dep_dirs)
     @logfile.start_section 'end'
     puts "elapsed #{format_elapsed_time(Time.now - prebuilt_start_time_obj)}"
     update_result
@@ -291,10 +292,10 @@ class ChkBuild::Build
     remove_old_build(prebuilt_start_time, @opts.fetch(:old, ChkBuild.num_oldbuilds))
   end
 
-  def do_build(branch_info)
+  def do_build(dep_dirs)
     ret = nil
     with_procmemsize(@opts) {
-      ret = catch_error { @target.build_proc.call(self, *branch_info) }
+      ret = catch_error { @target.build_proc.call(self, *(ChkBuild.opts2suffixes(@opts) + dep_dirs)) }
       output_status_section
     }
     ret

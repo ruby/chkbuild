@@ -8,7 +8,8 @@ ChkBuild.def_target("opts",
     {:suffix_1 => "b", :foo=>"b", :bar=>"y"}
   ],
   :bar=>"z",
-  :baz=>"A") {|b|
+  :baz=>"A") {|b, *suffixes|
+  pp suffixes
   pp b.opts
 }
 
