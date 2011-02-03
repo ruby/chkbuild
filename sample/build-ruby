@@ -67,7 +67,7 @@ ChkBuild::Ruby.def_target(
 
   :timeout => '1h',
 
-  :output_interval_timeout => '10min'
+  :output_interval_timeout => '5min'
   )
 
 ChkBuild.main
