@@ -28,8 +28,6 @@ class ChkBuild::Target
   def initialize(target_name, *args, &block)
     @target_name = target_name
     @build_proc = block
-    @opts = ChkBuild.get_options
-    @opts.update args.pop if Hash === args.last
     init_target(*args)
     @title_hook = []
     init_default_title_hooks
@@ -65,9 +63,13 @@ class ChkBuild::Target
 	  raise "unexpected option: #{v.inspect}"
 	end
       }
+      opts = opts.update(ChkBuild.get_options) {|k, v1, v2| v1 }
       suffixes2 = ChkBuild.opts2suffixes(opts)
-      if @opts[:combination_limit]
-        next if !@opts[:combination_limit].call(*suffixes2)
+      if opts[:combination_limit]
+        next if !opts[:combination_limit].call(*suffixes2)
+      end
+      if opts[:complete_options]
+        opts = opts[:complete_options].call(opts)
       end
       @branches << [suffixes2, opts, dep_targets]
     }
@@ -151,12 +153,8 @@ class ChkBuild::Target
 
   def each_suffixes_opts_deptargets
     @branches.each {|suffixes, opts, dep_targets|
-      yield suffixes, @opts.dup.update(opts), dep_targets
+      yield suffixes, opts, dep_targets
     }
-  end
-
-  def update_option(hash)
-    @opts.update(hash)
   end
 
   def make_build_objs
@@ -165,7 +163,7 @@ class ChkBuild::Target
     each_suffixes_opts_deptargets {|suffixes, opts, dep_targets|
       dep_builds = dep_targets.map {|dep_target| dep_target.make_build_objs }
       Util.rproduct(*dep_builds) {|dependencies|
-        builds << ChkBuild::Build.new(self, suffixes, opts, dependencies)
+        builds << ChkBuild::Build.new(self, opts, dependencies)
       }
     }
     @builds = builds

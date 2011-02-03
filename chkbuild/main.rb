@@ -54,10 +54,9 @@ End
 
   def ChkBuild.main_build
     o = OptionParser.new
+    use_procmemsize = false
     o.def_option('--procmemsize') {
-      @target_list.each {|t|
-        t.update_option(:procmemsize => true)
-      }
+      use_procmemsize = true
     }
     o.parse!
     begin
@@ -71,6 +70,7 @@ End
     ChkBuild.lock_start
     @target_list.each {|t|
       t.make_result {|b|
+        b.update_option(:procmemsize => true) if use_procmemsize
         if ARGV.empty?
           true
         else
@@ -81,13 +81,6 @@ End
   end
 
   def ChkBuild.main_internal_build
-    o = OptionParser.new
-    o.def_option('--procmemsize') {
-      @target_list.each {|t|
-        t.update_option(:procmemsize => true)
-      }
-    }
-    o.parse!
     depsuffixed_name = ARGV.shift
     start_time = ARGV.shift
     target_params_name = ARGV.shift

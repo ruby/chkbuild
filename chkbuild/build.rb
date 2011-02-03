@@ -51,9 +51,9 @@ require 'chkbuild/upload'
 class ChkBuild::Build
   include Util
 
-  def initialize(target, suffixes, opts, depbuilds)
+  def initialize(target, opts, depbuilds)
     @target = target
-    @suffixes = suffixes
+    @suffixes = ChkBuild.opts2suffixes(opts)
     @opts = opts
     @depbuilds = depbuilds
 
@@ -69,6 +69,10 @@ class ChkBuild::Build
   end
   attr_reader :target, :suffixes, :depbuilds
   attr_reader :target_dir, :opts
+
+  def update_option(opts)
+    @opts.update(opts)
+  end
 
   def suffixed_name
     name = @target.target_name.dup
