@@ -71,7 +71,7 @@ class ChkBuild::Target
       if opts[:complete_options]
         opts = opts[:complete_options].call(opts)
       end
-      @branches << [suffixes2, opts, dep_targets]
+      @branches << [opts, dep_targets]
     }
   end
 
@@ -145,22 +145,10 @@ class ChkBuild::Target
     end
   end
 
-  def each_suffixes
-    @branches.each {|suffixes, opts|
-      yield suffixes
-    }
-  end
-
-  def each_suffixes_opts_deptargets
-    @branches.each {|suffixes, opts, dep_targets|
-      yield suffixes, opts, dep_targets
-    }
-  end
-
   def make_build_objs
     return @builds if defined? @builds
     builds = []
-    each_suffixes_opts_deptargets {|suffixes, opts, dep_targets|
+    @branches.each {|opts, dep_targets|
       dep_builds = dep_targets.map {|dep_target| dep_target.make_build_objs }
       Util.rproduct(*dep_builds) {|dependencies|
         builds << ChkBuild::Build.new(self, opts, dependencies)
