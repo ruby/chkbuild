@@ -63,6 +63,14 @@ ChkBuild::Ruby.def_target(
 
   # :combination_limit => lambda {|*suffixes| true },
 
+  # :autoconf_command => 'autoconf',
+  # :configure_flags => %w[--with-valgrind],
+  # :cppflags => %w[-DRUBY_DEBUG_ENV],
+  # :optflags => %w[-O2],
+  # :debugflags => %w[-g],
+  # :warnflags => %w[-W -Wall -Wformat=2 -Wundef -Wno-parentheses -Wno-unused-parameter -Wno-missing-field-initializers],
+  # :dldflags => %w[],
+
   # :old => 1,
 
   :timeout => '1h',
