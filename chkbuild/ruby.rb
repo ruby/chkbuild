@@ -78,9 +78,8 @@ End
 
     module CompleteOptions
     end
-    def CompleteOptions.call(opts)
-      opts = opts.dup
-      suffixes = ChkBuild.opts2suffixes(opts)
+    def CompleteOptions.call(target_opts)
+      suffixes = ChkBuild.opts2suffixes(target_opts)
 
       ruby_branch = nil
       configure_flags = %w[--with-valgrind]
@@ -143,19 +142,8 @@ End
 	end
       }
 
-      if opts["--with-opt-dir"]
-	configure_flags << "--with-opt-dir=#{opts['--with-opt-dir']}"
-      end
-
-      if %r{branches/ruby_1_8_} =~ ruby_branch && $' < "8"
-	cflags.concat cppflags
-	cflags.concat optflags
-	cflags.concat debugflags
-	cflags.concat warnflags
-	cppflags = nil
-	optflags = nil
-	debugflags = nil
-	warnflags = nil
+      if target_opts["--with-opt-dir"]
+	configure_flags << "--with-opt-dir=#{target_opts['--with-opt-dir']}"
       end
 
       use_rubyspec = false
@@ -164,18 +152,22 @@ End
 	use_rubyspec = true
       end
 
-      opts[:ruby_branch] = ruby_branch
-      opts[:configure_flags] = configure_flags
-      opts[:cflags] = cflags
-      opts[:cppflags] = cppflags
-      opts[:optflags] = optflags
-      opts[:debugflags] = debugflags
-      opts[:warnflags] = warnflags
-      opts[:dldflags] = dldflags
-      opts[:gcc_dir] = gcc_dir
-      opts[:autoconf_command] = autoconf_command
-      opts[:make_options] = make_options
-      opts[:use_rubyspec] = use_rubyspec
+      suffix_opts = {}
+      suffix_opts[:ruby_branch] = ruby_branch
+      suffix_opts[:configure_flags] = configure_flags
+      suffix_opts[:cflags] = cflags
+      suffix_opts[:cppflags] = cppflags
+      suffix_opts[:optflags] = optflags
+      suffix_opts[:debugflags] = debugflags
+      suffix_opts[:warnflags] = warnflags
+      suffix_opts[:dldflags] = dldflags
+      suffix_opts[:gcc_dir] = gcc_dir
+      suffix_opts[:autoconf_command] = autoconf_command
+      suffix_opts[:make_options] = make_options
+      suffix_opts[:use_rubyspec] = use_rubyspec
+      suffix_opts[:separated_srcdir] = false
+
+      opts = suffix_opts.merge(target_opts)
 
       opts
     end
@@ -183,27 +175,37 @@ End
     MaintainedBranches = %w[trunk 1.9.2 1.9.1 1.8 1.8.7 1.8.6]
 
     def def_target(*args)
-      opts = Hash === args.last ? args.pop : {}
-      default_opts = {:separated_srcdir=>false}
-      opts = default_opts.merge(opts)
-      opts[:combination_limit] = CombinationLimit
-      opts[:complete_options] = CompleteOptions
-      args.push opts
-      separated_srcdir = opts[:separated_srcdir]
+      default_opts = {
+        :combination_limit => CombinationLimit,
+        :complete_options => CompleteOptions,
+      }
+      args.push default_opts
       t = ChkBuild.def_target("ruby", *args) {|b, *suffixes|
-	opts2 = b.opts
-	ruby_branch = opts2[:ruby_branch]
-	configure_flags = opts2[:configure_flags]
-	cflags = opts2[:cflags]
-	cppflags = opts2[:cppflags]
-	optflags = opts2[:optflags]
-	debugflags = opts2[:debugflags]
-	warnflags = opts2[:warnflags]
-	dldflags = opts2[:dldflags]
-	gcc_dir = opts2[:gcc_dir]
-	autoconf_command = opts2[:autoconf_command]
-	make_options = opts2[:make_options]
-	use_rubyspec = opts2[:use_rubyspec]
+	bopts = b.opts
+	ruby_branch = bopts[:ruby_branch]
+	configure_flags = bopts[:configure_flags]
+	cflags = bopts[:cflags]
+	cppflags = bopts[:cppflags]
+	optflags = bopts[:optflags]
+	debugflags = bopts[:debugflags]
+	warnflags = bopts[:warnflags]
+	dldflags = bopts[:dldflags]
+	gcc_dir = bopts[:gcc_dir]
+	autoconf_command = bopts[:autoconf_command]
+	make_options = bopts[:make_options]
+	use_rubyspec = bopts[:use_rubyspec]
+        separated_srcdir = bopts[:separated_srcdir]
+
+        if %r{branches/ruby_1_8_} =~ ruby_branch && $' < "8"
+          cflags.concat cppflags
+          cflags.concat optflags
+          cflags.concat debugflags
+          cflags.concat warnflags
+          cppflags = nil
+          optflags = nil
+          debugflags = nil
+          warnflags = nil
+        end
 
         ruby_build_dir = b.build_dir
         objdir = ruby_build_dir+'ruby'
@@ -227,12 +229,12 @@ End
         Dir.chdir(ruby_build_dir)
 
         use_rubyspec &&= b.catch_error {
-          opts2 = opts.dup
+          opts2 = bopts.dup
           opts2[:section] = "git-mspec"
           b.github("rubyspec", "mspec", "mspec", opts2)
         }
         use_rubyspec &&= b.catch_error {
-          opts2 = opts.dup
+          opts2 = bopts.dup
           opts2[:section] = "git-rubyspec"
           b.github("rubyspec", "rubyspec", "rubyspec", opts2)
         }
