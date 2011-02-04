@@ -71,7 +71,8 @@ End
     end
     def CombinationLimit.call(*suffixes)
       if suffixes.include?("pth")
-        return false if suffixes.grep(/\A1\.8/).empty? && !suffixes.include?("matzruby")
+        return false if suffixes.grep(/\A1\.8/).empty? &&
+	                !suffixes.include?("matzruby")
       end
       true
     end
@@ -79,7 +80,7 @@ End
     module CompleteOptions
     end
     def CompleteOptions.call(target_opts)
-      suffixes = ChkBuild.opts2suffixes(target_opts)
+      suffixes = ChkBuild.opts2funsuffixes(target_opts)
 
       ruby_branch = nil
       configure_flags = %w[--with-valgrind]

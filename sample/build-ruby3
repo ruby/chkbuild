@@ -1,0 +1,113 @@
+#!/usr/bin/env ruby
+
+# sample/build-ruby3 - build script for ruby
+#
+# Copyright (C) 2011 Tanaka Akira  <akr@fsij.org>
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# 
+#  1. Redistributions of source code must retain the above copyright notice, this
+#     list of conditions and the following disclaimer.
+#  2. Redistributions in binary form must reproduce the above copyright notice,
+#     this list of conditions and the following disclaimer in the documentation
+#     and/or other materials provided with the distribution.
+#  3. The name of the author may not be used to endorse or promote products
+#     derived from this software without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+# EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+# OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+# IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+# OF SUCH DAMAGE.
+
+require 'chkbuild'
+
+ChkBuild.limit(:data=>1024*1024*2000, :as=>1024*1024*2000)
+
+# ChkBuild.nickname identify chkbuild installation.
+# It is used for title of HTML, etc.
+# The default is the hostname (without domain).
+# ChkBuild.nickname = 'nickname'
+
+# ChkBuild.top_uri is used for RSS.
+# ChkBuild.top_uri = "file://#{ChkBuild.public_top}/"
+# ChkBuild.top_uri = nil # use relative URL
+
+module CombLimit
+end
+def CombLimit.call(*suffixes)
+  if suffixes.include?("-pth")
+    return false if suffixes.grep(/\A-1\.8/).empty?
+  end
+  true
+end
+
+ChkBuild::Ruby.def_target(
+  [
+    { :suffix_1 => '-trunk', :ruby_branch => 'trunk', :output_interval_timeout => '10min' },
+    { :suffix_1 => '-1.9.2', :ruby_branch => 'branches/ruby_1_9_2' },
+    { :suffix_1 => '-1.9.1', :ruby_branch => 'branches/ruby_1_9_1', :use_rubyspec => false },
+    { :suffix_1 => '-1.8', :ruby_branch => 'branches/ruby_1_8' },
+    { :suffix_1 => '-1.8.7', :ruby_branch => 'branches/ruby_1_8_7' },
+    { :suffix_1 => '-1.8.6', :ruby_branch => 'branches/ruby_1_8_6' },
+  ],
+  { :use_rubyspec => true },
+
+  # ChkBuild::Ruby::MaintainedBranches,
+  # %w[trunk 1.8],
+  # %w[trunk 1.9.2 1.9.1],
+  # %w[1.9.1],
+  # %w[trunk],
+
+  # ['o0', 'o1', nil, 'o3', 'os'],
+
+  #[
+  #  { :suffix_2 => '-o0', :optflags => %w[-O0] },
+  #  { :suffix_2 => '-o1', :optflags => %w[-O1] },
+  #  {                     :optflags => %w[-O2] },
+  #  { :suffix_2 => '-o3', :optflags => %w[-O3] },
+  #  { :suffix_2 => '-os', :optflags => %w[-Os] },
+  #],
+
+  { :optflags => %w[-O2] },
+
+  #[nil, "pth"],
+  [
+    {},
+    { :suffix_3 => '-pth', :configure_flags => %w[--with-valgrind --enable-pthread] }
+  ],
+
+  #['m32', 'm64'],
+  #[
+  #  {},
+  #  { :suffix_4 => '-m32', :cflags => ['-m32'], :dldflags => ['-m32'] },
+  #  { :suffix_4 => '-m64', :cflags => ['-m64'], :dldflags => ['-m64'] },
+  #]
+
+  :combination_limit => CombLimit,
+
+  #:complete_options => nil,
+  #:complete_options => ChkBuild::Ruby::CompleteOptions,
+
+  # :autoconf_command => 'autoconf',
+  # :configure_flags => %w[--with-valgrind],
+  # :cppflags => %w[-DRUBY_DEBUG_ENV],
+  # :optflags => %w[-O2],
+  # :debugflags => %w[-g],
+  # :warnflags => %w[-W -Wall -Wformat=2 -Wundef -Wno-parentheses -Wno-unused-parameter -Wno-missing-field-initializers],
+  # :dldflags => %w[],
+
+  :old => 1,
+
+  :timeout => '1h',
+
+  :output_interval_timeout => '5min'
+  )
+
+ChkBuild.main

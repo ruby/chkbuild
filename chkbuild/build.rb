@@ -53,7 +53,7 @@ class ChkBuild::Build
 
   def initialize(target, opts, depbuilds)
     @target = target
-    @suffixes = ChkBuild.opts2suffixes(opts)
+    @suffixes = ChkBuild.opts2allsuffixes(opts)
     @opts = opts
     @depbuilds = depbuilds
 
@@ -77,7 +77,8 @@ class ChkBuild::Build
   def suffixed_name
     name = @target.target_name.dup
     @suffixes.each {|suffix|
-      name << '-' << suffix
+      name << '-' if /\A-/ !~ suffix
+      name << suffix
     }
     name
   end
@@ -299,7 +300,7 @@ class ChkBuild::Build
   def do_build(dep_dirs)
     ret = nil
     with_procmemsize(@opts) {
-      ret = catch_error { @target.build_proc.call(self, *(ChkBuild.opts2suffixes(@opts) + dep_dirs)) }
+      ret = catch_error { @target.build_proc.call(self, *(ChkBuild.opts2funsuffixes(@opts) + dep_dirs)) }
       output_status_section
     }
     ret
