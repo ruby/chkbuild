@@ -120,8 +120,14 @@ End
   def ChkBuild.main_options
     @target_list.each {|t|
       t.each_build_obj {|build|
+        next if !ARGV.empty? && !ARGV.include?(build.depsuffixed_name)
         puts build.depsuffixed_name
-	pp build.opts
+	opts = build.opts
+        opts.keys.sort_by {|k| k.to_s }.each {|k|
+          v = opts[k]
+          puts "option #{k.inspect} => #{v.inspect}"
+        }
+        puts
       }
     }
   end
