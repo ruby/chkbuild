@@ -65,6 +65,8 @@ End
     DOMAINLABEL = /[A-Za-z0-9-]+/
     DOMAINPAT = /#{DOMAINLABEL}(\.#{DOMAINLABEL})*/
 
+    MaintainedBranches = %w[trunk 1.9.2 1.9.1 1.8 1.8.7 1.8.6]
+
     module_function
 
     module CompleteOptions
@@ -151,8 +153,6 @@ End
 
       opts
     end
-
-    MaintainedBranches = %w[trunk 1.9.2 1.9.1 1.8 1.8.7 1.8.6]
 
     def def_target(*args)
       default_opts = {
