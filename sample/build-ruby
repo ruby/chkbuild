@@ -61,8 +61,6 @@ ChkBuild::Ruby.def_target(
 
   # ['m32', 'm64'],
 
-  # :combination_limit => lambda {|*suffixes| true },
-
   # :autoconf_command => 'autoconf',
   # :configure_flags => %w[--with-valgrind],
   # :cppflags => %w[-DRUBY_DEBUG_ENV],

@@ -64,12 +64,9 @@ class ChkBuild::Target
 	end
       }
       opts = opts.update(ChkBuild.get_options) {|k, v1, v2| v1 }
-      suffixes2 = Util.opts2allsuffixes(opts)
-      if opts[:combination_limit]
-        next if !opts[:combination_limit].call(*suffixes2)
-      end
       if opts[:complete_options]
         opts = opts[:complete_options].call(opts)
+	next if !opts
       end
       @branches << [opts, dep_targets]
     }

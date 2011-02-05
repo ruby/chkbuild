@@ -67,16 +67,6 @@ End
 
     module_function
 
-    module CombinationLimit
-    end
-    def CombinationLimit.call(*suffixes)
-      if suffixes.include?("pth")
-        return false if suffixes.grep(/\A1\.8/).empty? &&
-	                !suffixes.include?("matzruby")
-      end
-      true
-    end
-
     module CompleteOptions
     end
     def CompleteOptions.call(target_opts)
@@ -170,6 +160,13 @@ End
 
       opts = suffix_opts.merge(target_opts)
 
+      if Util.opts2aryparam(opts, :configure_flags).include?("--enable-pthread")
+	if %r{\Abranches/ruby_1_8} !~ ruby_branch &&
+	   %r{\Abranches/matzruby} !~ ruby_branch
+	  return nil
+	end
+      end
+
       opts
     end
 
@@ -177,7 +174,6 @@ End
 
     def def_target(*args)
       default_opts = {
-        :combination_limit => CombinationLimit,
         :complete_options => CompleteOptions,
       }
       args.push default_opts

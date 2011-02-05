@@ -39,13 +39,17 @@ ChkBuild.limit(:data=>1024*1024*2000, :as=>1024*1024*2000)
 # ChkBuild.top_uri = "file://#{ChkBuild.public_top}/"
 # ChkBuild.top_uri = nil # use relative URL
 
-module CombLimit
+module CompleteOpts
 end
-def CombLimit.call(*suffixes)
-  if suffixes.include?("-pth")
-    return false if suffixes.grep(/\A-1\.8/).empty?
+def CompleteOpts.call(opts)
+  ruby_branch = opts.fetch(:ruby_branch)
+  if Util.opts2aryparam(opts, :configure_flags).include?("--enable-pthread")
+    if %r{\Abranches/ruby_1_8} !~ ruby_branch &&
+       %r{\Abranches/matzruby} !~ ruby_branch
+      return nil
+    end
   end
-  true
+  opts
 end
 
 ChkBuild::Ruby.def_target(
@@ -92,18 +96,19 @@ ChkBuild::Ruby.def_target(
   #  { :suffix_4 => '-m64', :cflags => ['-m64'], :dldflags => ['-m64'] },
   #]
 
-  :combination_limit => CombLimit,
-
-  #:complete_options => nil,
+  :complete_options => CompleteOpts,
   #:complete_options => ChkBuild::Ruby::CompleteOptions,
 
-  # :autoconf_command => 'autoconf',
-  # :configure_flags => %w[--with-valgrind],
-  # :cppflags => %w[-DRUBY_DEBUG_ENV],
-  # :optflags => %w[-O2],
-  # :debugflags => %w[-g],
-  # :warnflags => %w[-W -Wall -Wformat=2 -Wundef -Wno-parentheses -Wno-unused-parameter -Wno-missing-field-initializers],
-  # :dldflags => %w[],
+  :autoconf_command => 'autoconf',
+  :configure_flags => [],
+  :cflags => [],
+  :cppflags => %w[-DRUBY_DEBUG_ENV],
+  :optflags => %w[-O2],
+  :debugflags => %w[-g],
+  :warnflags => %w[-W -Wall -Wformat=2 -Wundef -Wno-parentheses -Wno-unused-parameter -Wno-missing-field-initializers],
+  :dldflags => %w[],
+  :make_options => {},
+  :separated_srcdir => false,
 
   :old => 1,
 
