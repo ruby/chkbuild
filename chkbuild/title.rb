@@ -1,6 +1,6 @@
 # chkbuild/title.rb - title class implementation
 #
-# Copyright (C) 2006,2009 Tanaka Akira  <akr@fsij.org>
+# Copyright (C) 2006-2010 Tanaka Akira  <akr@fsij.org>
 # 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
