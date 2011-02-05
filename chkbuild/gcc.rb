@@ -1,6 +1,6 @@
 # chkbuild/gcc.rb - gcc build module
 #
-# Copyright (C) 2006 Tanaka Akira  <akr@fsij.org>
+# Copyright (C) 2006-2011 Tanaka Akira  <akr@fsij.org>
 # 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -32,7 +32,7 @@ module ChkBuild
     def def_target(*args)
       gcc = ChkBuild.def_target("gcc",
         *args) {|b, *suffixes|
-        gcc_dir = b.build_dir
+        gcc_prefix = b.build_dir
 
         gcc_branch = nil
         odcctools_dir = nil
@@ -60,15 +60,15 @@ module ChkBuild
           end
         }
         b.mkcd("objdir")
-        configure_flags = %w[--enable-languages=c]
+        configure_args = %w[--enable-languages=c]
         if odcctools_dir
-          configure_flags.concat %W[--disable-checking --with-as=#{odcctools_dir}/bin/as --with-ld=#{odcctools_dir}/bin/ld]
+          configure_args.concat %W[--disable-checking --with-as=#{odcctools_dir}/bin/as --with-ld=#{odcctools_dir}/bin/ld]
         else
-          configure_flags.concat %W[--disable-shared --disable-multilib]
+          configure_args.concat %W[--disable-shared --disable-multilib]
         end
-        b.run("../../gcc/configure", "--prefix=#{gcc_dir}", *configure_flags)
+        b.run("../../gcc/configure", "--prefix=#{gcc_prefix}", *configure_args)
         b.make("bootstrap", "install", :timeout=>'5h')
-        b.run("#{gcc_dir}/bin/gcc", '-v', :section=>'version')
+        b.run("#{gcc_prefix}/bin/gcc", '-v', :section=>'version')
       }
 
       gcc.add_title_hook('version') {|title, log|

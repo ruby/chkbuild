@@ -73,14 +73,13 @@ End
       suffixes = Util.opts2funsuffixes(target_opts)
 
       ruby_branch = nil
-      configure_flags = %w[--with-valgrind]
+      configure_args = %w[--with-valgrind]
       cflags = %w[]
       cppflags = %w[-DRUBY_DEBUG_ENV]
       optflags = %w[-O2]
       debugflags = %w[-g]
       warnflags = %w[-W -Wall -Wformat=2 -Wundef -Wno-parentheses -Wno-unused-parameter -Wno-missing-field-initializers]
       dldflags = %w[]
-      gcc_dir = nil
       autoconf_command = 'autoconf'
       make_options = {}
       suffixes.each {|s|
@@ -108,7 +107,7 @@ End
 	when "os"
 	  optflags.delete_if {|arg| /\A-O[s\d]\z/ =~ arg }
 	  optflags << '-Os'
-	when "pth" then configure_flags << '--enable-pthread'
+	when "pth" then configure_args << '--enable-pthread'
 	when "m32"
 	  cflags.delete_if {|arg| /\A-m(32|64)\z/ =~ arg }
 	  cflags << '-m32'
@@ -120,7 +119,7 @@ End
 	  dldflags.delete_if {|arg| /\A-m(32|64)\z/ =~ arg }
 	  dldflags << '-m64'
 	when /\Agcc=/
-	  configure_flags << "CC=#{$'}/bin/gcc"
+	  configure_args << "CC=#{$'}/bin/gcc"
 	  make_options["ENV:LD_RUN_PATH"] = "#{$'}/lib"
 	when /\Amtune=/
 	  optflags << "-mtune=#{$'}"
@@ -134,7 +133,7 @@ End
       }
 
       if target_opts["--with-opt-dir"]
-	configure_flags << "--with-opt-dir=#{target_opts['--with-opt-dir']}"
+	configure_args << "--with-opt-dir=#{target_opts['--with-opt-dir']}"
       end
 
       use_rubyspec = false
@@ -145,22 +144,21 @@ End
 
       suffix_opts = {}
       suffix_opts[:ruby_branch] = ruby_branch
-      suffix_opts[:configure_flags] = configure_flags
+      suffix_opts[:configure_args] = configure_args
       suffix_opts[:cflags] = cflags
       suffix_opts[:cppflags] = cppflags
       suffix_opts[:optflags] = optflags
       suffix_opts[:debugflags] = debugflags
       suffix_opts[:warnflags] = warnflags
       suffix_opts[:dldflags] = dldflags
-      suffix_opts[:gcc_dir] = gcc_dir
       suffix_opts[:autoconf_command] = autoconf_command
       suffix_opts[:make_options] = make_options
       suffix_opts[:use_rubyspec] = use_rubyspec
-      suffix_opts[:separated_srcdir] = false
+      suffix_opts[:inplace_build] = true
 
       opts = suffix_opts.merge(target_opts)
 
-      if Util.opts2aryparam(opts, :configure_flags).include?("--enable-pthread")
+      if Util.opts2aryparam(opts, :configure_args).include?("--enable-pthread")
 	if %r{\Abranches/ruby_1_8} !~ ruby_branch &&
 	   %r{\Abranches/matzruby} !~ ruby_branch
 	  return nil
@@ -180,18 +178,17 @@ End
       t = ChkBuild.def_target("ruby", *args) {|b, *suffixes|
 	bopts = b.opts
 	ruby_branch = bopts[:ruby_branch]
-	configure_flags = Util.opts2aryparam(bopts, :configure_flags)
+	configure_args = Util.opts2aryparam(bopts, :configure_args)
 	cflags = Util.opts2aryparam(bopts, :cflags)
 	cppflags = Util.opts2aryparam(bopts, :cppflags)
 	optflags = Util.opts2aryparam(bopts, :optflags)
 	debugflags = Util.opts2aryparam(bopts, :debugflags)
 	warnflags = Util.opts2aryparam(bopts, :warnflags)
 	dldflags = Util.opts2aryparam(bopts, :dldflags)
-	gcc_dir = bopts[:gcc_dir]
 	autoconf_command = bopts[:autoconf_command]
 	make_options = bopts[:make_options]
 	use_rubyspec = bopts[:use_rubyspec]
-        separated_srcdir = bopts[:separated_srcdir]
+        inplace_build = bopts[:inplace_build]
 
         if %r{branches/ruby_1_8_} =~ ruby_branch && $' < "8"
           cflags.concat cppflags
@@ -206,7 +203,7 @@ End
 
         ruby_build_dir = b.build_dir
         objdir = ruby_build_dir+'ruby'
-        if separated_srcdir
+        if !inplace_build
           checkout_dir = ruby_build_dir.dirname
         else
           checkout_dir = ruby_build_dir
@@ -245,7 +242,7 @@ End
 	args << "debugflags=#{debugflags.join(' ')}" if debugflags
 	args << "warnflags=#{warnflags.join(' ')}" if warnflags
 	args << "DLDFLAGS=#{dldflags.join(' ')}" unless dldflags.empty?
-	args.concat configure_flags
+	args.concat configure_args
         b.run("#{srcdir}/configure", *args)
         b.make("miniruby", make_options)
         b.catch_error { b.run("./miniruby", "-v", :section=>"miniversion") }
