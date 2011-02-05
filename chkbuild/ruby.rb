@@ -81,11 +81,12 @@ End
 	when "1.9.2" then hs << { :ruby_branch => 'branches/ruby_1_9_2' }
 	when "1.9.1" then hs << { :ruby_branch => 'branches/ruby_1_9_1' }
 	when "1.8" then hs << { :ruby_branch => 'branches/ruby_1_8' }
-	when "1.8.5" then hs << { :ruby_branch => 'branches/ruby_1_8_5' }
-	when "1.8.6" then hs << { :ruby_branch => 'branches/ruby_1_8_6' }
 	when "1.8.7" then hs << { :ruby_branch => 'branches/ruby_1_8_7' }
+	when "1.8.6" then hs << { :ruby_branch => 'branches/ruby_1_8_6' }
+	when "1.8.5" then hs << { :ruby_branch => 'branches/ruby_1_8_5' }
 	when "o0" then hs << { :optflags => %w[-O0] }
 	when "o1" then hs << { :optflags => %w[-O1] }
+	when "o2" then hs << { :optflags => %w[-O2] }
 	when "o3" then hs << { :optflags => %w[-O3] }
 	when "os" then hs << { :optflags => %w[-Os] }
 	when "pth" then hs << { :configure_args_pthread => %w[--enable-pthread] }
