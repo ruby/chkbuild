@@ -312,6 +312,48 @@ module Util
     opts2allsuffixes(opts).reject {|s| /\A-/ =~ s }
   end
 
+  def opts2aryparam(opts, name)
+    list1 = opts.fetch(name, [])
+    return list1 unless Array === list1
+    re = /\A#{Regexp.escape name.to_s}_/
+    h = {}
+    opts.each {|k, v|
+      if re =~ k.to_s
+        h[$'] = v
+      end
+    }
+    list2 = []
+    list1.each {|v|
+      if Symbol === v
+        v = v.to_s
+        if h.include? v
+	  v2 = h.delete(v)
+	  v2 = [v2] unless Array === v2
+	  list2.concat v2
+	end
+      else
+        list2 << v
+      end
+    }
+    h.keys.sort.each {|k|
+      v = h[k]
+      v = [v] unless Array === v
+      list2.concat v
+    }
+    list2
+  end
+
+  def opts2hashparam(opts, name)
+    h = {}
+    re = /\A#{Regexp.escape name.to_s}_/
+    opts.each {|k, v|
+      if re =~ k.to_s
+        h[$'] = v
+      end
+    }
+    h
+  end
+
 end
 
 module Find
