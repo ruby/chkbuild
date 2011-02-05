@@ -484,6 +484,10 @@ class ChkBuild::Build
   end
 
   def catch_error(name=nil)
+    unless defined?(@errors) && defined?(@logfile) && defined?(@build_dir)
+      # logdiff?
+      return yield
+    end
     err = nil
     begin
       yield
