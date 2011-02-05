@@ -11,6 +11,8 @@ ChkBuild.def_target("dep2",
   ["dev", "stable"],
   Dep1) {
     |b, suffix, dep1|
+  p suffix
+  p dep1
   p b.suffixed_name
 }
 

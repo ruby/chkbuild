@@ -70,93 +70,76 @@ End
     module CompleteOptions
     end
     def CompleteOptions.call(target_opts)
+      hs = []
       suffixes = Util.opts2funsuffixes(target_opts)
-
-      ruby_branch = nil
-      configure_args = %w[--with-valgrind]
-      cflags = %w[]
-      cppflags = %w[-DRUBY_DEBUG_ENV]
-      optflags = %w[-O2]
-      debugflags = %w[-g]
-      warnflags = %w[-W -Wall -Wformat=2 -Wundef -Wno-parentheses -Wno-unused-parameter -Wno-missing-field-initializers]
-      dldflags = %w[]
-      autoconf_command = 'autoconf'
-      make_options = {}
       suffixes.each {|s|
 	case s
-	when "trunk" then ruby_branch = 'trunk'
-	when "mvm" then ruby_branch = 'branches/mvm'
-	  cppflags.delete '-DRUBY_DEBUG_ENV'
-	when "half-baked-1.9" then ruby_branch = 'branches/half-baked-1.9'
-	when "matzruby" then ruby_branch = 'branches/matzruby'
-	when "1.9.2" then ruby_branch = 'branches/ruby_1_9_2'
-	when "1.9.1" then ruby_branch = 'branches/ruby_1_9_1'
-	when "1.8" then ruby_branch = 'branches/ruby_1_8'
-	when "1.8.5" then ruby_branch = 'branches/ruby_1_8_5'
-	when "1.8.6" then ruby_branch = 'branches/ruby_1_8_6'
-	when "1.8.7" then ruby_branch = 'branches/ruby_1_8_7'
-	when "o0"
-	  optflags.delete_if {|arg| /\A-O[s\d]\z/ =~ arg }
-	  optflags << '-O0'
-	when "o1"
-	  optflags.delete_if {|arg| /\A-O[s\d]\z/ =~ arg }
-	  optflags << '-O1'
-	when "o3"
-	  optflags.delete_if {|arg| /\A-O[s\d]\z/ =~ arg }
-	  optflags << '-O3'
-	when "os"
-	  optflags.delete_if {|arg| /\A-O[s\d]\z/ =~ arg }
-	  optflags << '-Os'
-	when "pth" then configure_args << '--enable-pthread'
-	when "m32"
-	  cflags.delete_if {|arg| /\A-m(32|64)\z/ =~ arg }
-	  cflags << '-m32'
-	  dldflags.delete_if {|arg| /\A-m(32|64)\z/ =~ arg }
-	  dldflags << '-m32'
-	when "m64"
-	  cflags.delete_if {|arg| /\A-m(32|64)\z/ =~ arg }
-	  cflags << '-m64'
-	  dldflags.delete_if {|arg| /\A-m(32|64)\z/ =~ arg }
-	  dldflags << '-m64'
-	when /\Agcc=/
-	  configure_args << "CC=#{$'}/bin/gcc"
-	  make_options["ENV:LD_RUN_PATH"] = "#{$'}/lib"
-	when /\Amtune=/
-	  optflags << "-mtune=#{$'}"
-	when /\Amarch=/
-	  optflags << "-march=#{$'}"
-	when /\Aautoconf=/
-	  autoconf_command = "#{$'}/bin/autoconf"
+	when "trunk" then hs << { :ruby_branch => 'trunk' }
+	when "mvm" then hs << { :ruby_branch => 'branches/mvm' }
+	when "half-baked-1.9" then hs << { :ruby_branch => 'branches/half-baked-1.9' }
+	when "matzruby" then hs << { :ruby_branch => 'branches/matzruby' }
+	when "1.9.2" then hs << { :ruby_branch => 'branches/ruby_1_9_2' }
+	when "1.9.1" then hs << { :ruby_branch => 'branches/ruby_1_9_1' }
+	when "1.8" then hs << { :ruby_branch => 'branches/ruby_1_8' }
+	when "1.8.5" then hs << { :ruby_branch => 'branches/ruby_1_8_5' }
+	when "1.8.6" then hs << { :ruby_branch => 'branches/ruby_1_8_6' }
+	when "1.8.7" then hs << { :ruby_branch => 'branches/ruby_1_8_7' }
+	when "o0" then hs << { :optflags => %w[-O0] }
+	when "o1" then hs << { :optflags => %w[-O1] }
+	when "o3" then hs << { :optflags => %w[-O3] }
+	when "os" then hs << { :optflags => %w[-Os] }
+	when "pth" then hs << { :configure_args_pthread => %w[--enable-pthread] }
+	when "m32" then hs << { :cflags => ['-m32'], :dldflags => ['-m32'] }
+	when "m64" then hs << { :cflags => ['-m64'], :dldflags => ['-m64'] }
+	when /\Agcc=/ then hs << { :configure_args_cc => "CC=#{$'}/bin/gcc",
+	                           :"make_options_ENV:LD_RUN_PATH" => "#{$'}/lib" }
+	when /\Aautoconf=/ then hs << { :autoconf_command => "#{$'}/bin/autoconf" }
 	else
 	  raise "unexpected suffix: #{s.inspect}"
 	end
       }
 
       if target_opts["--with-opt-dir"]
-	configure_args << "--with-opt-dir=#{target_opts['--with-opt-dir']}"
+	v = target_opts["--with-opt-dir"]
+        hs << { :configure_args_with_opt_dir => ["--with-opt-dir=#{v}"] }
       end
 
-      use_rubyspec = false
-      if /ruby_1_9_1/ !~ ruby_branch &&
-	 ENV['PATH'].split(/:/).any? {|d| File.executable?("#{d}/git") }
-	use_rubyspec = true
+      if ENV['PATH'].split(/:/).any? {|d| File.executable?("#{d}/git") }
+	hs << { :use_rubyspec => true }
       end
 
-      suffix_opts = {}
-      suffix_opts[:ruby_branch] = ruby_branch
-      suffix_opts[:configure_args] = configure_args
-      suffix_opts[:cflags] = cflags
-      suffix_opts[:cppflags] = cppflags
-      suffix_opts[:optflags] = optflags
-      suffix_opts[:debugflags] = debugflags
-      suffix_opts[:warnflags] = warnflags
-      suffix_opts[:dldflags] = dldflags
-      suffix_opts[:autoconf_command] = autoconf_command
-      suffix_opts[:make_options] = make_options
-      suffix_opts[:use_rubyspec] = use_rubyspec
-      suffix_opts[:inplace_build] = true
+      hs << {
+	:autoconf_command => 'autoconf',
+	:configure_args => [],
+	:configure_args_valgrind => %w[--with-valgrind],
+	:cflags => [],
+	:cppflags => %w[-DRUBY_DEBUG_ENV],
+	:optflags => %w[-O2],
+	:debugflags => %w[-g],
+	:warnflags => %w[-W -Wall -Wformat=2 -Wundef -Wno-parentheses -Wno-unused-parameter -Wno-missing-field-initializers],
+	:dldflags => %w[],
+	:make_options => {},
+	:use_rubyspec => false,
+	:inplace_build => true,
+      }
 
-      opts = suffix_opts.merge(target_opts)
+      opts = target_opts.dup
+      hs.each {|h|
+        h.each {|k, v|
+	  opts[k] = v if !opts.include?(k)
+	}
+      }
+
+      ruby_branch = opts.fetch(:ruby_branch)
+
+      if /ruby_1_9_1/ =~ ruby_branch && opts[:use_rubyspec]
+	opts[:use_rubyspec] = false
+      end
+
+      if ruby_branch == 'branches/mvm' &&
+         opts.fetch(:cppflags, []).include?('-DRUBY_DEBUG_ENV')
+        opts.fetch(:cppflags).delete '-DRUBY_DEBUG_ENV'
+      end
 
       if Util.opts2aryparam(opts, :configure_args).include?("--enable-pthread")
 	if %r{\Abranches/ruby_1_8} !~ ruby_branch &&
@@ -186,7 +169,7 @@ End
 	warnflags = Util.opts2aryparam(bopts, :warnflags)
 	dldflags = Util.opts2aryparam(bopts, :dldflags)
 	autoconf_command = bopts[:autoconf_command]
-	make_options = bopts[:make_options]
+	make_options = Util.opts2hashparam(bopts, :make_options)
 	use_rubyspec = bopts[:use_rubyspec]
         inplace_build = bopts[:inplace_build]
 
