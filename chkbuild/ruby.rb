@@ -80,7 +80,7 @@ End
     module CompleteOptions
     end
     def CompleteOptions.call(target_opts)
-      suffixes = ChkBuild.opts2funsuffixes(target_opts)
+      suffixes = Util.opts2funsuffixes(target_opts)
 
       ruby_branch = nil
       configure_flags = %w[--with-valgrind]

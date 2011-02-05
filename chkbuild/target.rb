@@ -64,7 +64,7 @@ class ChkBuild::Target
 	end
       }
       opts = opts.update(ChkBuild.get_options) {|k, v1, v2| v1 }
-      suffixes2 = ChkBuild.opts2allsuffixes(opts)
+      suffixes2 = Util.opts2allsuffixes(opts)
       if opts[:combination_limit]
         next if !opts[:combination_limit].call(*suffixes2)
       end
@@ -193,22 +193,4 @@ class ChkBuild::Target
       @list.each {|elt| yield elt }
     end
   end
-end
-
-def ChkBuild.opts2list(prefix, opts)
-  h = {}
-  re = /\A#{Regexp.escape prefix}_(\d+)\z/
-  opts.each {|k, v|
-    h[$1.to_i] = v if re =~ k.to_s
-  }
-  suffixes = h.to_a.sort_by {|k, v| k }.map {|k, v| v }
-  suffixes
-end
-
-def ChkBuild.opts2allsuffixes(opts)
-  ChkBuild.opts2list("suffix", opts)
-end
-
-def ChkBuild.opts2funsuffixes(opts)
-  ChkBuild.opts2allsuffixes(opts).reject {|s| /\A-/ =~ s }
 end

@@ -292,6 +292,26 @@ module Util
     end
     res
   end
+
+
+  def opts2list(prefix, opts)
+    h = {}
+    re = /\A#{Regexp.escape prefix}_(\d+)\z/
+    opts.each {|k, v|
+      h[$1.to_i] = v if re =~ k.to_s
+    }
+    suffixes = h.to_a.sort_by {|k, v| k }.map {|k, v| v }
+    suffixes
+  end
+
+  def opts2allsuffixes(opts)
+    opts2list("suffix", opts)
+  end
+
+  def opts2funsuffixes(opts)
+    opts2allsuffixes(opts).reject {|s| /\A-/ =~ s }
+  end
+
 end
 
 module Find
