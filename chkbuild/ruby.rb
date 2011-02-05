@@ -458,7 +458,7 @@ End
       # Doxygen:
       # /home/akr/chkbuild/tmp/build/ruby-trunk/20100816T014700Z/ruby/ext/ripper/ripper.y:18: Warning: include file ruby/ruby.h not found, perhaps you forgot to add its directory to INCLUDE_PATH?
       # /home/akr/chkbuild/tmp/build/ruby-trunk/20100816T014700Z/ruby/pack.c:89: Problem during constant expression evaluation: syntax error
-      t.add_diff_preprocess_gsub_state(/([^:]*:)(\d+)(:(?:\d+:)? (?:[Ww]arning: |Problem ).*)/) {|match, state|
+      t.add_diff_preprocess_gsub_state(/\A([^:]*:)(\d+)(:(?:\d+:)? (?:[Ww]arning: |Problem ).*)/) {|match, state|
         pre, linenum, post = match[1], match[2], match[3]
         warnhash = state[:warnhash] ||= {}
         key = "#{pre}<linenum>#{post}"
