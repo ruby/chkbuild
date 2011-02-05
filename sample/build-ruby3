@@ -80,8 +80,10 @@ ChkBuild::Ruby.def_target(
   #[nil, "pth"],
   [
     {},
-    { :suffix_3 => '-pth', :configure_flags => %w[--with-valgrind --enable-pthread] }
+    { :suffix_3 => '-pth', :configure_flags_pthread => %w[--enable-pthread] }
   ],
+
+  { :configure_flags => [], :configure_flags_valgrind => %w[--with-valgrind] },
 
   #['m32', 'm64'],
   #[
