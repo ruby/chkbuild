@@ -160,7 +160,19 @@ End
       }
       args.push default_opts
       t = ChkBuild.def_target("ruby", *args) {|b, *suffixes|
+	hs = []
+	suffixes.each {|s|
+	  case s
+	  when /\Agcc=/ then hs << { :configure_args_cc => "CC=#{$'}/bin/gcc",
+				     :"make_options_ENV:LD_RUN_PATH" => "#{$'}/lib" }
+	  when /\Aautoconf=/ then hs << { :autoconf_command => "#{$'}/bin/autoconf" }
+	  end
+	}
 	bopts = b.opts
+	hs.each {|h|
+	  bopts.update h
+	}
+	#pp bopts
 	ruby_branch = bopts[:ruby_branch]
 	configure_args = Util.opts2aryparam(bopts, :configure_args)
 	cflags = Util.opts2aryparam(bopts, :cflags)

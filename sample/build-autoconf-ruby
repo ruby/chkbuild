@@ -39,17 +39,17 @@ end
 
 Autoconf = ChkBuild.def_target("autoconf") {|b|
   dir = b.build_dir
-  Dir.chdir("..") {
-    b.gnu_savannah_cvs('autoconf', 'autoconf', nil)
+  b.git('git://git.sv.gnu.org/autoconf.git', 'autoconf')
+  Dir.chdir("autoconf") {
+    b.run("autoreconf", "-vi")
+    b.run("./configure", "--prefix=#{dir}")
+    b.make
+    b.make("install")
   }
-  b.mkcd("objdir")
-  b.run("../../autoconf/configure", "--prefix=#{dir}")
   # modify Makefile to not use help2man.
-  modify_file("Makefile") {|content|
-    content.sub(/^SUBDIRS\s*=.*$/) { $&.sub(/ man /, ' ') }
-  }
-  b.make
-  b.make("install")
+  #modify_file("Makefile") {|content|
+  #  content.sub(/^SUBDIRS\s*=.*$/) { $&.sub(/ man /, ' ') }
+  #}
 
   b.run("#{dir}/bin/autoconf", '--version', :section=>'version')
 }
@@ -64,7 +64,8 @@ Autoconf.add_title_hook('version') {|title, log|
 }
 
 ChkBuild::Ruby.def_target(
-  ChkBuild::Ruby::MaintainedBranches,
+  # ChkBuild::Ruby::MaintainedBranches,
+  %w[trunk],
   Autoconf,
   :inplace_build => false)
 
