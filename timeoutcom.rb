@@ -88,8 +88,8 @@ module TimeoutCommand
     process_alive?(-pgid)
   end
 
-  def last_output_time
-    last_output_time = [STDOUT, STDERR].map {|f|
+  def last_output_time(file_list=[STDOUT, STDERR])
+    last_output_time = file_list.map {|f|
       s = f.stat
       if s.file?
         s.mtime
@@ -110,6 +110,7 @@ module TimeoutCommand
     if opts[:output_interval_timeout]
       output_interval_timeout = parse_timespan(opts[:output_interval_timeout])
     end
+    file_list = opts[:output_interval_file_list] || [STDOUT, STDERR]
     if command_timeout < 0
       raise CommandTimeout, 'no time to run a command'
     end
@@ -138,7 +139,7 @@ module TimeoutCommand
             break 
           end
           if output_interval_timeout and
-             t = last_output_time and
+             t = last_output_time(file_list) and
              (tmp_join_timeout = t + output_interval_timeout - Time.now) < join_timeout
             join_timeout = tmp_join_timeout
             if join_timeout < 0

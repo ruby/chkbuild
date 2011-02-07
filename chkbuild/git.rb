@@ -32,25 +32,9 @@ require "pp"
 module ChkBuild; end # for testing
 
 class ChkBuild::Build
-  def git_with_file(basename)
-    n = 1
-    begin
-      name = "#{self.build_dir}/#{basename}#{n}"
-      f = File.open(name, File::RDWR|File::CREAT|File::EXCL)
-    rescue Errno::EEXIST
-      n += 1
-      retry
-    end
-    begin
-      yield name, f
-    ensure
-      f.close
-    end
-  end
-
   def git_logfile(opts)
-    git_with_file("git.out.") {|outfile, outio|
-      git_with_file("git.err.") {|errfile, errio|
+    with_templog(self.build_dir, "git.out.") {|outfile, outio|
+      with_templog(self.build_dir, "git.err.") {|errfile, errio|
 	opts2 = opts.dup
 	opts2[:stdout] = outfile
 	opts2[:stderr] = errfile

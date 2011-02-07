@@ -277,6 +277,22 @@ module Util
     yield t
   end
 
+  def with_templog(dir, basename)
+    n = 1
+    begin
+      name = "#{dir}/#{basename}#{n}"
+      f = File.open(name, File::RDWR|File::CREAT|File::EXCL)
+    rescue Errno::EEXIST
+      n += 1
+      retry
+    end
+    begin
+      yield name, f
+    ensure
+      f.close
+    end
+  end
+
   def simple_hostname
     Socket.gethostname.sub(/\..*/, '')
   end

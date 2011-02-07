@@ -106,7 +106,10 @@ class ChkBuild::Build
          !(ts = self.build_time_sequence - [self.start_time]).empty? &&
          File.directory?(old_working_dir = self.target_dir + ts.last + working_dir)
       end
-      self.run "svn", "checkout", "-q", url, working_dir, opts
+      svn_logfile(opts) {|outio, opts2|
+        opts2[:output_interval_file_list] = [STDOUT, STDERR, outio]
+	self.run "svn", "checkout", url, working_dir, opts2
+      }
       opts[:section] = nil
       Dir.chdir(working_dir) {
         h2 = svn_revisions
@@ -114,6 +117,19 @@ class ChkBuild::Build
 	svn_print_revisions(svnroot, rep_dir, h2, viewvc)
       }
     end
+  end
+
+  def svn_logfile(opts)
+    with_templog(self.build_dir, "svn.out.") {|outfile, outio|
+      opts2 = opts.dup
+      opts2[:stdout] = outfile
+      begin
+	yield outio, opts2
+      ensure
+	outio.rewind
+	outio.each_line {|line| puts "SVNOUT #{line}" }
+      end
+    }
   end
 
   def svn_info(working_dir, opts={})
