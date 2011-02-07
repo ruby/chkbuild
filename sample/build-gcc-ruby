@@ -31,12 +31,22 @@ require 'chkbuild'
 ChkBuild.limit(:data=>1024*1024*800, :as=>1024*1024*800)
 
 gcc = ChkBuild::GCC.def_target(
-  ["trunk", "4.2", "4.1", "4.0"],
+  %w[trunk],
+  #%w[trunk 4.5],
   :old => 1)
 
 ChkBuild::Ruby.def_target(
-  ChkBuild::Ruby::MaintainedBranches,
-  ["o0", "o1", nil, "o3"],
+  #ChkBuild::Ruby::MaintainedBranches,
+  %w[trunk],
+
+  [
+    { :suffix_2 => '-o0', :optflags => %w[-O0] },
+    { :suffix_2 => '-o1', :optflags => %w[-O1] },
+    { :suffix_2 => '-o2', :optflags => %w[-O2] },
+    { :suffix_2 => '-o3', :optflags => %w[-O3] },
+    { :suffix_2 => '-os', :optflags => %w[-Os] },
+  ],
+
   [nil, "pth"],
   gcc,
   :old => 1,

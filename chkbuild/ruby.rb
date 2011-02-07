@@ -94,9 +94,6 @@ End
 	when "pth" then hs << { :configure_args_pthread => %w[--enable-pthread] }
 	when "m32" then hs << { :cflags => ['-m32'], :dldflags => ['-m32'] }
 	when "m64" then hs << { :cflags => ['-m64'], :dldflags => ['-m64'] }
-	when /\Agcc=/ then hs << { :configure_args_cc => "CC=#{$'}/bin/gcc",
-	                           :"make_options_ENV:LD_RUN_PATH" => "#{$'}/lib" }
-	when /\Aautoconf=/ then hs << { :autoconf_command => "#{$'}/bin/autoconf" }
 	else
 	  raise "unexpected suffix: #{s.inspect}"
 	end
@@ -153,26 +150,30 @@ End
 
       opts
     end
+    def CompleteOptions.merge_dependencies(opts, dep_dirs)
+      opts = opts.dup
+      hs = []
+      dep_dirs.each {|s|
+	case s
+	when /\Agcc=/ then hs << { :configure_args_cc => "CC=#{$'}/bin/gcc",
+				   :"make_options_ENV:LD_RUN_PATH" => "#{$'}/lib" }
+	when /\Aautoconf=/ then hs << { :autoconf_command => "#{$'}/bin/autoconf" }
+	end
+      }
+      hs.each {|h|
+	opts.update h
+      }
+      #pp opts
+      opts
+    end
 
     def def_target(*args)
       default_opts = {
         :complete_options => CompleteOptions,
       }
       args.push default_opts
-      t = ChkBuild.def_target("ruby", *args) {|b, *suffixes|
-	hs = []
-	suffixes.each {|s|
-	  case s
-	  when /\Agcc=/ then hs << { :configure_args_cc => "CC=#{$'}/bin/gcc",
-				     :"make_options_ENV:LD_RUN_PATH" => "#{$'}/lib" }
-	  when /\Aautoconf=/ then hs << { :autoconf_command => "#{$'}/bin/autoconf" }
-	  end
-	}
-	bopts = b.opts
-	hs.each {|h|
-	  bopts.update h
-	}
-	#pp bopts
+      t = ChkBuild.def_target("ruby", *args) {|b|
+        bopts = b.opts
 	ruby_branch = bopts[:ruby_branch]
 	configure_args = Util.opts2aryparam(bopts, :configure_args)
 	cflags = Util.opts2aryparam(bopts, :cflags)

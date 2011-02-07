@@ -123,6 +123,14 @@ End
         next if !ARGV.empty? && !ARGV.include?(build.depsuffixed_name)
         puts build.depsuffixed_name
 	opts = build.opts
+	if opts[:complete_options] && opts[:complete_options].respond_to?(:merge_dependencies)
+	  dep_dirs = []
+	  build.depbuilds.each {|depbuild|
+	    dir = ChkBuild.build_top + depbuild.depsuffixed_name + "<time>"
+	    dep_dirs << "#{depbuild.target.target_name}=#{dir}"
+	  }
+	  opts = opts[:complete_options].merge_dependencies(opts, dep_dirs)
+	end
         opts.keys.sort_by {|k| k.to_s }.each {|k|
           v = opts[k]
           puts "option #{k.inspect} => #{v.inspect}"
