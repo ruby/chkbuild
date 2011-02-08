@@ -29,6 +29,9 @@ require 'open-uri'
 
 module ChkBuild
   module GCC
+    URL_GMP = "ftp://gcc.gnu.org/pub/gcc/infrastructure/gmp-4.3.2.tar.bz2"
+    URL_MPFR = "ftp://gcc.gnu.org/pub/gcc/infrastructure/mpfr-2.4.2.tar.bz2"
+    URL_MPC = "ftp://gcc.gnu.org/pub/gcc/infrastructure/mpc-0.8.1.tar.gz"
 
     module CompleteOptions
     end
@@ -80,8 +83,8 @@ module ChkBuild
       }
     end
 
-    def download_lib(b, url, dir)
-      return if File.directory? dir
+    def download_lib(b, url, destination)
+      return if File.directory? destination
       basename = url[%r{[^/]+\z}]
       cached_download(b, url, basename)
       if /\.tar\.gz\z/ =~ basename
@@ -94,7 +97,11 @@ module ChkBuild
         raise "unexpected basename: #{basename.inspect}"
       end
       b.run('sh', '-c', c)
-      File.rename d, dir
+      if !File.directory?(d)
+        raise "not exist: #{d.inspect}"
+      end
+      #File.rename d, destination
+      File.symlink "../#{d}", destination
     end
 
     def def_target(*args)
@@ -113,9 +120,9 @@ module ChkBuild
           b.svn("svn://gcc.gnu.org/svn/gcc", gcc_branch, 'gcc',
             :viewvc=>"http://gcc.gnu.org/viewcvs",
 	    :output_interval_timeout => '30min')
-	  download_lib(b, "ftp://gcc.gnu.org/pub/gcc/infrastructure/gmp-4.3.2.tar.bz2", "gcc/gmp") if opts[:build_gmp]
-	  download_lib(b, "ftp://gcc.gnu.org/pub/gcc/infrastructure/mpfr-2.4.2.tar.bz2", "gcc/mpfr") if opts[:build_mpfr]
-	  download_lib(b, "ftp://gcc.gnu.org/pub/gcc/infrastructure/mpc-0.8.1.tar.gz", "gcc/mpc") if opts[:build_mpc]
+	  download_lib(b, URL_GMP, "gcc/gmp") if opts[:build_gmp]
+	  download_lib(b, URL_MPFR, "gcc/mpfr") if opts[:build_mpfr]
+	  download_lib(b, URL_MPC, "gcc/mpc") if opts[:build_mpc]
         }
         b.mkcd("objdir")
         configure_args = %w[--enable-languages=c]
