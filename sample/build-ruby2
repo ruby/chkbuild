@@ -31,8 +31,10 @@ require 'chkbuild'
 ChkBuild.limit(:data=>1024*1024*800, :as=>1024*1024*800)
 
 ChkBuild::Ruby.def_target(
-  ChkBuild::Ruby::MaintainedBranches,
+  #ChkBuild::Ruby::MaintainedBranches,
+  %w[trunk],
   [nil, "pth"],
+  "-outofplace",
   :inplace_build => false)
 
 ChkBuild.main

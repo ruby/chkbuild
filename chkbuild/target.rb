@@ -44,6 +44,8 @@ class ChkBuild::Target
       i += 1
       if Array === a
         a.map {|v| String === v ? {"suffix_#{i}".intern => v} : v }
+      elsif String === a
+        [{"suffix_#{i}".intern => a}]
       else
         [a]
       end
