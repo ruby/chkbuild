@@ -268,14 +268,14 @@ End
 	}
         b.catch_error {
 	  if /^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors/ !~ b.logfile.get_section('test-all')
-	    ts = Dir.entries("test").sort
+	    ts = Dir.entries(srcdir+"test").sort
 	    ts.each {|t|
 	      next if %r{\A\.} =~ t
-	      s = File.lstat("test/#{t}")
+	      s = File.lstat(srcdir+"test/#{t}")
 	      if s.directory? || (s.file? && /\Atest_/ =~ t)
 		b.catch_error {
 		  if /\A-/ =~ t
-		    testpath = "test/#{t}" # prevent to interpret -ext- as an option
+		    testpath = srcdir+"test/#{t}" # prevent to interpret -ext- as an option
 		  else
 		    testpath = t # "TESTS=-v test/foo" doesn't work on Ruby 1.8
 		  end
