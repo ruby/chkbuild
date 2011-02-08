@@ -39,20 +39,18 @@ class ChkBuild::Target
   attr_reader :target_name, :opts, :build_proc
 
   def init_target(*args)
-    i = 0
     args = args.map {|a|
-      i += 1
       if Array === a
-        a.map {|v| String === v ? {"suffix_#{i}".intern => v} : v }
+        a.map {|v| String === v ? {:suffix_? => v} : v }
       elsif String === a
-        [{"suffix_#{i}".intern => a}]
+        [{:suffix_? => a}]
       else
         [a]
       end
     }
     @branches = []
     Util.rproduct(*args) {|a|
-      opts = {}
+      opts_list = []
       dep_targets = []
       a.flatten.each {|v|
         case v
@@ -60,12 +58,13 @@ class ChkBuild::Target
 	when ChkBuild::Target
 	  dep_targets << v
 	when Hash
-	  opts.update(v) {|k, v1, v2| v1 }
+	  opts_list << v
         else
 	  raise "unexpected option: #{v.inspect}"
 	end
       }
-      opts = opts.update(ChkBuild.get_options) {|k, v1, v2| v1 }
+      opts_list << ChkBuild.get_options
+      opts = Util.merge_opts(opts_list)
       if opts[:complete_options]
         opts = opts[:complete_options].call(opts)
 	next if !opts

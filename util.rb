@@ -309,53 +309,88 @@ module Util
     res
   end
 
-  def opts2list(prefix, opts)
+  def merge_opts(opts_list)
     h = {}
-    re = /\A#{Regexp.escape prefix}_(\d+)\z/
-    opts.each {|k, v|
-      h[$1.to_i] = v if re =~ k.to_s
+    max = Hash.new(0)
+    opts_list.each {|opts|
+      opts.each {|k, v|
+        if /_\?\z/ =~ k.to_s
+	  base = $`
+	  n = (max[base] += 1)
+	  k = "#{base}_#{n}".intern
+	end
+	if /_(\d+)\z/ =~ k.to_s
+	  base = $`
+	  max[base] = $1.to_i
+	end
+        if !h.include?(k)
+	  h[k] = v
+	end
+      }
     }
-    suffixes = h.to_a.sort_by {|k, v| k }.map {|k, v| v }
-    suffixes
+    h
   end
 
   def opts2allsuffixes(opts)
-    opts2list("suffix", opts)
+    opts2aryparam(opts, :suffix).flatten
   end
 
   def opts2funsuffixes(opts)
     opts2allsuffixes(opts).reject {|s| /\A-/ =~ s }
   end
 
+  def numstrkey(str)
+    k = []
+    str.scan(/(\d+)|\D+/) {
+      if $1
+	k << [0, $1.to_i, $&]
+      else
+	k << [1, $&]
+      end
+    }
+    k
+  end
+
+  def numstrsort(ary)
+    ary.sort_by {|s| Util.numstrkey(s) }
+  end
+
   def opts2aryparam(opts, name)
-    list1 = opts.fetch(name, [])
-    return list1 unless Array === list1
+    template_list = opts.fetch(name, [])
+    return template_list unless Array === template_list
     re = /\A#{Regexp.escape name.to_s}_/
-    h = {}
+    pairs = []
     opts.each {|k, v|
       if re =~ k.to_s
-        h[$'] = v
+        pairs << [$', v]
       end
     }
-    list2 = []
-    list1.each {|v|
-      if Symbol === v
-        v = v.to_s
-        if h.include? v
-	  v2 = h.delete(v)
-	  v2 = [v2] unless Array === v2
-	  list2.concat v2
+    result = []
+    template_list.each {|e|
+      if Symbol === e
+	e = e.to_s
+        if /_\?\z/ =~ e
+	  base = $`
+	  re2 = /\A#{Regexp.escape base.to_s}_/
+	  ps, pairs = pairs.partition {|k, v| re2 =~ k }
+	else
+	  ps, pairs = pairs.partition {|k, v| e == k }
 	end
+	ps = ps.sort_by {|k, v| Util.numstrkey(k) }
+	ps.each {|k, v|
+	  v = [v] unless Array === v
+	  result.concat v
+	}
       else
-        list2 << v
+        result << e
       end
     }
-    h.keys.sort.each {|k|
-      v = h[k]
+    pairs = pairs.sort_by {|k, v| Util.numstrkey(k) }
+    pairs.each {|k, v|
       v = [v] unless Array === v
-      list2.concat v
+      result.concat v
     }
-    list2
+    result
   end
 
   def opts2hashparam(opts, name)

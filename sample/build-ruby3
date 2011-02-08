@@ -54,11 +54,11 @@ end
 
 ChkBuild::Ruby.def_target(
   [
-    { :suffix_1 => '-trunk', :ruby_branch => 'trunk', :output_interval_timeout => '10min' },
-    { :suffix_1 => '-1.9.2', :ruby_branch => 'branches/ruby_1_9_2' },
-    { :suffix_1 => '-1.8', :ruby_branch => 'branches/ruby_1_8' },
-    { :suffix_1 => '-1.8.7', :ruby_branch => 'branches/ruby_1_8_7' },
-    { :suffix_1 => '-1.8.6', :ruby_branch => 'branches/ruby_1_8_6' },
+    { :suffix_? => '-trunk', :ruby_branch => 'trunk', :output_interval_timeout => '10min' },
+    { :suffix_? => '-1.9.2', :ruby_branch => 'branches/ruby_1_9_2' },
+    { :suffix_? => '-1.8', :ruby_branch => 'branches/ruby_1_8' },
+    { :suffix_? => '-1.8.7', :ruby_branch => 'branches/ruby_1_8_7' },
+    { :suffix_? => '-1.8.6', :ruby_branch => 'branches/ruby_1_8_6' },
   ],
   { :use_rubyspec => true },
 
@@ -71,11 +71,11 @@ ChkBuild::Ruby.def_target(
   # ['o0', 'o1', nil, 'o3', 'os'],
 
   #[
-  #  { :suffix_2 => '-o0', :optflags => %w[-O0] },
-  #  { :suffix_2 => '-o1', :optflags => %w[-O1] },
+  #  { :suffix_? => '-o0', :optflags => %w[-O0] },
+  #  { :suffix_? => '-o1', :optflags => %w[-O1] },
   #  {                     :optflags => %w[-O2] },
-  #  { :suffix_2 => '-o3', :optflags => %w[-O3] },
-  #  { :suffix_2 => '-os', :optflags => %w[-Os] },
+  #  { :suffix_? => '-o3', :optflags => %w[-O3] },
+  #  { :suffix_? => '-os', :optflags => %w[-Os] },
   #],
 
   { :optflags => %w[-O2] },
@@ -83,7 +83,7 @@ ChkBuild::Ruby.def_target(
   #[nil, "pth"],
   [
     {},
-    { :suffix_3 => '-pth', :configure_args_pthread => %w[--enable-pthread] }
+    { :suffix_? => '-pth', :configure_args_pthread => %w[--enable-pthread] }
   ],
 
   { :configure_args => [], :configure_args_valgrind => %w[--with-valgrind] },
@@ -91,8 +91,8 @@ ChkBuild::Ruby.def_target(
   #['m32', 'm64'],
   #[
   #  {},
-  #  { :suffix_4 => '-m32', :cflags => ['-m32'], :dldflags => ['-m32'] },
-  #  { :suffix_4 => '-m64', :cflags => ['-m64'], :dldflags => ['-m64'] },
+  #  { :suffix_? => '-m32', :cflags => ['-m32'], :dldflags => ['-m32'] },
+  #  { :suffix_? => '-m64', :cflags => ['-m64'], :dldflags => ['-m64'] },
   #]
 
   :complete_options => CompleteOpts,

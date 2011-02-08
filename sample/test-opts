@@ -4,8 +4,8 @@ require 'chkbuild'
 
 ChkBuild.def_target("opts",
   [
-    {:suffix_1 => "a", :foo=>"a", :bar=>"x"},
-    {:suffix_1 => "b", :foo=>"b", :bar=>"y"}
+    {:suffix_? => "a", :foo=>"a", :bar=>"x"},
+    {:suffix_? => "b", :foo=>"b", :bar=>"y"}
   ],
   :bar=>"z",
   :baz=>"A") {|b, *suffixes|
