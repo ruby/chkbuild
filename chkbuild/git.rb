@@ -140,7 +140,8 @@ class ChkBuild::Build
 
   def git_oneline_logs2(old_head, new_head)
     result = []
-    command = "git log --pretty=oneline #{old_head}..#{new_head}"
+    #command = "git log --pretty=oneline #{old_head}..#{new_head}"
+    command = "git log --pretty='format:%H %an: %s' #{old_head}..#{new_head}"
     IO.popen(command) {|f|
       f.each_line {|line|
         # <sha1><sp><title line>
