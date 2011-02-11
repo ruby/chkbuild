@@ -40,12 +40,17 @@ ChkBuild::Ruby.def_target(
   %w[trunk],
 
   [
-    { :suffix_? => '-o0', :optflags => %w[-O0] },
-    { :suffix_? => '-o1', :optflags => %w[-O1] },
-    { :suffix_? => '-o2', :optflags => %w[-O2] },
     { :suffix_? => '-o3', :optflags => %w[-O3] },
+    { :suffix_? => '-o2', :optflags => %w[-O2] },
+    { :suffix_? => '-o1', :optflags => %w[-O1] },
+    { :suffix_? => '-o0', :optflags => %w[-O0] },
     { :suffix_? => '-os', :optflags => %w[-Os] },
   ],
+
+  #[
+  #  { :suffix_? => '-core2', :optflags_tune => %w[-mtune=core2] },
+  #  nil
+  #],
 
   [nil, "pth"],
   gcc,
