@@ -34,6 +34,7 @@ require 'chkbuild/svn'
 require 'chkbuild/git'
 require 'chkbuild/xforge'
 require "util"
+require 'chkbuild/hook'
 require 'chkbuild/target'
 require 'chkbuild/build'
 
