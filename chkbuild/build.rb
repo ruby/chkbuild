@@ -453,11 +453,14 @@ class ChkBuild::Build
     title_succ = catch_error('run_hooks') { titlegen.run_hooks }
     title = titlegen.make_title
     title << " (titlegen.run_hooks error)" if !title_succ
-    title_version = titlegen.version
+    title_version = titlegen.version.strip
     return title, title_version
   end
 
   def send_title_to_parent(title_version)
+    (ChkBuild.build_top+@depsuffixed_name+start_time+"VERSION").open("w") {|f|
+      f.puts title_version
+    }
     if @parent_pipe
       Marshal.dump(title_version, @parent_pipe)
       @parent_pipe.close
