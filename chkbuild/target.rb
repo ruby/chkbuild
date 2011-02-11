@@ -37,6 +37,7 @@ module ChkBuild
   @title_hook_hash = {}
   def ChkBuild.init_title_hook(target_name)
     @title_hook_hash[target_name] ||= []
+    init_default_title_hooks(target_name) if @title_hook_hash[target_name].empty?
   end
   def ChkBuild.define_title_hook(target_name, secname, &block)
     @title_hook_hash[target_name] ||= []
@@ -44,6 +45,32 @@ module ChkBuild
   end
   def ChkBuild.fetch_title_hook(target_name)
     @title_hook_hash.fetch(target_name)
+  end
+
+  def ChkBuild.init_default_title_hooks(target_name)
+    define_title_hook(target_name, 'success') {|title, log|
+      title.update_title(:status) {|val| 'success' if !val }
+    }
+    define_title_hook(target_name, 'failure') {|title, log|
+      title.update_title(:status) {|val|
+        if !val
+          line = /\n/ =~ log ? $` : log
+          line = line.strip
+          line if !line.empty?
+        end
+      }
+    }
+    define_title_hook(target_name, nil) {|title, log|
+      num_warns = log.scan(/warn/i).length
+      title.update_title(:warn) {|val| "#{num_warns}W" } if 0 < num_warns
+    }
+    define_title_hook(target_name, 'dependencies') {|title, log|
+      dep_versions = []
+      title.logfile.dependencies.each {|suffixed_name, time, ver|
+        dep_versions << "(#{ver})"
+      }
+      title.update_title(:dep_versions, dep_versions)
+    }
   end
 
   @failure_hook_hash = {}
@@ -96,6 +123,21 @@ module ChkBuild
       "<elapsed time>"
     }
   end
+
+  @diff_preprocess_sort_patterns_hash = {}
+  def ChkBuild.init_diff_preprocess_sort(target_name)
+    @diff_preprocess_sort_patterns_hash[target_name] ||= []
+  end
+  def ChkBuild.define_diff_preprocess_sort(target_name, pat)
+    @diff_preprocess_sort_patterns_hash[target_name] << pat
+  end
+  def ChkBuild.diff_preprocess_sort_pattern(target_name)
+    if @diff_preprocess_sort_patterns_hash[target_name].empty?
+      nil
+    else
+      /\A#{Regexp.union(*@diff_preprocess_sort_patterns_hash[target_name])}/
+    end
+  end
 end
 
 class ChkBuild::Target
@@ -104,10 +146,9 @@ class ChkBuild::Target
     ChkBuild.define_build_proc(target_name, &block)
     init_target(*args)
     ChkBuild.init_title_hook(@target_name)
-    init_default_title_hooks
     ChkBuild.init_failure_hook(@target_name)
     ChkBuild.init_diff_preprocess_hook(@target_name)
-    @diff_preprocess_sort_patterns = []
+    ChkBuild.init_diff_preprocess_sort(@target_name)
   end
   attr_reader :target_name, :opts, :build_proc
 
@@ -150,33 +191,6 @@ class ChkBuild::Target
     }
   end
 
-  def init_default_title_hooks
-    return if !ChkBuild.fetch_title_hook(@target_name).empty?
-    add_title_hook('success') {|title, log|
-      title.update_title(:status) {|val| 'success' if !val }
-    }
-    add_title_hook('failure') {|title, log|
-      title.update_title(:status) {|val|
-        if !val
-          line = /\n/ =~ log ? $` : log
-          line = line.strip
-          line if !line.empty?
-        end
-      }
-    }
-    add_title_hook(nil) {|title, log|
-      num_warns = log.scan(/warn/i).length
-      title.update_title(:warn) {|val| "#{num_warns}W" } if 0 < num_warns
-    }
-    add_title_hook('dependencies') {|title, log|
-      dep_versions = []
-      title.logfile.dependencies.each {|suffixed_name, time, ver|
-        dep_versions << "(#{ver})"
-      }
-      title.update_title(:dep_versions, dep_versions)
-    }
-  end
-
   def add_title_hook(secname, &block) ChkBuild.define_title_hook(@target_name, secname, &block) end
   def each_title_hook(&block) ChkBuild.fetch_title_hook(@target_name).each(&block) end
 
@@ -188,14 +202,8 @@ class ChkBuild::Target
   def add_diff_preprocess_hook(&block) ChkBuild.define_diff_preprocess_hook(&block) end
   def each_diff_preprocess_hook(&block) ChkBuild.fetch_diff_preprocess_hook(@target_name).each(&block) end
 
-  def add_diff_preprocess_sort(pat) @diff_preprocess_sort_patterns << pat end
-  def diff_preprocess_sort_pattern()
-    if @diff_preprocess_sort_patterns.empty?
-      nil
-    else
-      /\A#{Regexp.union(*@diff_preprocess_sort_patterns)}/
-    end
-  end
+  def add_diff_preprocess_sort(pat) ChkBuild.define_diff_preprocess_sort(@target_name, pat) end
+  def diff_preprocess_sort_pattern() ChkBuild.diff_preprocess_sort_pattern(@target_name) end
 
   def make_build_objs
     return @builds if defined? @builds
