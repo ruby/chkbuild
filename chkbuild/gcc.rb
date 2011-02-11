@@ -151,6 +151,26 @@ module ChkBuild
         '/tmp/cc<tmpnam>.s:'
       }
 
+      gcc.add_diff_preprocess_gsub(%r{-DBASEVER="\\"\d+.\d+.\d+\\""}) {
+        '-DBASEVER="\"N.N.N\""'
+      }
+
+      gcc.add_diff_preprocess_gsub(%r{-DDATESTAMP="\\" \d{8}\\""}) {
+        '-DDATESTAMP="\" YYYYMMDD\""'
+      }
+
+      gcc.add_diff_preprocess_gsub(%r{--release="gcc-\d+.\d+.\d+"}) {
+        '--release="gcc-N.N.N"'
+      }
+
+      gcc.add_diff_preprocess_gsub(%r{--date=\d+-\d\d-\d\d}) {
+        '--date=YYYY-MM-DD'
+      }
+
+      gcc.add_diff_preprocess_gsub(%r{^gcc version .*}) {
+        'gcc version ...'
+      }
+
       gcc
     end
   end
