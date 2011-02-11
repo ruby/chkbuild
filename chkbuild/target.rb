@@ -24,19 +24,70 @@
 # IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
 # OF SUCH DAMAGE.
 
+module ChkBuild
+  @build_proc_hash = {}
+  def ChkBuild.define_build_proc(target_name, &block)
+    raise ArgumentError, "already defined target: #{target_name.inspect}" if @build_proc_hash.include? target_name
+    @build_proc_hash[target_name] = block
+  end
+  def ChkBuild.fetch_build_proc(target_name)
+    @build_proc_hash.fetch(target_name)
+  end
+
+  @title_hook_hash = {}
+  def ChkBuild.init_title_hook(target_name)
+    @title_hook_hash[target_name] ||= []
+  end
+  def ChkBuild.define_title_hook(target_name, secname, &block)
+    @title_hook_hash[target_name] ||= []
+    @title_hook_hash[target_name] << [secname, block]
+  end
+  def ChkBuild.fetch_title_hook(target_name)
+    @title_hook_hash.fetch(target_name)
+  end
+
+  @failure_hook_hash = {}
+  def ChkBuild.init_failure_hook(target_name)
+    @failure_hook_hash[target_name] ||= []
+  end
+  def ChkBuild.define_failure_hook(target_name, secname, &block)
+    @failure_hook_hash[target_name] ||= []
+    @failure_hook_hash[target_name] << [secname, block]
+  end
+  def ChkBuild.fetch_failure_hook(target_name)
+    @failure_hook_hash.fetch(target_name)
+  end
+
+  @diff_preprocess_hook_hash = {}
+  def ChkBuild.init_diff_preprocess_hook(target_name)
+    @diff_preprocess_hook_hash[target_name] ||= []
+  end
+  def ChkBuild.define_diff_preprocess_hook(target_name, &block)
+    @diff_preprocess_hook_hash[target_name] ||= []
+    @diff_preprocess_hook_hash[target_name] << block
+  end
+  def ChkBuild.fetch_diff_preprocess_hook(target_name)
+    @diff_preprocess_hook_hash.fetch(target_name)
+  end
+end
+
 class ChkBuild::Target
   def initialize(target_name, *args, &block)
     @target_name = target_name
-    @build_proc = block
+    ChkBuild.define_build_proc(target_name, &block)
     init_target(*args)
-    @title_hook = []
+    ChkBuild.init_title_hook(@target_name)
     init_default_title_hooks
-    @failure_hook = []
-    @diff_preprocess_hook = []
+    ChkBuild.init_failure_hook(@target_name)
+    ChkBuild.init_diff_preprocess_hook(@target_name)
     init_default_diff_preprocess_hooks
     @diff_preprocess_sort_patterns = []
   end
   attr_reader :target_name, :opts, :build_proc
+
+  def build_proc
+    ChkBuild.fetch_build_proc(@target_name)
+  end
 
   def init_target(*args)
     args = args.map {|a|
@@ -74,6 +125,7 @@ class ChkBuild::Target
   end
 
   def init_default_title_hooks
+    return if !ChkBuild.fetch_title_hook(@target_name).empty?
     add_title_hook('success') {|title, log|
       title.update_title(:status) {|val| 'success' if !val }
     }
@@ -99,16 +151,17 @@ class ChkBuild::Target
     }
   end
 
-  def add_title_hook(secname, &block) @title_hook << [secname, block] end
-  def each_title_hook(&block) @title_hook.each(&block) end
+  def add_title_hook(secname, &block) ChkBuild.define_title_hook(@target_name, secname, &block) end
+  def each_title_hook(&block) ChkBuild.fetch_title_hook(@target_name).each(&block) end
 
-  def add_failure_hook(secname, &block) @failure_hook << [secname, block] end
-  def each_failure_hook(&block) @failure_hook.each(&block) end
+  def add_failure_hook(secname, &block) ChkBuild.define_failure_hook(@target_name, secname, &block) end
+  def each_failure_hook(&block) ChkBuild.fetch_failure_hook(@target_name).each(&block) end
 
   CHANGE_LINE_PAT = /^((ADD|DEL|CHG) .*\t.*->.*|COMMIT .*|last commit:)\n/
   CHANGE_LINE_PAT2 = /^(LASTLOG .*|DIRECTORY .*|FILE .*|LASTCOMMIT .*|GITOUT .*|GITERR .*|SVNOUT .*)\n/
 
   def init_default_diff_preprocess_hooks
+    return if !ChkBuild.fetch_diff_preprocess_hook(@target_name).empty?
     add_diff_preprocess_gsub(/ # \d{4,}-\d\d-\d\dT\d\d:\d\d:\d\d[-+]\d\d:\d\d$/) {|match|
       ' # <time>'
     }
@@ -126,13 +179,13 @@ class ChkBuild::Target
   end
 
   def add_diff_preprocess_gsub_state(pat, &block)
-    @diff_preprocess_hook << lambda {|line, state| line.gsub(pat) { yield $~, state } }
+    ChkBuild.define_diff_preprocess_hook(@target_name) {|line, state| line.gsub(pat) { yield $~, state } }
   end
   def add_diff_preprocess_gsub(pat, &block)
-    @diff_preprocess_hook << lambda {|line, state| line.gsub(pat) { yield $~ } }
+    ChkBuild.define_diff_preprocess_hook(@target_name) {|line, state| line.gsub(pat) { yield $~ } }
   end
-  def add_diff_preprocess_hook(&block) @diff_preprocess_hook << block end
-  def each_diff_preprocess_hook(&block) @diff_preprocess_hook.each(&block) end
+  def add_diff_preprocess_hook(&block) ChkBuild.define_diff_preprocess_hook(&block) end
+  def each_diff_preprocess_hook(&block) ChkBuild.fetch_diff_preprocess_hook(@target_name).each(&block) end
 
   def add_diff_preprocess_sort(pat) @diff_preprocess_sort_patterns << pat end
   def diff_preprocess_sort_pattern()
