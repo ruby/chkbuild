@@ -61,13 +61,40 @@ module ChkBuild
   @diff_preprocess_hook_hash = {}
   def ChkBuild.init_diff_preprocess_hook(target_name)
     @diff_preprocess_hook_hash[target_name] ||= []
+    init_default_diff_preprocess_hooks(target_name) if @diff_preprocess_hook_hash[target_name].empty?
   end
   def ChkBuild.define_diff_preprocess_hook(target_name, &block)
-    @diff_preprocess_hook_hash[target_name] ||= []
     @diff_preprocess_hook_hash[target_name] << block
   end
   def ChkBuild.fetch_diff_preprocess_hook(target_name)
     @diff_preprocess_hook_hash.fetch(target_name)
+  end
+
+  def ChkBuild.define_diff_preprocess_gsub_state(target_name, pat, &block)
+    define_diff_preprocess_hook(target_name) {|line, state| line.gsub(pat) { yield $~, state } }
+  end
+  def ChkBuild.define_diff_preprocess_gsub(target_name, pat, &block)
+    define_diff_preprocess_hook(target_name) {|line, state| line.gsub(pat) { yield $~ } }
+  end
+
+  CHANGE_LINE_PAT = /^((ADD|DEL|CHG) .*\t.*->.*|COMMIT .*|last commit:)\n/
+  CHANGE_LINE_PAT2 = /^(LASTLOG .*|DIRECTORY .*|FILE .*|LASTCOMMIT .*|GITOUT .*|GITERR .*|SVNOUT .*)\n/
+
+  def ChkBuild.init_default_diff_preprocess_hooks(target_name)
+    define_diff_preprocess_gsub(target_name, / # \d{4,}-\d\d-\d\dT\d\d:\d\d:\d\d[-+]\d\d:\d\d$/) {|match|
+      ' # <time>'
+    }
+    define_diff_preprocess_gsub(target_name, CHANGE_LINE_PAT) {|match| '' }
+    define_diff_preprocess_gsub(target_name, CHANGE_LINE_PAT2) {|match| '' }
+    define_diff_preprocess_gsub(target_name, /timeout: the process group \d+ is alive/) {|match|
+      "timeout: the process group <pgid> is alive"
+    }
+    define_diff_preprocess_gsub(target_name, /some descendant process in process group \d+ remain/) {|match|
+      "some descendant process in process group <pgid> remain"
+    }
+    define_diff_preprocess_gsub(target_name, /^elapsed [0-9.]+s.*/) {|match|
+      "<elapsed time>"
+    }
   end
 end
 
@@ -80,7 +107,6 @@ class ChkBuild::Target
     init_default_title_hooks
     ChkBuild.init_failure_hook(@target_name)
     ChkBuild.init_diff_preprocess_hook(@target_name)
-    init_default_diff_preprocess_hooks
     @diff_preprocess_sort_patterns = []
   end
   attr_reader :target_name, :opts, :build_proc
@@ -157,33 +183,8 @@ class ChkBuild::Target
   def add_failure_hook(secname, &block) ChkBuild.define_failure_hook(@target_name, secname, &block) end
   def each_failure_hook(&block) ChkBuild.fetch_failure_hook(@target_name).each(&block) end
 
-  CHANGE_LINE_PAT = /^((ADD|DEL|CHG) .*\t.*->.*|COMMIT .*|last commit:)\n/
-  CHANGE_LINE_PAT2 = /^(LASTLOG .*|DIRECTORY .*|FILE .*|LASTCOMMIT .*|GITOUT .*|GITERR .*|SVNOUT .*)\n/
-
-  def init_default_diff_preprocess_hooks
-    return if !ChkBuild.fetch_diff_preprocess_hook(@target_name).empty?
-    add_diff_preprocess_gsub(/ # \d{4,}-\d\d-\d\dT\d\d:\d\d:\d\d[-+]\d\d:\d\d$/) {|match|
-      ' # <time>'
-    }
-    add_diff_preprocess_gsub(CHANGE_LINE_PAT) {|match| '' }
-    add_diff_preprocess_gsub(CHANGE_LINE_PAT2) {|match| '' }
-    add_diff_preprocess_gsub(/timeout: the process group \d+ is alive/) {|match|
-      "timeout: the process group <pgid> is alive"
-    }
-    add_diff_preprocess_gsub(/some descendant process in process group \d+ remain/) {|match|
-      "some descendant process in process group <pgid> remain"
-    }
-    add_diff_preprocess_gsub(/^elapsed [0-9.]+s.*/) {|match|
-      "<elapsed time>"
-    }
-  end
-
-  def add_diff_preprocess_gsub_state(pat, &block)
-    ChkBuild.define_diff_preprocess_hook(@target_name) {|line, state| line.gsub(pat) { yield $~, state } }
-  end
-  def add_diff_preprocess_gsub(pat, &block)
-    ChkBuild.define_diff_preprocess_hook(@target_name) {|line, state| line.gsub(pat) { yield $~ } }
-  end
+  def add_diff_preprocess_gsub_state(pat, &block) ChkBuild.define_diff_preprocess_gsub_state(@target_name, pat, &block) end
+  def add_diff_preprocess_gsub(pat, &block) ChkBuild.define_diff_preprocess_gsub(@target_name, pat, &block) end
   def add_diff_preprocess_hook(&block) ChkBuild.define_diff_preprocess_hook(&block) end
   def each_diff_preprocess_hook(&block) ChkBuild.fetch_diff_preprocess_hook(@target_name).each(&block) end
 

@@ -1057,7 +1057,7 @@ End
     open_gziped_log(t2) {|f|
       has_change_line = false
       f.each {|line|
-        if ChkBuild::Target::CHANGE_LINE_PAT =~ line
+        if ChkBuild::CHANGE_LINE_PAT =~ line
           out.puts line
           has_change_line = true
         end
