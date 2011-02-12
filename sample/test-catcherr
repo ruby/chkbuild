@@ -4,7 +4,8 @@ require 'chkbuild'
 
 ChkBuild.def_target("catcherr-fails",
   %w[true false],
-  %w[true false]) {|b, *commands|
+  %w[true false]) {|b|
+  commands = b.suffixes
   b.catch_error { b.run(commands[0]) }
   b.catch_error { b.run(commands[1]) }
 }
@@ -13,7 +14,8 @@ ChkBuild.def_target("catcherr-branch",
   %w[true false],
   %w[true false],
   %w[true false],
-  %w[true false]) {|b, *commands|
+  %w[true false]) {|b|
+  commands = b.suffixes
   r1 = b.catch_error { b.run(commands[0]) }
   r1 && b.catch_error { b.run(commands[1]) }
   r1 && b.catch_error { b.run(commands[2]) }

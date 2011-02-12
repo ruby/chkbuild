@@ -3,23 +3,23 @@
 require 'chkbuild'
 
 Top = ChkBuild.def_target("diamondtop",
-  ["dev", "stable"]) {|b, suffix|
+  ["dev", "stable"]) {|b|
 }
 
 Left = ChkBuild.def_target("diamondleft",
   ["dev", "stable"],
-  Top) {|b, suffix|
+  Top) {|b|
 }
 
 Right = ChkBuild.def_target("diamondright",
   ["dev", "stable"],
-  Top) {|b, suffix|
+  Top) {|b|
 }
 
 ChkBuild.def_target("diamondbottom",
   ["dev", "stable"],
   Left,
-  Right) {|b, suffix|
+  Right) {|b|
 }
 
 ChkBuild.main

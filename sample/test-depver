@@ -8,7 +8,7 @@ Dep1 = ChkBuild.def_target("lib1", ["dev", "stable"]) {|b|
 Dep2 = ChkBuild.def_target("lib2", ["dev", "stable"]) {|b|
 }
 
-ChkBuild.def_target("app", ["dev", "stable"], Dep1, Dep2) {|b, suffix, lib1, lib2|
+ChkBuild.def_target("app", ["dev", "stable"], Dep1, Dep2) {|b|
 }
 
 ChkBuild.main

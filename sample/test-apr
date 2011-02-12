@@ -2,7 +2,7 @@
 
 require 'chkbuild'
 
-ChkBuild.def_target("apr") {|b,|
+ChkBuild.def_target("apr") {|b|
   Dir.chdir("..") {
     b.svn("http://svn.apache.org/repos/asf", "apr/apr/trunk", 'apr',
       :viewvc=>"http://svn.apache.org/viewvc")

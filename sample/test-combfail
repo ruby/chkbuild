@@ -3,7 +3,8 @@
 require 'chkbuild'
 
 COMBFAIL1 = ChkBuild.def_target("combfail1",
-  ["succ", "fail"]) {|b, suffix|
+  ["succ", "fail"]) {|b|
+  suffix = b.suffixes.first
   case suffix
   when "succ" then command = "true"
   when "fail" then command = "false"
@@ -11,10 +12,9 @@ COMBFAIL1 = ChkBuild.def_target("combfail1",
   b.run(command)
 }
 
-ChkBuild.def_target("combfail2", COMBFAIL1) {|b, cf1|
+ChkBuild.def_target("combfail2", COMBFAIL1) {|b|
+  combfail1_dir = b.depbuilds.first.dir
   combfail2_dir = b.build_dir
-  /\Acombfail1=/ =~ cf1
-  combfail1_dir = $'
   b.run(*%W(echo #{combfail1_dir} #{combfail2_dir}))
 }
 

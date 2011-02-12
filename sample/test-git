@@ -2,7 +2,7 @@
 
 require 'chkbuild'
 
-ChkBuild.def_target("git") {|b,|
+ChkBuild.def_target("git") {|b|
   opts = {:shared_gitdir=>ChkBuild.build_top}
   #b.git("git://github.com/brixen/rubyspec.git", 'tst-rubyspec', opts)
   b.github("brixen", "rubyspec", "tst-rubyspec2", opts)

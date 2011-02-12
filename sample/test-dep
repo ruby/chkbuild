@@ -3,16 +3,15 @@
 require 'chkbuild'
 
 Dep1 = ChkBuild.def_target("dep1",
-  ["dev", "stable"]) {|b, suffix|
+  ["dev", "stable"]) {|b|
   b.catch_error { raise "foo error" }
 }
 
 ChkBuild.def_target("dep2",
   ["dev", "stable"],
-  Dep1) {
-    |b, suffix, dep1|
-  p suffix
-  p dep1
+  Dep1) {|b|
+  p b.suffixes
+  p b.depbuilds
   p b.suffixed_name
 }
 

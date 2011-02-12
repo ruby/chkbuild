@@ -4,7 +4,7 @@ require 'chkbuild'
 
 ChkBuild.limit(:data=>1024*1024*2000, :as=>1024*1024*2000)
 
-ChkBuild.def_target("co-git") {|b,|
+ChkBuild.def_target("co-git") {|b|
   b.github("akr", "depq", "depq-work", {})
 }
 

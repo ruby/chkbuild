@@ -6,7 +6,7 @@ ChkBuild.add_upload_hook {|name|
   p "#{ChkBuild.public_top}/#{name}"
 }
 
-ChkBuild.def_target("uptest", ["dev", "stable"]) {|b,|
+ChkBuild.def_target("uptest", ["dev", "stable"]) {|b|
   b.run("echo", "uptest")
 }
 
