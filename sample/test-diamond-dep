@@ -1,0 +1,25 @@
+#!/usr/bin/env ruby
+
+require 'chkbuild'
+
+Top = ChkBuild.def_target("diamondtop",
+  ["dev", "stable"]) {|b, suffix|
+}
+
+Left = ChkBuild.def_target("diamondleft",
+  ["dev", "stable"],
+  Top) {|b, suffix|
+}
+
+Right = ChkBuild.def_target("diamondright",
+  ["dev", "stable"],
+  Top) {|b, suffix|
+}
+
+ChkBuild.def_target("diamondbottom",
+  ["dev", "stable"],
+  Left,
+  Right) {|b, suffix|
+}
+
+ChkBuild.main

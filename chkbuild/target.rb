@@ -118,6 +118,19 @@ class ChkBuild::Target
 	dep_targets = Util.opts2aryparam(opts, :depend)
 	dep_builds = dep_targets.map {|dep_target| build_hash.fetch(dep_target.target_name) }
 	Util.rproduct(*dep_builds) {|dependencies|
+	  all_depbuilds = {}
+	  found_inconsistency = false
+	  dependencies.each {|db|
+	    db.traverse_depbuild {|db2|
+	      db3 = all_depbuilds[db2.target.target_name]
+	      if db3 && db3 != db2
+		found_inconsistency = true
+	      end
+	      all_depbuilds[db2.target.target_name] = db2
+	    }
+	  }
+	  next if found_inconsistency
+	  dependencies = all_depbuilds.map {|target_name, depbuild| depbuild }.sort_by {|db| db.target.target_name }
 	  builds << ChkBuild::Build.new(t, opts, dependencies)
 	}
       }

@@ -70,6 +70,10 @@ class ChkBuild::Build
   attr_reader :target, :suffixes, :depbuilds
   attr_reader :target_dir, :opts
 
+  def inspect
+    "\#<#{self.class}: #{self.depsuffixed_name}>"
+  end
+
   def update_option(opts)
     @opts.update(opts)
   end
@@ -91,10 +95,12 @@ class ChkBuild::Build
     name
   end
 
-  def traverse_depbuild(&block)
+  def traverse_depbuild(memo={}, &block)
+    return if memo[self]
+    memo[self] = true
+    yield self
     @depbuilds.each {|depbuild|
-      yield depbuild
-      depbuild.traverse_depbuild(&block)
+      depbuild.traverse_depbuild(memo, &block)
     }
   end
 
@@ -175,7 +181,7 @@ class ChkBuild::Build
 
   def build_in_child
     if has_built_info?
-      raise "already built"
+      raise "already built: #{@depsuffixed_name}"
     end
     t = Time.now.utc
     start_time_obj = Time.utc(t.year, t.month, t.day, t.hour, t.min, t.sec)

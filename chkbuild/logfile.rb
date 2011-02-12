@@ -83,6 +83,7 @@ class ChkBuild::LogFile
       self.show_os_version
       section_started = false
       build.traverse_depbuild {|depbuild|
+        next if build == depbuild
         if !section_started
           logfile.start_section 'dependencies'
           section_started = true
