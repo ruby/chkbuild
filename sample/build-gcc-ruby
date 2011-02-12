@@ -33,6 +33,7 @@ ChkBuild.limit(:data=>1024*1024*800, :as=>1024*1024*800)
 gcc = ChkBuild::GCC.def_target(
   %w[trunk],
   #%w[trunk 4.5],
+  #%w[4.5],
   :old => 1)
 
 ChkBuild::Ruby.def_target(

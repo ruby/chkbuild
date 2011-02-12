@@ -83,6 +83,12 @@ module ChkBuild
       }
     end
 
+    def remove_symlink(destination)
+      if File.symlink? destination
+        File.delete destination
+      end
+    end
+
     def download_lib(b, url, destination)
       return if File.directory? destination
       basename = url[%r{[^/]+\z}]
@@ -96,11 +102,12 @@ module ChkBuild
       else
         raise "unexpected basename: #{basename.inspect}"
       end
-      b.run('sh', '-c', c)
       if !File.directory?(d)
-        raise "not exist: #{d.inspect}"
+	b.run('sh', '-c', c)
+	if !File.directory?(d)
+	  raise "not exist: #{d.inspect}"
+	end
       end
-      #File.rename d, destination
       File.symlink "../#{d}", destination
     end
 
@@ -117,6 +124,9 @@ module ChkBuild
         gcc_branch = opts.fetch(:gcc_branch)
 
         Dir.chdir("..") {
+	  remove_symlink("gcc/gmp")
+	  remove_symlink("gcc/mpfr")
+	  remove_symlink("gcc/mpc")
           b.svn("svn://gcc.gnu.org/svn/gcc", gcc_branch, 'gcc',
             :viewvc=>"http://gcc.gnu.org/viewcvs",
 	    :output_interval_timeout => '30min')
