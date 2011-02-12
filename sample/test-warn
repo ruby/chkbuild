@@ -6,7 +6,7 @@ warn = ChkBuild.def_target("warn") {|b|
   b.run("echo", "warn")
 }
 
-warn.add_title_hook('echo') {|title, log|
+ChkBuild.define_title_hook('warn', 'echo') {|title, log|
   title.update_title(:version, "foo") 
 }
 

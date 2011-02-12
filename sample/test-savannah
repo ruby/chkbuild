@@ -2,13 +2,13 @@
 
 require 'chkbuild'
 
-t = ChkBuild.def_target("savannah") {|b|
+ChkBuild.def_target("savannah") {|b|
   b.gnu_savannah_cvs('config', 'config', nil)
   b.run("config/config.guess")
 }
 
-t.add_title_hook('config.guess') {|title, log|
-  title.update_title(:status, log.chomp[/[^\n]*\z/])
+ChkBuild.define_title_hook('savannah', 'config.guess') {|title, log|
+  title.update_title(:statusex, log.chomp[/[^\n]*\z/])
 }
 
 ChkBuild.main

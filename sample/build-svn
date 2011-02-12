@@ -32,8 +32,8 @@ ChkBuild.limit(:data=>1024*1024*800, :as=>1024*1024*800)
 
 svn = ChkBuild.def_target("svn") {|b|
   dir = b.build_dir
-  b.svn('http://svn.collab.net/repos/svn', 'trunk', 'subversion',
-       :viewvc=>"http://svn.collab.net/viewvc/svn?diff_format=u")
+  b.svn('http://svn.apache.org/repos/asf', 'subversion/trunk', 'subversion',
+       :viewvc=>"http://svn.apache.org/viewvc?diff_format=u")
   Dir.chdir("subversion") {
     b.run("./autogen.sh")
     b.run("./configure", "--prefix=#{dir}")
@@ -44,13 +44,13 @@ svn = ChkBuild.def_target("svn") {|b|
   }
 }
 
-svn.add_title_hook('help') {|title, log|
+ChkBuild.define_title_hook('svn', 'help') {|title, log|
   if /^Subversion command-line client, version (.*)\.$/ =~ log
     title.update_title(:version, "Subversion #{$1}")
   end
 }
 
-svn.add_diff_preprocess_gsub(/^   compiled .*, \d\d:\d\d:\d\d$/) {
+ChkBuild.define_diff_preprocess_gsub('svn', /^   compiled .*, \d\d:\d\d:\d\d$/) {
   '   compiled <time>'
 }
 

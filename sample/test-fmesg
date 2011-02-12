@@ -9,7 +9,7 @@ t = ChkBuild.def_target("fmesg") {|b|
   end
 }
 
-t.add_failure_hook('echo') {|log|
+ChkBuild.define_failure_hook('fmesg', 'echo') {|log|
   'FAIL'
 }
 

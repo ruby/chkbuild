@@ -2,13 +2,13 @@
 
 require 'chkbuild'
 
-gcc_v = ChkBuild.def_target("gcc-v") {|b|
+ChkBuild.def_target("gccversion") {|b|
   b.run("gcc", '-v', :section=>'version')
 }
 
-gcc_v.add_title_hook('version') {|title, log|
+ChkBuild.define_title_hook('gccversion', 'version') {|title, log|
   if /^gcc version (.*)$/ =~ log
-    title.update_title(:gcc_version, "(gcc #{$1})")
+    title.update_title(:gcc_version, "(gcc #{$1.strip})")
   end
 }
 
