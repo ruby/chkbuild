@@ -34,7 +34,7 @@ class ChkBuild::Target
     ChkBuild.init_diff_preprocess_hook(@target_name)
     ChkBuild.init_diff_preprocess_sort(@target_name)
   end
-  attr_reader :target_name, :opts, :build_proc
+  attr_reader :target_name, :build_proc
 
   def inspect
     "\#<#{self.class}: #{@target_name}>"
@@ -92,53 +92,38 @@ class ChkBuild::Target
   def add_diff_preprocess_sort(pat) ChkBuild.define_diff_preprocess_sort(@target_name, pat) end
   def diff_preprocess_sort_pattern() ChkBuild.diff_preprocess_sort_pattern(@target_name) end
 
-  def make_build_objs
-    return @builds if defined? @builds
-    builds = []
+  def each_branch_opts
+    @branches.each {|opts| yield opts }
+  end
+
+  def each_target(memo={}, &block)
+    return if memo.include? @target_name
     @branches.each {|opts|
       dep_targets = Util.opts2aryparam(opts, :depend)
-      dep_builds = dep_targets.map {|dep_target| dep_target.make_build_objs }
-      Util.rproduct(*dep_builds) {|dependencies|
-        builds << ChkBuild::Build.new(self, opts, dependencies)
+      dep_targets.each {|dep_target|
+	dep_target.each_target(memo, &block)
       }
     }
-    @builds = builds
-  end
-  def each_build_obj(&block)
-    make_build_objs.each(&block)
+    memo[@target_name] = true
+    yield self
+    nil
   end
 
-  def make_result
-    return @result if defined? @result
-    succeed = Result.new
-    each_build_obj {|build|
-      next if block_given? && !yield(build)
-      if build.depbuilds.all? {|depbuild| depbuild.success? }
-        succeed.add(build) if build.build
-      end
+  def make_build_set
+    build_hash = {}
+    build_set = []
+    each_target {|t|
+      builds = []
+      t.each_branch_opts {|opts|
+	dep_targets = Util.opts2aryparam(opts, :depend)
+	dep_builds = dep_targets.map {|dep_target| build_hash.fetch(dep_target.target_name) }
+	Util.rproduct(*dep_builds) {|dependencies|
+	  builds << ChkBuild::Build.new(t, opts, dependencies)
+	}
+      }
+      build_hash[t.target_name] = builds
+      build_set << [t, builds]
     }
-    @result = succeed
-    succeed
-  end
-
-  def result
-    return @result if defined? @result
-    raise "#{@target_name}: no result yet"
-  end
-
-  class Result
-    include Enumerable
-
-    def initialize
-      @list = []
-    end
-
-    def add(elt)
-      @list << elt
-    end
-
-    def each
-      @list.each {|elt| yield elt }
-    end
+    build_set
   end
 end

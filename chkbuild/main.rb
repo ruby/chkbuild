@@ -68,14 +68,15 @@ End
     STDOUT.sync = true
     ChkBuild.build_top.mkpath
     ChkBuild.lock_start
-    @target_list.each {|t|
-      t.make_result {|b|
-        b.update_option(:procmemsize => true) if use_procmemsize
-        if ARGV.empty?
-          true
-        else
-          ARGV.include?(b.depsuffixed_name)
-        end
+
+    last_target = @target_list.last
+    build_set = last_target.make_build_set
+    build_set.each {|t, builds|
+      builds.each {|build|
+        next if !(ARGV.empty? || ARGV.include?(build.depsuffixed_name))
+	if build.depbuilds.all? {|depbuild| depbuild.success? }
+	  build.build
+	end
       }
     }
   end
@@ -93,8 +94,10 @@ End
     STDIN.reopen("/dev/null", "r")
     STDOUT.sync = true
     ChkBuild.build_top.mkpath
-    @target_list.each {|t|
-      t.each_build_obj {|build|
+    last_target = @target_list.last
+    build_set = last_target.make_build_set
+    build_set.each {|t, builds|
+      builds.each {|build|
         if build.depsuffixed_name == depsuffixed_name
           build.internal_build start_time, target_params_name, target_output_name
         end
@@ -110,16 +113,20 @@ End
   end
 
   def ChkBuild.main_list
-    @target_list.each {|t|
-      t.each_build_obj {|build|
+    last_target = @target_list.last
+    build_set = last_target.make_build_set
+    build_set.each {|t, builds|
+      builds.each {|build|
         puts build.depsuffixed_name
       }
     }
   end
 
   def ChkBuild.main_options
-    @target_list.each {|t|
-      t.each_build_obj {|build|
+    last_target = @target_list.last
+    build_set = last_target.make_build_set
+    build_set.each {|t, builds|
+      builds.each {|build|
         next if !ARGV.empty? && !ARGV.include?(build.depsuffixed_name)
         puts build.depsuffixed_name
 	opts = build.opts
@@ -141,8 +148,10 @@ End
   end
 
   def ChkBuild.main_title
-    @target_list.each {|t|
-      t.each_build_obj {|build|
+    last_target = @target_list.last
+    build_set = last_target.make_build_set
+    build_set.each {|t, builds|
+      builds.each {|build|
         next if !ARGV.empty? && !ARGV.include?(build.depsuffixed_name)
         last_txt = ChkBuild.public_top + build.depsuffixed_name + 'last.txt'
         if last_txt.exist?
@@ -157,8 +166,10 @@ End
 
   def ChkBuild.main_logdiff
     depsuffixed_name, arg_t1, arg_t2 = ARGV
-    @target_list.each {|t|
-      t.each_build_obj {|build|
+    last_target = @target_list.last
+    build_set = last_target.make_build_set
+    build_set.each {|t, builds|
+      builds.each {|build|
         next if depsuffixed_name && build.depsuffixed_name != depsuffixed_name
         ts = build.log_time_sequence
         raise "no log: #{build.depsuffixed_name}/#{arg_t1}" if arg_t1 and !ts.include?(arg_t1)
