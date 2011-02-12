@@ -52,6 +52,15 @@ End
 
   @target_list = []
 
+  def ChkBuild.each_target_build(last_target=@target_list.last)
+    build_set = last_target.make_build_set
+    build_set.each {|t, builds|
+      builds.each {|build|
+        yield t, build
+      }
+    }
+  end
+
   def ChkBuild.main_build
     o = OptionParser.new
     use_procmemsize = false
@@ -68,16 +77,11 @@ End
     STDOUT.sync = true
     ChkBuild.build_top.mkpath
     ChkBuild.lock_start
-
-    last_target = @target_list.last
-    build_set = last_target.make_build_set
-    build_set.each {|t, builds|
-      builds.each {|build|
-        next if !(ARGV.empty? || ARGV.include?(build.depsuffixed_name))
-	if build.depbuilds.all? {|depbuild| depbuild.success? }
-	  build.build
-	end
-      }
+    each_target_build {|t, build|
+      next if !(ARGV.empty? || ARGV.include?(build.depsuffixed_name))
+      if build.depbuilds.all? {|depbuild| depbuild.success? }
+	build.build
+      end
     }
   end
 
@@ -94,14 +98,10 @@ End
     STDIN.reopen("/dev/null", "r")
     STDOUT.sync = true
     ChkBuild.build_top.mkpath
-    last_target = @target_list.last
-    build_set = last_target.make_build_set
-    build_set.each {|t, builds|
-      builds.each {|build|
-        if build.depsuffixed_name == depsuffixed_name
-          build.internal_build start_time, target_params_name, target_output_name
-        end
-      }
+    each_target_build {|t, build|
+      if build.depsuffixed_name == depsuffixed_name
+	build.internal_build start_time, target_params_name, target_output_name
+      end
     }
     exit 1
   end
@@ -113,77 +113,61 @@ End
   end
 
   def ChkBuild.main_list
-    last_target = @target_list.last
-    build_set = last_target.make_build_set
-    build_set.each {|t, builds|
-      builds.each {|build|
-        puts build.depsuffixed_name
-      }
+    each_target_build {|t, build|
+      puts build.depsuffixed_name
     }
   end
 
   def ChkBuild.main_options
-    last_target = @target_list.last
-    build_set = last_target.make_build_set
-    build_set.each {|t, builds|
-      builds.each {|build|
-        next if !ARGV.empty? && !ARGV.include?(build.depsuffixed_name)
-        puts build.depsuffixed_name
-	opts = build.opts
-	if opts[:complete_options] && opts[:complete_options].respond_to?(:merge_dependencies)
-	  dep_dirs = []
-	  build.depbuilds.each {|depbuild|
-	    dir = ChkBuild.build_top + depbuild.depsuffixed_name + "<time>"
-	    dep_dirs << "#{depbuild.target.target_name}=#{dir}"
-	  }
-	  opts = opts[:complete_options].merge_dependencies(opts, dep_dirs)
-	end
-        opts.keys.sort_by {|k| k.to_s }.each {|k|
-          v = opts[k]
-          puts "option #{k.inspect} => #{v.inspect}"
-        }
-        puts
+    each_target_build {|t, build|
+      next if !ARGV.empty? && !ARGV.include?(build.depsuffixed_name)
+      puts build.depsuffixed_name
+      opts = build.opts
+      if opts[:complete_options] && opts[:complete_options].respond_to?(:merge_dependencies)
+	dep_dirs = []
+	build.depbuilds.each {|depbuild|
+	  dir = ChkBuild.build_top + depbuild.depsuffixed_name + "<time>"
+	  dep_dirs << "#{depbuild.target.target_name}=#{dir}"
+	}
+	opts = opts[:complete_options].merge_dependencies(opts, dep_dirs)
+      end
+      opts.keys.sort_by {|k| k.to_s }.each {|k|
+	v = opts[k]
+	puts "option #{k.inspect} => #{v.inspect}"
       }
+      puts
     }
   end
 
   def ChkBuild.main_title
-    last_target = @target_list.last
-    build_set = last_target.make_build_set
-    build_set.each {|t, builds|
-      builds.each {|build|
-        next if !ARGV.empty? && !ARGV.include?(build.depsuffixed_name)
-        last_txt = ChkBuild.public_top + build.depsuffixed_name + 'last.txt'
-        if last_txt.exist?
-          logfile = ChkBuild::LogFile.read_open(last_txt)
-          title = ChkBuild::Title.new(t, logfile)
-          title.run_hooks
-          puts "#{build.depsuffixed_name}:\t#{title.make_title}"
-        end
-      }
+    each_target_build {|t, build|
+      next if !ARGV.empty? && !ARGV.include?(build.depsuffixed_name)
+      last_txt = ChkBuild.public_top + build.depsuffixed_name + 'last.txt'
+      if last_txt.exist?
+	logfile = ChkBuild::LogFile.read_open(last_txt)
+	title = ChkBuild::Title.new(t, logfile)
+	title.run_hooks
+	puts "#{build.depsuffixed_name}:\t#{title.make_title}"
+      end
     }
   end
 
   def ChkBuild.main_logdiff
     depsuffixed_name, arg_t1, arg_t2 = ARGV
-    last_target = @target_list.last
-    build_set = last_target.make_build_set
-    build_set.each {|t, builds|
-      builds.each {|build|
-        next if depsuffixed_name && build.depsuffixed_name != depsuffixed_name
-        ts = build.log_time_sequence
-        raise "no log: #{build.depsuffixed_name}/#{arg_t1}" if arg_t1 and !ts.include?(arg_t1)
-        raise "no log: #{build.depsuffixed_name}/#{arg_t2}" if arg_t2 and !ts.include?(arg_t2)
-        if ts.length < 2
-          puts "#{build.depsuffixed_name}: less than 2 logs"
-          next
-        end
-        t1 = arg_t1 || ts[-2]
-        t2 = arg_t2 || ts[-1]
-        puts "#{build.depsuffixed_name}: #{t1}->#{t2}"
-        build.output_diff(t1, t2, STDOUT)
-        puts
-      }
+    each_target_build {|t, build|
+      next if depsuffixed_name && build.depsuffixed_name != depsuffixed_name
+      ts = build.log_time_sequence
+      raise "no log: #{build.depsuffixed_name}/#{arg_t1}" if arg_t1 and !ts.include?(arg_t1)
+      raise "no log: #{build.depsuffixed_name}/#{arg_t2}" if arg_t2 and !ts.include?(arg_t2)
+      if ts.length < 2
+	puts "#{build.depsuffixed_name}: less than 2 logs"
+	next
+      end
+      t1 = arg_t1 || ts[-2]
+      t2 = arg_t2 || ts[-1]
+      puts "#{build.depsuffixed_name}: #{t1}->#{t2}"
+      build.output_diff(t1, t2, STDOUT)
+      puts
     }
   end
 
