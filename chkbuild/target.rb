@@ -27,12 +27,8 @@
 class ChkBuild::Target
   def initialize(target_name, *args, &block)
     @target_name = target_name
-    ChkBuild.define_build_proc(target_name, &block)
+    ChkBuild.define_build_proc(target_name, &block) if block
     init_target(*args)
-    ChkBuild.init_title_hook(@target_name)
-    ChkBuild.init_failure_hook(@target_name)
-    ChkBuild.init_diff_preprocess_hook(@target_name)
-    ChkBuild.init_diff_preprocess_sort(@target_name)
   end
   attr_reader :target_name, :build_proc
 

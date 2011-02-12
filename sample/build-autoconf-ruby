@@ -2,7 +2,7 @@
 
 # sample/build-autoconf-ruby - build script for autoconf and ruby
 #
-# Copyright (C) 2005,2011 Tanaka Akira  <akr@fsij.org>
+# Copyright (C) 2005-2011 Tanaka Akira  <akr@fsij.org>
 # 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -30,38 +30,70 @@ require 'chkbuild'
 
 ChkBuild.limit(:data=>1024*1024*800, :as=>1024*1024*800)
 
-def modify_file(filename)
-  content = yield File.read(filename)
-  open(filename, "w") {|f|
-    f.print content
-  }
-end
+# configure: autobuild timestamp... 20110212T115136Z
+ChkBuild.define_diff_preprocess_gsub('autoconf', /configure: autobuild timestamp\.\.\. \d{8,}T\d{6}Z/) {|m|
+  'configure: autobuild timestamp... YYYYMMDDThhmmssZ'
+}
 
-Autoconf = ChkBuild.def_target("autoconf") {|b|
+# configure: autobuild revision... 2.68.36-cc21
+ChkBuild.define_diff_preprocess_gsub('autoconf', /configure: autobuild revision\.\.\. \S*/) {|m|
+  'configure: autobuild revision... <version>'
+}
+
+# echo 2.68.36-cc21 > .version-t && mv .version-t .version
+ChkBuild.define_diff_preprocess_gsub('autoconf', /echo \S* > \.version-t/) {|m|
+  'echo <version> > .version-t'
+}
+
+# sed ... -e 's|@VERSION[@]|2.68.36-cc21|g' ...
+ChkBuild.define_diff_preprocess_gsub('autoconf', /'s\|@VERSION\[@\]\|[^| ]*\|g'/) {|m|
+  "'s|@VERSION[@]|<version>|g'"
+}
+
+# echo 'm4_define([m4_PACKAGE_VERSION],   [2.68.36-cc21])' && \
+ChkBuild.define_diff_preprocess_gsub('autoconf', /\[m4_PACKAGE_VERSION\],\s*\[[^\[\] ]*\]/) {|m|
+  "[m4_PACKAGE_VERSION],   [<version>]'"
+}
+
+# echo 'm4_define([m4_PACKAGE_STRING],    [GNU Autoconf 2.68.36-cc21])' && \
+ChkBuild.define_diff_preprocess_gsub('autoconf', /\[m4_PACKAGE_STRING\],\s*\[GNU Autoconf [^\[\] ]*\]/) {|m|
+  "[m4_PACKAGE_STRING],    [GNU Autoconf <version>]"
+}
+
+#    --source='GNU Autoconf 2.68.36-cc21' \
+ChkBuild.define_diff_preprocess_gsub('autoconf', /--source='GNU Autoconf [^' ]*'/) {|m|
+  "--source='GNU Autoconf <version>'"
+}
+
+# autoconf (GNU Autoconf) 2.68.36-cc21
+ChkBuild.define_diff_preprocess_gsub('autoconf', /^autoconf \(GNU Autoconf\) \S*/) {|m|
+  "autoconf (GNU Autoconf) <version>"
+}
+
+ChkBuild.define_build_proc('autoconf') {|b|
   dir = b.build_dir
   b.git('git://git.sv.gnu.org/autoconf.git', 'autoconf')
-  Dir.chdir("autoconf") {
+  Dir.chdir('autoconf') {
     b.run("autoreconf", "-vi")
     b.run("./configure", "--prefix=#{dir}")
     b.make
     b.make("install")
   }
-  # modify Makefile to not use help2man.
-  #modify_file("Makefile") {|content|
-  #  content.sub(/^SUBDIRS\s*=.*$/) { $&.sub(/ man /, ' ') }
-  #}
-
   b.run("#{dir}/bin/autoconf", '--version', :section=>'version')
 }
 
-Autoconf.add_title_hook('version') {|title, log|
+ChkBuild.define_title_hook('autoconf', 'version') {|title, log|
   case log
   when /^Autoconf version (.*)$/
     title.update_title(:version, "autoconf #{$1}")
   when /^autoconf \(GNU Autoconf\) (.*)$/
+    # + /home/akr/chkbuild/tmp/build/autoconf/20110212T124506Z/bin/autoconf --version
+    # autoconf (GNU Autoconf) 2.68.36-cc21
     title.update_title(:version, "autoconf #{$1}")
   end
 }
+
+Autoconf = ChkBuild.def_target('autoconf')
 
 ChkBuild::Ruby.def_target(
   # ChkBuild::Ruby::MaintainedBranches,

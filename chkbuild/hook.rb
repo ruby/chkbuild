@@ -28,6 +28,7 @@ module ChkBuild
   @build_proc_hash = {}
   def ChkBuild.define_build_proc(target_name, &block)
     raise ArgumentError, "already defined target: #{target_name.inspect}" if @build_proc_hash.include? target_name
+    raise ArgumentError, "invalid target name: #{target_name.inspect}" if /\A[a-zA-Z0-9]+\z/ !~ target_name
     @build_proc_hash[target_name] = block
   end
   def ChkBuild.fetch_build_proc(target_name)
@@ -35,15 +36,18 @@ module ChkBuild
   end
 
   @title_hook_hash = {}
-  def ChkBuild.init_title_hook(target_name)
-    @title_hook_hash[target_name] ||= []
-    init_default_title_hooks(target_name) if @title_hook_hash[target_name].empty?
+  def ChkBuild.lazy_init_title_hook(target_name)
+    if !@title_hook_hash.include?(target_name)
+      @title_hook_hash[target_name] = []
+      init_default_title_hooks(target_name)
+    end
   end
   def ChkBuild.define_title_hook(target_name, secname, &block)
-    @title_hook_hash[target_name] ||= []
+    lazy_init_title_hook(target_name)
     @title_hook_hash[target_name] << [secname, block]
   end
   def ChkBuild.fetch_title_hook(target_name)
+    lazy_init_title_hook(target_name)
     @title_hook_hash.fetch(target_name)
   end
 
@@ -74,26 +78,31 @@ module ChkBuild
   end
 
   @failure_hook_hash = {}
-  def ChkBuild.init_failure_hook(target_name)
+  def ChkBuild.lazy_init_failure_hook(target_name)
     @failure_hook_hash[target_name] ||= []
   end
   def ChkBuild.define_failure_hook(target_name, secname, &block)
-    @failure_hook_hash[target_name] ||= []
+    lazy_init_failure_hook(target_name)
     @failure_hook_hash[target_name] << [secname, block]
   end
   def ChkBuild.fetch_failure_hook(target_name)
+    lazy_init_failure_hook(target_name)
     @failure_hook_hash.fetch(target_name)
   end
 
   @diff_preprocess_hook_hash = {}
-  def ChkBuild.init_diff_preprocess_hook(target_name)
-    @diff_preprocess_hook_hash[target_name] ||= []
-    init_default_diff_preprocess_hooks(target_name) if @diff_preprocess_hook_hash[target_name].empty?
+  def ChkBuild.lazy_init_diff_preprocess_hook(target_name)
+    if !@diff_preprocess_hook_hash.include?(target_name)
+      @diff_preprocess_hook_hash[target_name] = []
+      init_default_diff_preprocess_hooks(target_name) 
+    end
   end
   def ChkBuild.define_diff_preprocess_hook(target_name, &block)
+    lazy_init_diff_preprocess_hook(target_name)
     @diff_preprocess_hook_hash[target_name] << block
   end
   def ChkBuild.fetch_diff_preprocess_hook(target_name)
+    lazy_init_diff_preprocess_hook(target_name)
     @diff_preprocess_hook_hash.fetch(target_name)
   end
 
@@ -125,14 +134,12 @@ module ChkBuild
   end
 
   @diff_preprocess_sort_patterns_hash = {}
-  def ChkBuild.init_diff_preprocess_sort(target_name)
-    @diff_preprocess_sort_patterns_hash[target_name] ||= []
-  end
   def ChkBuild.define_diff_preprocess_sort(target_name, pat)
+    @diff_preprocess_sort_patterns_hash[target_name] ||= []
     @diff_preprocess_sort_patterns_hash[target_name] << pat
   end
   def ChkBuild.diff_preprocess_sort_pattern(target_name)
-    if @diff_preprocess_sort_patterns_hash[target_name].empty?
+    if !@diff_preprocess_sort_patterns_hash.include?(target_name)
       nil
     else
       /\A#{Regexp.union(*@diff_preprocess_sort_patterns_hash[target_name])}/
