@@ -36,6 +36,10 @@ class ChkBuild::Target
   end
   attr_reader :target_name, :opts, :build_proc
 
+  def inspect
+    "\#<#{self.class}: #{@target_name}>"
+  end
+
   def build_proc
     ChkBuild.fetch_build_proc(@target_name)
   end
@@ -53,12 +57,11 @@ class ChkBuild::Target
     @branches = []
     Util.rproduct(*args) {|a|
       opts_list = []
-      dep_targets = []
       a.flatten.each {|v|
         case v
 	when nil
 	when ChkBuild::Target
-	  dep_targets << v
+	  opts_list << { :depend_? => v }
 	when Hash
 	  opts_list << v
         else
@@ -71,7 +74,7 @@ class ChkBuild::Target
         opts = opts[:complete_options].call(opts)
 	next if !opts
       end
-      @branches << [opts, dep_targets]
+      @branches << opts
     }
   end
 
@@ -92,7 +95,8 @@ class ChkBuild::Target
   def make_build_objs
     return @builds if defined? @builds
     builds = []
-    @branches.each {|opts, dep_targets|
+    @branches.each {|opts|
+      dep_targets = Util.opts2aryparam(opts, :depend)
       dep_builds = dep_targets.map {|dep_target| dep_target.make_build_objs }
       Util.rproduct(*dep_builds) {|dependencies|
         builds << ChkBuild::Build.new(self, opts, dependencies)
