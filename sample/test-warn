@@ -2,7 +2,7 @@
 
 require 'chkbuild'
 
-warn = ChkBuild.def_target("warn") {|b|
+ChkBuild.def_target("warn") {|b|
   b.run("echo", "warn")
 }
 

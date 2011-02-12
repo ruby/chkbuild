@@ -2,7 +2,7 @@
 
 require 'chkbuild'
 
-t = ChkBuild.def_target("fmesg") {|b|
+ChkBuild.def_target("fmesg") {|b|
   b.run("echo", "this fails")
   if /this fails/ =~ b.logfile.get_section('echo')
     raise ChkBuild::Build::CommandError.new(0, "echo")

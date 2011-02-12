@@ -30,7 +30,7 @@ require 'chkbuild'
 
 ChkBuild.limit(:data=>1024*1024*800, :as=>1024*1024*800)
 
-svn = ChkBuild.def_target("svn") {|b|
+ChkBuild.def_target("svn") {|b|
   dir = b.build_dir
   b.svn('http://svn.apache.org/repos/asf', 'subversion/trunk', 'subversion',
        :viewvc=>"http://svn.apache.org/viewvc?diff_format=u")
