@@ -79,6 +79,7 @@ End
     ChkBuild.lock_start
     each_target_build {|t, build|
       next if !(ARGV.empty? || ARGV.include?(build.depsuffixed_name))
+      build.update_option(:procmemsize => true) if use_procmemsize
       if build.depbuilds.all? {|depbuild| depbuild.success? }
 	build.build
       end
