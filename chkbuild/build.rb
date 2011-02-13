@@ -307,7 +307,9 @@ class ChkBuild::Build
   def do_build
     ret = nil
     with_procmemsize(@opts) {
-      ret = catch_error { @target.build_proc.call(self) }
+      ret = catch_error {
+        ChkBuild.fetch_build_proc(@target.target_name).call(self)
+      }
       output_status_section
     }
     ret
@@ -1178,7 +1180,7 @@ End
     open_gziped_log(time) {|z|
       z.each_line {|line|
         line = line.gsub(pat, '<buildtime>')
-        @target.each_diff_preprocess_hook {|block|
+	ChkBuild.fetch_diff_preprocess_hook(@target.target_name).each {|block|
           catch_error(block.to_s) { line = block.call(line, state) }
         }
         tmp << line
@@ -1189,7 +1191,7 @@ End
   end
 
   def sort_diff_content(time1, tmp1, time2, tmp2)
-    pat = @target.diff_preprocess_sort_pattern
+    pat = ChkBuild.diff_preprocess_sort_pattern(@target.target_name)
     return tmp1, tmp2 if !pat
 
     h1, h2 = [tmp1, tmp2].map {|tmp|

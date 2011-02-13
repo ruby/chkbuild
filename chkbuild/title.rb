@@ -65,7 +65,7 @@ class ChkBuild::Title
   end
 
   def run_title_hooks
-    @target.each_title_hook {|secname, block|
+    ChkBuild.fetch_title_hook(@target.target_name).each {|secname, block|
       if secname == nil
         block.call self, @logfile.get_all_log
       elsif log = @logfile.get_section(secname)
@@ -75,7 +75,7 @@ class ChkBuild::Title
   end
 
   def run_failure_hooks
-    @target.each_failure_hook {|secname, block|
+    ChkBuild.fetch_failure_hook(@target.target_name).each {|secname, block|
       if @logfile.failed_section?(secname)
         log = @logfile.get_section(secname)
 	sym = "failure_#{secname}".intern

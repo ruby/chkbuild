@@ -30,14 +30,10 @@ class ChkBuild::Target
     ChkBuild.define_build_proc(target_name, &block) if block
     init_target(*args)
   end
-  attr_reader :target_name, :build_proc
+  attr_reader :target_name
 
   def inspect
     "\#<#{self.class}: #{@target_name}>"
-  end
-
-  def build_proc
-    ChkBuild.fetch_build_proc(@target_name)
   end
 
   def init_target(*args)
@@ -73,20 +69,6 @@ class ChkBuild::Target
       @branches << opts
     }
   end
-
-  def add_title_hook(secname, &block) ChkBuild.define_title_hook(@target_name, secname, &block) end
-  def each_title_hook(&block) ChkBuild.fetch_title_hook(@target_name).each(&block) end
-
-  def add_failure_hook(secname, &block) ChkBuild.define_failure_hook(@target_name, secname, &block) end
-  def each_failure_hook(&block) ChkBuild.fetch_failure_hook(@target_name).each(&block) end
-
-  def add_diff_preprocess_gsub_state(pat, &block) ChkBuild.define_diff_preprocess_gsub_state(@target_name, pat, &block) end
-  def add_diff_preprocess_gsub(pat, &block) ChkBuild.define_diff_preprocess_gsub(@target_name, pat, &block) end
-  def add_diff_preprocess_hook(&block) ChkBuild.define_diff_preprocess_hook(&block) end
-  def each_diff_preprocess_hook(&block) ChkBuild.fetch_diff_preprocess_hook(@target_name).each(&block) end
-
-  def add_diff_preprocess_sort(pat) ChkBuild.define_diff_preprocess_sort(@target_name, pat) end
-  def diff_preprocess_sort_pattern() ChkBuild.diff_preprocess_sort_pattern(@target_name) end
 
   def each_branch_opts
     @branches.each {|opts| yield opts }
