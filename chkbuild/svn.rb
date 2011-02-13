@@ -92,7 +92,10 @@ class ChkBuild::Build
       Dir.chdir(working_dir) {
         self.run "svn", "cleanup", opts
         opts[:section] = nil
-        self.run "svn", "update", "-q", opts
+	svn_logfile(opts) {|outio, opts2|
+	  opts2[:output_interval_file_list] = [STDOUT, STDERR, outio]
+	  self.run "svn", "update", opts2
+	}
         h2 = svn_revisions
 	svn_print_lastlog(h2['.'][0])
 	svn_print_revisions(svnroot, rep_dir, h2, viewvc)
