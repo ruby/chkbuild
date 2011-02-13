@@ -193,7 +193,7 @@ class ChkBuild::Build
     dir.mkdir
     target_params_name = dir + "params.marshal"
     target_output_name = dir + "result.marshal"
-    File.open(target_params_name, "wb") {|f| Marshal.dump([@opts, ChkBuild::Build::BuiltHash], f) }
+    File.open(target_params_name, "wb") {|f| Marshal.dump([self, ChkBuild::Build::BuiltHash], f) }
     ruby_command = RbConfig.ruby
     system(ruby_command, "-I#{ChkBuild::TOP_DIRECTORY}", $0, "internal-build", @depsuffixed_name, start_time, target_params_name.to_s, target_output_name.to_s)
     status = $?
@@ -207,20 +207,10 @@ class ChkBuild::Build
     return status
   end
 
-  def internal_build(start_time, target_params_name, target_output_name)
-    #p [:internal_build, depsuffixed_name]
-    @opts, builthash = File.open(target_params_name) {|f| Marshal.load(f) }
-    #pp builthash
-    ChkBuild::Build::BuiltHash.update builthash
-    self.build_and_exit(start_time, target_output_name)
-  end
-
-  def build_and_exit(start_time, target_output_name)
+  def internal_build(start_time, target_output_name)
     if has_built_info?
-    #p BuiltHash[depsuffixed_name]
       raise "already built: #{depsuffixed_name}"
     end
-    marshal_data = ''
     if child_build_wrapper(target_output_name, nil)
       exit 0
     else

@@ -98,11 +98,9 @@ End
     STDIN.reopen("/dev/null", "r")
     STDOUT.sync = true
     ChkBuild.build_top.mkpath
-    each_target_build {|t, build|
-      if build.depsuffixed_name == depsuffixed_name
-	build.internal_build start_time, target_params_name, target_output_name
-      end
-    }
+    build, builthash = File.open(target_params_name) {|f| Marshal.load(f) }
+    ChkBuild::Build::BuiltHash.update builthash
+    build.internal_build start_time, target_output_name
     exit 1
   end
 
