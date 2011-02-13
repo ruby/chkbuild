@@ -42,8 +42,10 @@ module ChkBuild
     end
     print <<"End"
 usage:
+  #{command} help
   #{command} [build [--procmemsize] [depsuffixed_name...]]
   #{command} list
+  #{command} options [depsuffixed_name...]
   #{command} title [depsuffixed_name...]
   #{command} logdiff [depsuffixed_name [date1 [date2]]]
 End
