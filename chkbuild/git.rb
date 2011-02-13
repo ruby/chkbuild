@@ -211,7 +211,7 @@ class ChkBuild::Build
       @project = project
     end
 
-    def commit_uri(commit_hash)
+    def call(commit_hash)
       # http://github.com/brixen/rubyspec/commit/b8f8eb6765afe915f2ecfdbbe59a53e6393d6865
       "http://github.com/#{@user}/#{@project}/commit/#{commit_hash}"
     end
@@ -220,7 +220,7 @@ class ChkBuild::Build
   def git_print_logs(logs, urigen, out)
     logs.each {|commit_hash, title_line|
       if urigen
-        commit = urigen.commit_uri(commit_hash)
+        commit = urigen.call(commit_hash)
       else
         commit = commit_hash
       end
@@ -240,6 +240,13 @@ class ChkBuild::Build
     urigen = nil
     if %r{\Agit://github.com/([^/]+)/([^/]+).git\z} =~ cloneurl
       urigen = GitHub.new($1, $2)
+    elsif %r{\Agit://git\.sv\.gnu\.org/([^/]+)\.git\z} =~ cloneurl
+      # git://git.sv.gnu.org/autoconf.git
+      # http://git.savannah.gnu.org/gitweb/?p=autoconf.git;a=commit;h=cc2118d83698708c7c0334ad72f2cd03c4f81f0b
+      git_project_basename = $1
+      urigen = lambda {|hash| 
+        "http://git.savannah.gnu.org/gitweb/?p=#{git_project_basename}.git;a=commit;h=#{hash}"
+      }
     end
 
     lastcommit1 = lines1.find {|line| /\ALASTCOMMIT / =~ line }
