@@ -26,7 +26,7 @@
 
 module ChkBuild
   @default_options = {
-    :num_oldbuilds => 3,
+    :num_oldbuilds => 1,
     :limit_cpu => 3600 * 4,
     :limit_stack => 1024 * 1024 * 40,
     :limit_data => 1024 * 1024 * 100,
