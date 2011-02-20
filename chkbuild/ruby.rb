@@ -452,13 +452,13 @@ ChkBuild.define_failure_hook('ruby', "test.rb") {|log|
 }
 
 ChkBuild.define_failure_hook('ruby', "test-all") {|log|
-  if /^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors$/ =~ log
+  if /.*^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors$/m =~ log
     failures = $1.to_i
     errors = $2.to_i
     if failures != 0 || errors != 0
       "#{failures}F#{errors}E"
     end
-  elsif /^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors, (\d+) skips$/ =~ log
+  elsif /.*^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors, (\d+) skips$/m =~ log
     failures = $1.to_i
     errors = $2.to_i
     skips = $3.to_i
@@ -473,7 +473,7 @@ ChkBuild.define_failure_hook('ruby', "test-all") {|log|
 }
 
 ChkBuild.define_failure_hook('ruby', "rubyspec") {|log|
-  if /^\d+ files?, \d+ examples?, \d+ expectations?, (\d+) failures?, (\d+) errors?$/ =~ log
+  if /.*^\d+ files?, \d+ examples?, \d+ expectations?, (\d+) failures?, (\d+) errors?$/m =~ log
     failures = $1.to_i
     errors = $2.to_i
     if failures != 0 || errors != 0
