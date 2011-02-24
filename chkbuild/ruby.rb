@@ -658,6 +658,12 @@ ChkBuild.define_diff_preprocess_gsub('ruby', /^Finished in [0-9.]+ seconds/) {|m
   "Finished in <t> seconds"
 }
 
+# test/unit (parallel):
+# Finished ptests in 2.061711s, 3.8803 tests/s, 0.9701 assertions/s.
+ChkBuild.define_diff_preprocess_gsub('ruby', %r{^Finished ptests in [0-9.]+s, [0-9.]+ tests/s, [0-9.]+ assertions/s.}) {|match|
+  "Finished ptests in <n>s, <n> tests/s, <n> assertions/s."
+}
+
 # miniunit:
 # Finished tests in 527.896930s, 16.5241 tests/s, 4174.6880 assertions/s.
 ChkBuild.define_diff_preprocess_gsub('ruby', %r{^Finished tests in [0-9.]+s, [0-9.]+ tests/s, [0-9.]+ assertions/s\.}) {|match|
