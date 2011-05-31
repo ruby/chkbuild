@@ -302,7 +302,7 @@ class ChkBuild::Build
   def show_process_status
     return unless File.exist? '/proc/self/status'
     @logfile.start_section 'process-status'
-    puts File.read('/proc/self/status')
+    puts File.read('/proc/self/status') # GNU/Linux
   end
 
   def do_build
