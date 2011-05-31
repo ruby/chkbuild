@@ -267,10 +267,8 @@ class ChkBuild::Build
   def child_build_target(target_output_name)
     setup_build(target_output_name)
     @logfile.start_section 'start'
-    @opts.keys.sort_by {|k| k.to_s }.each {|k|
-      v = @opts[k]
-      puts "option #{k.inspect} => #{v.inspect}"
-    }
+    show_options
+    show_process_status
     ret = self.do_build
     @logfile.start_section 'end'
     puts "elapsed #{format_elapsed_time(Time.now - prebuilt_start_time_obj)}"
@@ -292,6 +290,19 @@ class ChkBuild::Build
     force_link "log", @current_txt
     make_local_tmpdir
     remove_old_build(prebuilt_start_time, @opts.fetch(:old, ChkBuild.num_oldbuilds))
+  end
+
+  def show_options
+    @opts.keys.sort_by {|k| k.to_s }.each {|k|
+      v = @opts[k]
+      puts "option #{k.inspect} => #{v.inspect}"
+    }
+  end
+
+  def show_process_status
+    return unless File.exist? '/proc/self/status'
+    @logfile.start_section 'process-status'
+    puts File.read('/proc/self/status')
   end
 
   def do_build
