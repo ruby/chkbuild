@@ -536,7 +536,9 @@ ChkBuild.define_title_hook('ruby', nil) {|title, log|
 # voluntary_ctxt_switches:        4285
 # nonvoluntary_ctxt_switches:     6636
 #
-ChkBuild.define_diff_preprocess_gsub('ruby', /^(Tgid|Pid|PPid|VmPeak|VmSize|VmLck|VmHWM|VmRSS|VmData|VmStk|VmExe|VmLib|VmPTE|VmSwap|voluntary_ctxt_switches|nonvoluntary_ctxt_switches):[ \t]*\d+/) {|match|
+# SleepAVG:      80%
+#
+ChkBuild.define_diff_preprocess_gsub('ruby', /^(Tgid|Pid|PPid|SleepAVG|VmPeak|VmSize|VmLck|VmHWM|VmRSS|VmData|VmStk|VmExe|VmLib|VmPTE|VmSwap|voluntary_ctxt_switches|nonvoluntary_ctxt_switches):[ \t]*\d+/) {|match|
   "#{match[1]}: <nnn>"
 }
 
