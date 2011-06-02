@@ -300,9 +300,12 @@ class ChkBuild::Build
   end
 
   def show_process_status
-    return unless File.exist? '/proc/self/status'
-    @logfile.start_section 'process-status'
-    puts File.read('/proc/self/status') # GNU/Linux
+    if File.exist? '/proc/self/status' # GNU/Linux
+      self.run('cat', '/proc/self/status', :section => 'process-status')
+    end
+    if File.exist? '/proc/self/limits' # GNU/Linux
+      self.run('cat', '/proc/self/limits', :section => 'process-limits')
+    end
   end
 
   def do_build
