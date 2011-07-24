@@ -786,13 +786,19 @@ ChkBuild.define_diff_preprocess_sort('ruby', /\A[A-Z][A-Za-z0-9_]+(::[A-Z][A-Za-
 ChkBuild.define_diff_preprocess_sort('ruby', /\A- returns self as a symbol literal for :/)
 
 # make dist
+#
 # + make dist RELNAME=trunk@29063
 # ruby ./tool/make-snapshot tmp trunk@29063
 # Exporting trunk@29063
 # Exported revision 29063.
-ChkBuild.define_diff_preprocess_gsub('ruby', %r{(RELNAME=[0-9A-Za-z_.-]+@)\d+}) {|match| "#{match[1]}<rev>" }
-ChkBuild.define_diff_preprocess_gsub('ruby', %r{(make-snapshot tmp [0-9A-Za-z_.-]+@)\d+}) {|match| "#{match[1]}<rev>" }
-ChkBuild.define_diff_preprocess_gsub('ruby', %r{(Exporting [0-9A-Za-z_.-]+@)\d+}) {|match| "#{match[1]}<rev>" }
+#
+# + make dist RELNAME=branches/ruby_1_9_3@32655
+# ruby ./tool/make-snapshot tmp branches/ruby_1_9_3@32655
+# Exporting branches/ruby_1_9_3@32655
+#
+ChkBuild.define_diff_preprocess_gsub('ruby', %r{(RELNAME=[0-9A-Za-z/_.-]+@)\d+}) {|match| "#{match[1]}<rev>" }
+ChkBuild.define_diff_preprocess_gsub('ruby', %r{(make-snapshot tmp [0-9A-Za-z/_.-]+@)\d+}) {|match| "#{match[1]}<rev>" }
+ChkBuild.define_diff_preprocess_gsub('ruby', %r{(Exporting [0-9A-Za-z/_.-]+@)\d+}) {|match| "#{match[1]}<rev>" }
 ChkBuild.define_diff_preprocess_gsub('ruby', %r{(Exported revision )\d+}) {|match| "#{match[1]}<rev>" }
 
 # make dist
