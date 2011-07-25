@@ -1019,15 +1019,22 @@ End
 
   def find_diff_target_time(time2)
     entries = Dir.entries(@public_log)
+    h = {}
     time_seq = []
     entries.each {|f|
+      h[f] = true
       if /\A(\d{8}T\d{6}Z?)(?:\.log)?\.txt\.gz\z/ =~ f # year 10000 problem
         time_seq << $1
       end
     }
     time_seq = sort_times(time_seq)
     time_seq.delete time2
-    while !time_seq.empty? && has_neterror?(time_seq.last)
+    while !time_seq.empty? &&
+          (!h["#{time_seq.last}.log.txt.gz"] ||
+           !h["#{time_seq.last}.diff.txt.gz"] ||
+           !h["#{time_seq.last}.log.html.gz"] ||
+           !h["#{time_seq.last}.diff.html.gz"] ||
+           has_neterror?(time_seq.last))
       time_seq.pop
     end
     time_seq.last
