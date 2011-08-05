@@ -1027,6 +1027,7 @@ End
         time_seq << $1
       end
     }
+    time2_has_neterror = has_neterror?(time2)
     time_seq = sort_times(time_seq)
     time_seq.delete time2
     while !time_seq.empty? &&
@@ -1034,7 +1035,7 @@ End
            !h["#{time_seq.last}.diff.txt.gz"] ||
            !h["#{time_seq.last}.log.html.gz"] ||
            !h["#{time_seq.last}.diff.html.gz"] ||
-           has_neterror?(time_seq.last))
+           (!time2_has_neterror && has_neterror?(time_seq.last)))
       time_seq.pop
     end
     time_seq.last
