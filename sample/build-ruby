@@ -28,7 +28,11 @@
 
 require 'chkbuild'
 
-ChkBuild.limit(:data=>1024*1024*800, :as=>1024*1024*800)
+# resource limits
+ChkBuild.limit(:cpu => 3600*4) # seconds
+ChkBuild.limit(:stack => 1024*1024*40) # bytes
+ChkBuild.limit(:data => 1024*1024*800) # bytes
+ChkBuild.limit(:as => 1024*1024*800) # bytes
 
 # ChkBuild.nickname identify chkbuild installation.
 # It is used for title of HTML, etc.
