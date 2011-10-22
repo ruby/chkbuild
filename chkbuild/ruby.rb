@@ -807,6 +807,11 @@ ChkBuild.define_diff_preprocess_gsub('ruby', %r{ruby-snapshot\d+-\d+-[0-9a-z]+/r
   "ruby-snapshot<tmp>/ruby-<verrev>"
 }
 
+# TestAutoload#test_threaded_accessing_constant = /home/akr/chkbuild/tmp/build/ruby-trunk/20111022T114531Z/ruby/test/ruby/test_autoload.rb:81: warning: loading in progress, circular require considered harmful - /home/akr/chkbuild/tmp/build/ruby-trunk/20111022T114531Z/tmp/autoload20111022-5038-5nchmi.rb
+ChkBuild.define_diff_preprocess_gsub('ruby', %r{/tmp/(autoload)\d+-\d+-[0-9a-z]+}) {|match|
+  "/tmp/#{match[1]}<tmp>"
+}
+
 # make dist
 # creating bzip tarball... /home/akr/chkbuild/tmp/build/ruby-trunk/<buildtime>/ruby/tmp/ruby-1.9.3-r29063.tar.bz2 done
 # creating gzip tarball... /home/akr/chkbuild/tmp/build/ruby-trunk/<buildtime>/ruby/tmp/ruby-1.9.3-r29063.tar.gz done
