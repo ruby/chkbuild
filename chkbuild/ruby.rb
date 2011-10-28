@@ -539,7 +539,7 @@ ChkBuild.define_title_hook('ruby', nil) {|title, log|
 #
 # SleepAVG:      80%
 #
-ChkBuild.define_diff_preprocess_gsub('ruby', /^(Tgid|Pid|PPid|SleepAVG|VmPeak|VmSize|VmLck|VmHWM|VmRSS|VmData|VmStk|VmExe|VmLib|VmPTE|VmSwap|voluntary_ctxt_switches|nonvoluntary_ctxt_switches):[ \t]*\d+/) {|match|
+ChkBuild.define_diff_preprocess_gsub('ruby', /^(Tgid|Pid|PPid|SleepAVG|VmPeak|VmSize|VmLck|VmHWM|VmRSS|VmData|VmStk|VmExe|VmLib|VmPTE|VmSwap|voluntary_ctxt_switches|nonvoluntary_ctxt_switches|Brk|StaStk):[ \t]*\d+/) {|match|
   "#{match[1]}: <nnn>"
 }
 
@@ -803,7 +803,8 @@ ChkBuild.define_diff_preprocess_gsub('ruby', %r{(Exported revision )\d+}) {|matc
 
 # make dist
 # make[1]: Entering directory `/home/akr/chkbuild/tmp/build/ruby-trunk/<buildtime>/tmp/ruby-snapshot20100821-16136-p60p7s/ruby-1.9.3-r29063'
-ChkBuild.define_diff_preprocess_gsub('ruby', %r{ruby-snapshot\d+-\d+-[0-9a-z]+/ruby-[0-9a-z.-]+}) {|match|
+# make[1]: Leaving directory `/home/chkbuild/build/ruby-trunk/<buildtime>/tmp/ruby-snapshot-9557-11854/ruby-2.0.0-r33541'
+ChkBuild.define_diff_preprocess_gsub('ruby', %r{ruby-snapshot[-0-9a-z]+/ruby-[0-9a-z.-]+}) {|match|
   "ruby-snapshot<tmp>/ruby-<verrev>"
 }
 
