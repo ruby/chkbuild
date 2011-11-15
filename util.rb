@@ -298,13 +298,13 @@ module Util
   end
 
   def format_elapsed_time(seconds)
-    res = "#{seconds}s"
+    res = "%.1fs" % seconds
     m, s = seconds.divmod(60)
     h, m = m.divmod(60)
     if h != 0
-      res << " = #{h}h #{m}m #{s}s"
+      res << " = %dh %dm %.1fs" % [h, m, s]
     elsif m != 0
-      res << " = #{m}m #{s}s"
+      res << " = %dm %.1fs" % [m, s]
     end
     res
   end
