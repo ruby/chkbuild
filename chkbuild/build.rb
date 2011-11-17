@@ -268,6 +268,7 @@ class ChkBuild::Build
     setup_build(target_output_name)
     @logfile.start_section 'start'
     show_options
+    show_cpu_info
     show_process_status
     ret = self.do_build
     @logfile.start_section 'end'
@@ -297,6 +298,12 @@ class ChkBuild::Build
       v = @opts[k]
       puts "option #{k.inspect} => #{v.inspect}"
     }
+  end
+
+  def show_cpu_info
+    if File.exist? '/proc/cpuinfo' # GNU/Linux
+      self.run('cat', '/proc/cpuinfo', :section => 'cpu-info')
+    end
   end
 
   def show_process_status
