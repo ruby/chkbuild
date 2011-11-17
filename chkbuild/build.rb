@@ -304,6 +304,9 @@ class ChkBuild::Build
     if File.exist? '/proc/cpuinfo' # GNU/Linux
       self.run('cat', '/proc/cpuinfo', :section => 'cpu-info')
     end
+    if /freebsd/ =~ RUBY_PLATFORM
+      self.run('sysctl', 'hw.model', 'hw.clockrate', :section => 'cpu-info')
+    end
   end
 
   def show_process_status
