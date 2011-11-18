@@ -305,7 +305,13 @@ class ChkBuild::Build
       self.run('cat', '/proc/cpuinfo', :section => 'cpu-info')
     end
     if /freebsd/ =~ RUBY_PLATFORM
-      self.run('sysctl', 'hw.model', 'hw.clockrate', :section => 'cpu-info')
+      self.run('sysctl', 'hw.model', 'hw.ncpu', 'hw.clockrate', :section => 'cpu-info')
+    end
+    if /netbsd/ =~ RUBY_PLATFORM
+      self.run('sysctl', 'hw.model', 'hw.ncpu', :section => 'cpu-info')
+    end
+    if /openbsd/ =~ RUBY_PLATFORM
+      self.run('sysctl', 'hw.model', 'hw.ncpu', 'hw.cpuspeed', :section => 'cpu-info')
     end
   end
 
