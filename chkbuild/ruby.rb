@@ -498,6 +498,12 @@ ChkBuild.define_title_hook('ruby', nil) {|title, log|
   title.update_title(:mark, mark)
 }
 
+# cpu MHz	: 800.000
+# bogomips	: 1596.02
+ChkBuild.define_diff_preprocess_gsub('ruby', /^(cpu MHz|bogomips)(\t*): [\d.]+/) {|match|
+  "#{match[1]}#{match[2]}: <nnn>"
+}
+
 # Name:   ruby
 # State:  R (running)
 # Tgid:   11217
