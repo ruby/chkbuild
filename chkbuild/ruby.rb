@@ -233,6 +233,9 @@ ChkBuild.define_build_proc('ruby') {|b|
   use_rubyspec = bopts[:use_rubyspec]
   inplace_build = bopts[:inplace_build]
 
+  b.run(autoconf_command, '--version', :section=>'autoconf-version')
+  b.run('bison', '--version', :section=>'bison-version')
+
   if %r{branches/ruby_1_8_} =~ ruby_branch && $' < "8"
     cflags.concat cppflags
     cflags.concat optflags
