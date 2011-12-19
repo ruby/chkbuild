@@ -487,11 +487,11 @@ ChkBuild.define_failure_hook('ruby', "rubyspec") {|log|
 }
 
 ChkBuild.define_title_hook('ruby', nil) {|title, log|
+  log = log.gsub(/^LASTLOG .*/, '') # skip commit message.
+  log = log.sub(/combination may cause frequent hang or segmentation fault|hangs or segmentation faults/, '') # skip tk message.
   mark = ''
   numbugs = ChkBuild::Ruby.count_prefix(/\[BUG\]/i, log) and mark << " #{numbugs}[BUG]"
-  numsegv = ChkBuild::Ruby.count_prefix(
-    /segmentation fault|signal segv/i,
-    log.sub(/combination may cause frequent hang or segmentation fault|hangs or segmentation faults/, '')) and # skip tk message.
+  numsegv = ChkBuild::Ruby.count_prefix( /segmentation fault|signal segv/i, log) and
     mark << " #{numsegv}[SEGV]"
   numsigbus = ChkBuild::Ruby.count_prefix(/signal SIGBUS/i, log) and mark << " #{numsigbus}[SIGBUS]"
   numsigill = ChkBuild::Ruby.count_prefix(/signal SIGILL/i, log) and mark << " #{numsigill}[SIGILL]"
