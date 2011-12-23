@@ -822,6 +822,12 @@ ChkBuild.define_diff_preprocess_gsub('ruby', %r{/tmp/(autoload)\d+-\d+-[0-9a-z]+
   "/tmp/#{match[1]}<tmp>"
 }
 
+# TestRequire#test_load2 = /home/akr/chkbuild/tmp/build/ruby-trunk/<buildtime>/ruby/lib/rubygems/custom_require.rb:<line_a>: warning: loading in progress, circular require considered harmful - /home/akr/chkbuild/tmp/build/ruby-trunk/<buildtime>/tmp/bug575420111221-16977-19vmgph.rb
+# /home/akr/chkbuild/tmp/build/ruby-trunk/<buildtime>/ruby/lib/rubygems/custom_require.rb:<line_a>: warning: loading in progress, circular require considered harmful - /home/akr/chkbuild/tmp/build/ruby-trunk/<buildtime>/tmp/bug575420111221-16977-19vmgph.rb
+ChkBuild.define_diff_preprocess_gsub('ruby', %r{/tmp/(bug5754)\d+-\d+-[0-9a-z]+}) {|match|
+  "/tmp/#{match[1]}<tmp>"
+}
+
 # make dist
 # creating bzip tarball... /home/akr/chkbuild/tmp/build/ruby-trunk/<buildtime>/ruby/tmp/ruby-1.9.3-r29063.tar.bz2 done
 # creating gzip tarball... /home/akr/chkbuild/tmp/build/ruby-trunk/<buildtime>/ruby/tmp/ruby-1.9.3-r29063.tar.gz done
