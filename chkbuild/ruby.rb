@@ -570,7 +570,8 @@ ChkBuild.define_diff_preprocess_gsub('ruby', /[ \t]+$/) {|match|
 # Doxygen:
 # /home/akr/chkbuild/tmp/build/ruby-trunk/20100816T014700Z/ruby/ext/ripper/ripper.y:18: Warning: include file ruby/ruby.h not found, perhaps you forgot to add its directory to INCLUDE_PATH?
 # /home/akr/chkbuild/tmp/build/ruby-trunk/20100816T014700Z/ruby/pack.c:89: Problem during constant expression evaluation: syntax error
-ChkBuild.define_diff_preprocess_gsub_state('ruby', /\A([^:]*:)(\d+)(:(?:\d+:)? (?:[Ww]arning: |Problem ).*)/) {|match, state|
+#        from /extdisk/chkbuild/chkbuild/tmp/build/ruby-trunk/<buildtime>/ruby/test/ruby/test_autoload.rb:82:in `block (2 levels) in test_threaded_accessing_constant'
+ChkBuild.define_diff_preprocess_gsub_state('ruby', /\A([^:]*:)(\d+)(:((?:\d+:)? (?:[Ww]arning: |Problem )|in `.*').*)/) {|match, state|
   pre, linenum, post = match[1], match[2], match[3]
   warnhash = state[:warnhash] ||= {}
   key = "#{pre}<linenum>#{post}"
