@@ -819,13 +819,11 @@ ChkBuild.define_diff_preprocess_gsub('ruby', %r{ruby-snapshot[-0-9a-z]+/ruby-[0-
 }
 
 # TestAutoload#test_threaded_accessing_constant = /home/akr/chkbuild/tmp/build/ruby-trunk/20111022T114531Z/ruby/test/ruby/test_autoload.rb:81: warning: loading in progress, circular require considered harmful - /home/akr/chkbuild/tmp/build/ruby-trunk/20111022T114531Z/tmp/autoload20111022-5038-5nchmi.rb
-ChkBuild.define_diff_preprocess_gsub('ruby', %r{/tmp/(autoload)\d+-\d+-[0-9a-z]+}) {|match|
-  "/tmp/#{match[1]}<tmp>"
-}
-
 # TestRequire#test_load2 = /home/akr/chkbuild/tmp/build/ruby-trunk/<buildtime>/ruby/lib/rubygems/custom_require.rb:<line_a>: warning: loading in progress, circular require considered harmful - /home/akr/chkbuild/tmp/build/ruby-trunk/<buildtime>/tmp/bug575420111221-16977-19vmgph.rb
 # /home/akr/chkbuild/tmp/build/ruby-trunk/<buildtime>/ruby/lib/rubygems/custom_require.rb:<line_a>: warning: loading in progress, circular require considered harmful - /home/akr/chkbuild/tmp/build/ruby-trunk/<buildtime>/tmp/bug575420111221-16977-19vmgph.rb
-ChkBuild.define_diff_preprocess_gsub('ruby', %r{/tmp/(bug5754)\d+-\d+-[0-9a-z]+}) {|match|
+# TestException#test_exception_in_exception_equal = /home/akr/chkbuild/tmp/build/ruby-trunk/<buildtime>/tmp/test_exception_in_exception_equal20120212-20753-538yy.rb:<line_a>: warning: possibly useless use of == in void context
+#
+ChkBuild.define_diff_preprocess_gsub('ruby', %r{/tmp/(autoload|bug5754|test_exception_in_exception_equal)\d+-\d+-[0-9a-z]+}) {|match|
   "/tmp/#{match[1]}<tmp>"
 }
 
