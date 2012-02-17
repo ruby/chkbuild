@@ -548,7 +548,14 @@ ChkBuild.define_diff_preprocess_gsub('ruby', /^(cpu MHz|bogomips)(\t*): [\d.]+/)
 #
 # SleepAVG:      80%
 #
-ChkBuild.define_diff_preprocess_gsub('ruby', /^(Tgid|Pid|PPid|SleepAVG|VmPeak|VmSize|VmLck|VmHWM|VmRSS|VmData|VmStk|VmExe|VmLib|VmPTE|VmSwap|SigQ|voluntary_ctxt_switches|nonvoluntary_ctxt_switches|Brk|StaStk):[ \t]*\d+/) {|match|
+ChkBuild.define_diff_preprocess_gsub('ruby', /^(Tgid|Pid|PPid|SleepAVG|VmPeak|VmSize|VmLck|VmHWM|VmRSS|VmData|VmStk|VmExe|VmLib|VmPTE|VmSwap|SigQ|voluntary_ctxt_switches|nonvoluntary_ctxt_switches):[ \t]*\d+/) {|match|
+  "#{match[1]}: <nnn>"
+}
+
+# StaBrk:       00606000 kB
+# Brk:  05cbb000 kB
+# StaStk:       7fffe9567f90 kB
+ChkBuild.define_diff_preprocess_gsub('ruby', /^(StaBrk|Brk|StaStk):[ \t]*[0-9a-f]+/) {|match|
   "#{match[1]}: <nnn>"
 }
 
