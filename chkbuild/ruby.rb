@@ -60,6 +60,22 @@ mods.each {|mod|
 puts "#{nummodule} modules, #{nummethod} methods"
 End
 
+  VERSION_LIST_SCRIPT = <<'End'
+  [
+    ["dbm", lambda { DBM::VERSION }],
+    ["gdbm", lambda { GDBM::VERSION }],
+    ["readline", lambda { Readline::VERSION }],
+    ["openssl", lambda { OpenSSL::VERSION }],
+    ["zlib", lambda { Zlib::ZLIB_VERSION }],
+  ].each {|feature, versionproc|
+    begin
+      require feature
+      puts "#{feature}: #{versionproc.call}"
+    rescue LoadError
+    end
+  }
+End
+
   # not strictly RFC 1034.
   DOMAINLABEL = /[A-Za-z0-9-]+/
   DOMAINPAT = /#{DOMAINLABEL}(\.#{DOMAINLABEL})*/
@@ -308,6 +324,7 @@ ChkBuild.define_build_proc('ruby') {|b|
   bindir = ruby_build_dir+'bin'
   make_options["ENV:PATH"] = "#{bindir}:#{ENV['PATH']}"
   b.catch_error { b.make("install-doc", make_options) }
+  b.catch_error { b.run("./ruby", '-e', ChkBuild::Ruby::VERSION_LIST_SCRIPT, :section=>"version-list") }
   if File.file? "#{srcdir}/KNOWNBUGS.rb"
     b.catch_error { b.make("test-knownbug", "OPTS=-v -q", make_options) }
   end
