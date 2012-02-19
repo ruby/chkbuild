@@ -67,6 +67,7 @@ End
     ["readline", lambda { Readline::VERSION }],
     ["openssl", lambda { OpenSSL::VERSION }],
     ["zlib", lambda { Zlib::ZLIB_VERSION }],
+    ["tcltklib", lambda { TclTkLib::COMPILE_INFO }],
   ].each {|feature, versionproc|
     begin
       require feature
