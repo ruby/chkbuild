@@ -586,6 +586,12 @@ ChkBuild.define_diff_preprocess_gsub('ruby', /ruby [0-9.a-z]+ \(.*\) \[.*\]$/) {
   "ruby <version>"
 }
 
+# tcltklib: tcltklib 2010-08-25 :: Ruby2.0.0 (2012-02-20) with pthread :: Tcl8.5.10(without stub)/Tk8.5.10(without stub) with tcl_threads
+ChkBuild.define_diff_preprocess_gsub('ruby', /^tcltklib: (.*)Ruby[\d.]+ \([\d-]+\)/) {|match|
+  "tcltklib: #{match[1]}Ruby<version> (<release-date>)"
+  "ruby <version>"
+}
+
 # delete trailing spaces.
 ChkBuild.define_diff_preprocess_gsub('ruby', /[ \t]+$/) {|match|
   ""
