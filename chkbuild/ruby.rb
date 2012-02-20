@@ -68,11 +68,13 @@ End
     ["openssl", lambda { OpenSSL::OPENSSL_VERSION }],
     ["zlib", lambda { Zlib::ZLIB_VERSION }],
     ["tcltklib", lambda { TclTkLib::COMPILE_INFO }],
+    ["curses", lambda { Curses::VERSION }],
   ].each {|feature, versionproc|
     begin
       require feature
       puts "#{feature}: #{versionproc.call}"
-    rescue LoadError
+    rescue Exception
+      puts "#{feature}: #{$!}"
     end
   }
 End
