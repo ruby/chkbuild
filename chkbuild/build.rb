@@ -316,7 +316,10 @@ class ChkBuild::Build
   end
 
   def show_process_status
-    if File.exist? '/proc/self/status' # GNU/Linux
+    if File.exist?('/bin/pflags') # Solaris
+      self.run('pflags', $$.to_s) 
+    elsif File.exist? '/proc/self/status' # GNU/Linux
+      # Don't print /proc/self/status on Solaris because it is a binary file.
       self.run('cat', '/proc/self/status', :section => 'process-status')
     end
     if File.exist? '/proc/self/limits' # GNU/Linux
