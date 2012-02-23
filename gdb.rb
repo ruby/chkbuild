@@ -43,7 +43,9 @@ module GDB
       next if /\.chkbuild\.\d+\z/ =~ basename
       guess = `file #{f} 2>&1`
       next if /\bcore\b.*from '(.*?)'/ !~ guess.sub(/\A.*?:/, '')
-      core_info << [f, $1]
+      binary = $1
+      next if /\bconftest\b/ =~ binary
+      core_info << [f, binary]
     }
     gdb_command = nil
     core_info.each {|core_path, binary|
