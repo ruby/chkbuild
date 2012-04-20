@@ -72,23 +72,23 @@ class ChkBuild::Build
     FileUtils.mkdir_p(GIT_SHARED_DIR)
     opts_shared = opts.dup
     opts_shared[:section] += "(shared)"
+    cloneurl2 = "#{GIT_SHARED_DIR}/#{working_dir}.git"
     Dir.chdir(GIT_SHARED_DIR) {
-      if File.directory?(working_dir) && File.exist?("#{working_dir}/.git")
-	Dir.chdir(working_dir) {
+      if File.directory?(cloneurl2)
+	Dir.chdir(cloneurl2) {
 	  git_logfile(opts_shared) {|opts2|
-	    self.run("git", "pull", opts2)
+	    self.run("git", "fetch", opts2)
 	  }
 	}
       else
-	FileUtils.rm_rf(working_dir) if File.exist?(working_dir)
-	pdir = File.dirname(working_dir)
+	FileUtils.rm_rf(cloneurl2) if File.exist?(cloneurl2)
+	pdir = File.dirname(cloneurl2)
 	FileUtils.mkdir_p(pdir) if !File.directory?(pdir)
 	git_logfile(opts_shared) {|opts2|
-	  self.run "git", "clone", "-q", cloneurl, working_dir, opts2
+	  self.run "git", "clone", "-q", "--mirror", cloneurl, cloneurl2, opts2
 	}
       end
     }
-    cloneurl2 = "#{GIT_SHARED_DIR}/#{working_dir}"
     old_head = nil
     if File.exist?(working_dir) && File.exist?("#{working_dir}/.git")
       Dir.chdir(working_dir) {
@@ -258,7 +258,8 @@ class ChkBuild::Build
       return 
     end
 
-    Dir.chdir(GIT_SHARED_DIR + working_dir) {
+    cloneurl2 = "#{GIT_SHARED_DIR}/#{working_dir}.git"
+    Dir.chdir(cloneurl2) {
       logs = git_oneline_logs2(lastrev1, lastrev2)
       git_print_logs(logs, urigen, out)
     }
