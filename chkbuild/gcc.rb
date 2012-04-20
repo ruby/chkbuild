@@ -92,6 +92,10 @@ def (ChkBuild::GCC::CompleteOptions).call(target_opts)
     case s
     when "trunk" then
       hs << { :gcc_branch => "trunk", :build_gmp => true, :build_mpfr => true, :build_mpc => true }
+    when "4.7" then
+      hs << { :gcc_branch => "branches/gcc-4_7-branch", :build_gmp => true, :build_mpfr => true, :build_mpc => true }
+    when "4.6" then
+      hs << { :gcc_branch => "branches/gcc-4_6-branch", :build_gmp => true, :build_mpfr => true, :build_mpc => true }
     when "4.5" then
       hs << { :gcc_branch => "branches/gcc-4_5-branch", :build_gmp => true, :build_mpfr => true, :build_mpc => true }
     when "4.4" then
