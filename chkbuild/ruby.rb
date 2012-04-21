@@ -309,6 +309,14 @@ ChkBuild.define_build_proc('ruby') {|b|
   args << "DLDFLAGS=#{dldflags.join(' ')}" unless dldflags.empty?
   args.concat configure_args
   b.run("#{srcdir}/configure", *args)
+
+  if /^CC[ \t]*=[ \t](.*)/ =~ File.read('Makefile')
+    cc = $1
+    if /gcc/ =~ cc
+      b.run(cc, '--version', :section=>'cc-version')
+    end
+  end
+
   b.make("miniruby", make_options)
   b.catch_error { b.run("./miniruby", "-v", :section=>"miniversion") }
   if File.directory? "#{srcdir}/bootstraptest"
