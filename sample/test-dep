@@ -5,6 +5,7 @@ require 'chkbuild'
 Dep1 = ChkBuild.def_target("dep1",
   ["dev", "stable"]) {|b|
   b.catch_error { raise "foo error" }
+  Dir.mkdir('bin')
 }
 
 ChkBuild.def_target("dep2",
@@ -13,6 +14,7 @@ ChkBuild.def_target("dep2",
   p b.suffixes
   p b.depbuilds
   p b.suffixed_name
+  b.run('env')
 }
 
 ChkBuild.main

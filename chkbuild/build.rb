@@ -131,11 +131,17 @@ class ChkBuild::Build
 
   def build
     dep_dirs = []
+    additional_path = []
     @depbuilds.each {|depbuild|
       dep_dirs << "#{depbuild.target.target_name}=#{depbuild.dir}"
+      bindir = "#{depbuild.dir}/bin"
+      additional_path << bindir if File.directory? bindir
     }
     if @opts[:complete_options] && @opts[:complete_options].respond_to?(:merge_dependencies)
       @opts = @opts[:complete_options].merge_dependencies(@opts, dep_dirs)
+    end
+    if !additional_path.empty?
+      @opts[:additional_path] = additional_path
     end
     status = self.build_in_child
     status.to_i == 0
@@ -291,6 +297,9 @@ class ChkBuild::Build
     force_link "log", @current_txt
     make_local_tmpdir
     remove_old_build(prebuilt_start_time, @opts.fetch(:old, ChkBuild.num_oldbuilds))
+    if @opts[:additional_path] && !@opts[:additional_path].empty?
+      ENV['PATH'] = (@opts[:additional_path] + ENV['PATH'].split(/:/)).join(':')
+    end
   end
 
   def show_options
