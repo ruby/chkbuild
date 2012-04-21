@@ -30,9 +30,21 @@ require 'chkbuild'
 
 ChkBuild.limit(:data=>1024*1024*800, :as=>1024*1024*800)
 
+bison_choices = [
+  {
+    :suffix_? => '-master',
+    :bison_branch => nil,
+  },
+  {
+    :suffix_? => '-2.5',
+    :bison_branch => 'branch-2.5',
+  },
+]
+
 ChkBuild.define_build_proc('bison') {|b|
   dir = b.build_dir
-  b.git('git://git.savannah.gnu.org/bison.git', 'bison')
+  b.git('git://git.savannah.gnu.org/bison.git', 'bison',
+    :branch=>b.opts[:bison_branch])
   Dir.chdir('bison') {
     b.run(*%w[git submodule update --init])
     b.run(*%w[./bootstrap])
@@ -50,7 +62,7 @@ ChkBuild.define_title_hook('bison', 'version') {|title, log|
   end
 }
 
-Bison = ChkBuild.def_target('bison')
+Bison = ChkBuild.def_target('bison', bison_choices)
 
 ChkBuild::Ruby.def_target(
   # ChkBuild::Ruby::MaintainedBranches,

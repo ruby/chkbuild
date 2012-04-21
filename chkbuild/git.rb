@@ -110,7 +110,12 @@ class ChkBuild::Build
         }
       end
       git_logfile(opts) {|opts2|
-        self.run "git", "clone", "-q", cloneurl2, working_dir, opts2
+	command = ["git", "clone", "-q"]
+	command << '--branch' << opts[:branch] if opts[:branch]
+	command << cloneurl2
+	command << working_dir
+	command << opts2
+        self.run(*command)
       }
     end
     Dir.chdir(working_dir) {
