@@ -28,7 +28,12 @@
 
 require 'chkbuild'
 
-ChkBuild.limit(:data=>1024*1024*800, :as=>1024*1024*800)
+# resource limits
+word_bytes = [nil].pack("p").length
+ChkBuild.limit(:cpu => 3600*4) # seconds
+ChkBuild.limit(:stack => 1024*1024*10*word_bytes) # bytes
+ChkBuild.limit(:data => 1024*1024*500*word_bytes) # bytes
+ChkBuild.limit(:as => 1024*1024*500*word_bytes) # bytes
 
 ChkBuild::Ruby.def_target(
   #ChkBuild::Ruby::MaintainedBranches,
