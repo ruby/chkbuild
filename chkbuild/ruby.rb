@@ -188,6 +188,7 @@ def (ChkBuild::Ruby::CompleteOptions).call(target_opts)
     :warnflags => %w[-W -Wall -Wformat=2 -Wundef -Wno-parentheses -Wno-unused-parameter -Wno-missing-field-initializers],
     :dldflags => %w[],
     :make_options => {},
+    :force_gperf => false,
     :use_rubyspec => false,
     :inplace_build => true,
   }
@@ -250,6 +251,7 @@ ChkBuild.define_build_proc('ruby') {|b|
   autoconf_command = bopts[:autoconf_command]
   make_options = Util.opts2hashparam(bopts, :make_options)
   use_rubyspec = bopts[:use_rubyspec]
+  force_gperf = bopts[:force_gperf]
   inplace_build = bopts[:inplace_build]
 
   b.run(autoconf_command, '--version', :section=>'autoconf-version')
@@ -283,6 +285,20 @@ ChkBuild.define_build_proc('ruby') {|b|
   ruby_svn_rev = svn_info_section[/Last Changed Rev: (\d+)/, 1].to_i
 
   Dir.chdir("ruby")
+
+  if force_gperf
+    b.run('gperf', '--version', :section=>'gperf-version')
+    if File.exist?('defs/lex.c.src') && File.exist?('lex.c.blt')
+      b.run('rm', 'defs/lex.c.src', 'lex.c.blt', :section=>'force-gperf')
+    elsif File.exist?('lex.c.src') && File.exist?('lex.c.blt')
+      b.run('rm', 'lex.c.src', 'lex.c.blt', :section=>'force-gperf')
+    elsif File.exist?('lex.c')
+      b.run('rm', 'lex.c', :section=>'force-gperf')
+    else
+      b.run('echo', 'lex.c related files not found', :section=>'force-gperf')
+    end
+  end
+
   b.run(autoconf_command)
 
   Dir.chdir(ruby_build_dir)
