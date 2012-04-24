@@ -888,7 +888,7 @@ ChkBuild.define_diff_preprocess_gsub('ruby', %r{/tmp/(autoload|bug5754|test_exce
 # creating bzip tarball... /home/akr/chkbuild/tmp/build/ruby-trunk/<buildtime>/ruby/tmp/ruby-1.9.3-r29063.tar.bz2 done
 # creating gzip tarball... /home/akr/chkbuild/tmp/build/ruby-trunk/<buildtime>/ruby/tmp/ruby-1.9.3-r29063.tar.gz done
 # creating zip archive... /home/akr/chkbuild/tmp/build/ruby-trunk/<buildtime>/ruby/tmp/ruby-1.9.3-r29063.zip done
-ChkBuild.define_diff_preprocess_gsub('ruby', %r{ruby-[0-9a-z.-]+\.(?:tar|zip)}) {|match|
+ChkBuild.define_diff_preprocess_gsub('ruby', %r{ruby-[0-9a-z.-]+\.(tar|zip)}) {|match|
   "ruby-<verrev>.#{match[1]}"
 }
 
