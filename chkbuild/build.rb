@@ -193,12 +193,15 @@ class ChkBuild::Build
     start_time_obj = Time.utc(t.year, t.month, t.day, t.hour, t.min, t.sec)
     start_time = start_time_obj.strftime("%Y%m%dT%H%M%SZ")
     set_prebuilt_info(start_time_obj, start_time)
-    dir = ChkBuild.build_top + @depsuffixed_name
-    dir.mkpath
-    dir += start_time
-    dir.mkdir
-    target_params_name = dir + "params.marshal"
-    target_output_name = dir + "result.marshal"
+    target_dir = ChkBuild.build_top + @depsuffixed_name
+    target_dir.mkpath
+    build_dir = ChkBuild.build_top + start_time
+    symlink_build_dir = target_dir + prebuilt_start_time
+    build_dir.mkdir
+    (build_dir+"BUILD").open("w") {|f| f.puts "#{@depsuffixed_name}/#{start_time}" }
+    File.symlink build_dir.relative_path_from(symlink_build_dir.parent), symlink_build_dir
+    target_params_name = build_dir + "params.marshal"
+    target_output_name = build_dir + "result.marshal"
     File.open(target_params_name, "wb") {|f| Marshal.dump([self, ChkBuild::Build::BuiltHash], f) }
     ruby_command = RbConfig.ruby
     system(ruby_command, "-I#{ChkBuild::TOP_DIRECTORY}", $0, "internal-build", @depsuffixed_name, start_time, target_params_name.to_s, target_output_name.to_s)
@@ -209,7 +212,7 @@ class ChkBuild::Build
     rescue ArgumentError
       version = self.suffixed_name
     end
-    set_built_info(start_time_obj, start_time, status, dir, version)
+    set_built_info(start_time_obj, start_time, status, build_dir, version)
     return status
   end
 
@@ -285,7 +288,7 @@ class ChkBuild::Build
   end
 
   def setup_build(target_output_name)
-    @build_dir = @target_dir + prebuilt_start_time
+    @build_dir = ChkBuild.build_top + prebuilt_start_time
     @log_filename = @build_dir + 'log'
     mkcd @target_dir
     @parent_pipe = File.open(target_output_name, "wb")
@@ -572,7 +575,17 @@ class ChkBuild::Build
     return if dirs.length <= num
     dirs[-num..-1] = []
     dirs.each {|d|
-      (@target_dir+d).rmtree
+      d = @target_dir+d
+      if d.symlink? 
+        if d.exist?
+          d.realpath.rmtree
+          d.unlink
+        else
+          d.unlink
+        end
+      else
+        d.rmtree
+      end
     }
   end
 

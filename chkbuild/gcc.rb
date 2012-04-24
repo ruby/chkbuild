@@ -126,10 +126,13 @@ ChkBuild.define_build_proc('gcc') {|b|
   opts = b.opts
 
   gcc_prefix = b.build_dir
+  abs_objdir = gcc_prefix+'objdir'
+  rel_srcdir = (b.target_dir+'gcc').relative_path_from(abs_objdir)
 
   gcc_branch = opts.fetch(:gcc_branch)
 
-  Dir.chdir("..") {
+
+  Dir.chdir(b.target_dir) {
     ChkBuild::GCC.remove_symlink("gcc/gmp")
     ChkBuild::GCC.remove_symlink("gcc/mpfr")
     ChkBuild::GCC.remove_symlink("gcc/mpc")
@@ -140,12 +143,13 @@ ChkBuild.define_build_proc('gcc') {|b|
     ChkBuild::GCC.download_lib(b, ChkBuild::GCC::URL_MPFR, "gcc/mpfr") if opts[:build_mpfr]
     ChkBuild::GCC.download_lib(b, ChkBuild::GCC::URL_MPC, "gcc/mpc") if opts[:build_mpc]
   }
-  b.mkcd("objdir")
-  configure_args = %w[--enable-languages=c]
-  configure_args.concat %W[--disable-shared --disable-multilib]
-  b.run("../../gcc/configure", "--prefix=#{gcc_prefix}", *configure_args)
-  b.make("bootstrap", "install", :timeout=>'5h')
-  b.run("#{gcc_prefix}/bin/gcc", '-v', :section=>'version')
+  b.mkcd(abs_objdir) {
+    configure_args = %w[--enable-languages=c]
+    configure_args.concat %W[--disable-shared --disable-multilib]
+    b.run("#{rel_srcdir}/configure", "--prefix=#{gcc_prefix}", *configure_args)
+    b.make("bootstrap", "install", :timeout=>'5h')
+    b.run("#{gcc_prefix}/bin/gcc", '-v', :section=>'version')
+  }
 }
 
 ChkBuild.define_title_hook('gcc', 'version') {|title, log|

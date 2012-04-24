@@ -271,7 +271,7 @@ ChkBuild.define_build_proc('ruby') {|b|
   ruby_build_dir = b.build_dir
   objdir = ruby_build_dir+'ruby'
   if !inplace_build
-    checkout_dir = ruby_build_dir.dirname
+    checkout_dir = b.target_dir
   else
     checkout_dir = ruby_build_dir
   end

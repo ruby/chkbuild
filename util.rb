@@ -188,9 +188,9 @@ module Util
     end
   end
 
-  def mkcd(dir)
+  def mkcd(dir, &b)
     FileUtils.mkpath dir
-    Dir.chdir dir
+    Dir.chdir(dir, &b)
   end
 
   def resource_unlimit(resource)
