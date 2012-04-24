@@ -56,7 +56,10 @@ ChkBuild::Ruby.def_target(
   ],
 
   #[
-  #  { :suffix_? => '-core2', :optflags_tune => %w[-mtune=core2] },
+  #  { :suffix_? => '-nocona', :optflags_arch => %w[-march=nocona] },
+  #  { :suffix_? => '-core2', :optflags_arch => %w[-march=core2] },
+  #  { :suffix_? => '-corei7', :optflags_arch => %w[-march=corei7] },
+  #  { :suffix_? => '-corei7avx', :optflags_arch => %w[-march=corei7-avx] },
   #  nil
   #],
 
