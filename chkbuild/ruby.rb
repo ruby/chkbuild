@@ -66,7 +66,7 @@ End
     ["gdbm", lambda { GDBM::VERSION }],
     ["readline", lambda { Readline::VERSION }],
     ["openssl", lambda { OpenSSL::OPENSSL_VERSION }],
-    ["zlib", lambda { Zlib::ZLIB_VERSION }],
+    ["zlib", lambda { hv = Zlib::ZLIB_VERSION; lv = Zlib.zlib_version; lv == hv ? lv : "header:#{hv} library:#{lv}" }],
     ["tcltklib", lambda { TclTkLib::COMPILE_INFO }],
     ["curses", lambda { Curses::VERSION }],
   ].each {|feature, versionproc|
