@@ -1217,7 +1217,7 @@ End
   end
 
   def make_diff_content(time)
-    times = [time]
+    timemap = { time => "<buildtime>" }
     uncompressed = Tempfile.open("#{time}.u.")
     open_gziped_log(time) {|z|
       FileUtils.copy_stream(z, uncompressed)
@@ -1225,14 +1225,15 @@ End
     uncompressed.flush
     logfile = ChkBuild::LogFile.read_open(uncompressed.path)
     logfile.dependencies.each {|dep_suffixed_name, dep_time, dep_version|
-      times << dep_time
+      target_name = dep_suffixed_name.sub(/[-_].*\z/, '')
+      timemap[dep_time] = "<#{target_name}-buildtime>"
     }
-    pat = Regexp.union(*times.uniq)
+    pat = Regexp.union(*timemap.keys)
     tmp = Tempfile.open("#{time}.d.")
     state = {}
     open_gziped_log(time) {|z|
       z.each_line {|line|
-        line = line.gsub(pat, '<buildtime>')
+        line = line.gsub(pat) { timemap[$&] }
 	ChkBuild.fetch_diff_preprocess_hook(@target.target_name).each {|block|
           catch_error(block.to_s) { line = block.call(line, state) }
         }
