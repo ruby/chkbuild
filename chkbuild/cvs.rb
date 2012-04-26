@@ -136,7 +136,7 @@ class ChkBuild::Build
       f = k.flatten.join('/')
       cvsroot2, repository2, r2 = h2[k] || [nil, nil, 'none']
       digest = sha256_digest_file(f)
-      puts "#{f}\t#{r2}\t#{digest}"
+      puts "FILE #{f}\t#{r2}\t#{digest}"
     }
   end
 

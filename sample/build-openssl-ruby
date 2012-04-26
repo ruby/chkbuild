@@ -40,18 +40,25 @@ ChkBuild.limit(:as => 1024*1024*500*word_bytes) # bytes
 #  OpenSSL_1_0_2-stable
 #  OpenSSL_1_0_1-stable
 #  OpenSSL_1_0_0-stable
-#  OpenSSL_0_9_8fg-stable
 #  OpenSSL_0_9_8-stable
 #  ...
 
 openssl_choices = [
-  #{
-  #  :suffix_? => '-1.0.2',
-  #  :openssl_branch => 'OpenSSL_1_0_2-stable',
-  #},
+  {
+    :suffix_? => '-1.0.2',
+    :openssl_branch => 'OpenSSL_1_0_2-stable',
+  },
   {
     :suffix_? => '-1.0.1',
     :openssl_branch => 'OpenSSL_1_0_1-stable',
+  },
+  {
+    :suffix_? => '-1.0.0',
+    :openssl_branch => 'OpenSSL_1_0_0-stable',
+  },
+  {
+    :suffix_? => '-0.9.8',
+    :openssl_branch => 'OpenSSL_0_9_8-stable',
   },
 ]
 
