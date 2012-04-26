@@ -145,7 +145,7 @@ ChkBuild.define_build_proc('gcc') {|b|
   }
   b.mkcd(abs_objdir) {
     configure_args = %w[--enable-languages=c]
-    configure_args.concat %W[--disable-shared --disable-multilib]
+    configure_args.concat %W[--disable-multilib]
     b.run("#{rel_srcdir}/configure", "--prefix=#{gcc_prefix}", *configure_args)
     b.make("bootstrap", "install", :timeout=>'5h')
     b.run("#{gcc_prefix}/bin/gcc", '-v', :section=>'version')
