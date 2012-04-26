@@ -83,16 +83,19 @@ ChkBuild.define_build_proc('openssl') {|b|
     b.make
     b.make('test')
     b.make('install')
+    b.catch_error {
+      b.run("#{bdir}/bin/openssl", 'version', :section=>"version")
+    }
   }
 }
 
-ChkBuild.define_title_hook('bison', 'version') {|title, log|
+ChkBuild.define_title_hook('openssl', 'version') {|title, log|
+  # OpenSSL 0.9.8x-dev xx XXX xxxx
   case log
-  when /^bison \(GNU Bison\) (.*)$/
-    title.update_title(:version, "bison #{$1}")
+  when /^OpenSSL (.*)$/
+    title.update_title(:version, "OpenSSL #{$1}")
   end
 }
-
 
 openssl = ChkBuild.def_target('openssl', openssl_choices)
 
