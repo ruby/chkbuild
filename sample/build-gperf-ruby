@@ -28,6 +28,8 @@
 
 require 'chkbuild'
 
+#ENV['LC_ALL'] = 'C'
+
 # resource limits
 word_bytes = [nil].pack("p").length
 ChkBuild.limit(:cpu => 3600*4) # seconds
