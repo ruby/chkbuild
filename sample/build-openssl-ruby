@@ -63,17 +63,16 @@ openssl_choices = [
 ]
 
 ChkBuild.define_build_proc('openssl') {|b|
-  tdir = b.target_dir
-  Dir.chdir(tdir) {
-    opts2 = b.opts.dup
-    opts2["ENV:CVS_RSH"] = 'ssh'
-    b.cvs('anonymous@cvs.openssl.org:/openssl-cvs',
-          'openssl',
-	  b.opts[:openssl_branch],
-	  opts2)
-  }
+  cvs_shared_dir = ChkBuild.build_top + 'cvs-repos'
+  FileUtils.mkdir_p(cvs_shared_dir)
+  b.run('rsync', '-rztpv', '--delete',
+        'rsync://dev.openssl.org/openssl-cvs/',
+        "#{cvs_shared_dir}/openssl-cvs")
+  b.cvs("#{cvs_shared_dir}/openssl-cvs",
+        'openssl',
+        b.opts[:openssl_branch],
+        b.opts)
   bdir = b.build_dir
-  FileUtils.cp_r("#{tdir}/openssl", "openssl", :preserve => true)
   Dir.chdir('openssl') {
     b.run('./config',
       "--prefix=#{bdir}",
