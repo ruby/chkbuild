@@ -43,7 +43,10 @@ class ChkBuild::Build
     if File.directory?(working_dir)
       Dir.chdir(working_dir) {
         h1 = cvs_revisions
-        self.run("cvs", "-f", "-z3", "-Q", "update", "-kb", "-dP", opts)
+	cvs_logfile(opts) {|outio, errio, opts2|
+	  opts2[:output_interval_file_list] = [STDOUT, STDERR, outio, errio]
+	  self.run("cvs", "-f", "-z3", "update", "-kb", "-dP", opts2)
+	}
         h2 = cvs_revisions
         cvs_print_revisions(h1, h2, opts[:viewvc]||opts[:viewcvs]||opts[:cvsweb])
       }
@@ -57,10 +60,15 @@ class ChkBuild::Build
         }
       end
       if branch
-        self.run("cvs", "-f", "-z3", "-Qd", cvsroot, "co", "-kb", "-d", working_dir, "-Pr", branch, mod, opts)
+	command = ["cvs", "-f", "-z3", "-d", cvsroot, "co", "-kb", "-d", working_dir, "-P", "-r", branch, mod]
       else
-        self.run("cvs", "-f", "-z3", "-Qd", cvsroot, "co", "-kb", "-d", working_dir, "-P", mod, opts)
+        command = ["cvs", "-f", "-z3", "-d", cvsroot, "co", "-kb", "-d", working_dir, "-P", mod]
       end
+      cvs_logfile(opts) {|outio, errio, opts2|
+	opts2[:output_interval_file_list] = [STDOUT, STDERR, outio, errio]
+	command << opts2
+	self.run(*command)
+      }
       Dir.chdir(working_dir) {
         h2 = cvs_revisions
         cvs_print_revisions(h1, h2, opts[:viewvc]||opts[:viewcvs]||opts[:cvsweb])
@@ -129,6 +137,24 @@ class ChkBuild::Build
       cvsroot2, repository2, r2 = h2[k] || [nil, nil, 'none']
       digest = sha256_digest_file(f)
       puts "#{f}\t#{r2}\t#{digest}"
+    }
+  end
+
+  def cvs_logfile(opts)
+    with_templog(self.build_dir, "cvs.out.") {|outfile, outio|
+      with_templog(self.build_dir, "cvs.err.") {|errfile, errio|
+	opts2 = opts.dup
+	opts2[:stdout] = outfile
+	opts2[:stderr] = errfile
+	begin
+	  yield outio, errio, opts2
+	ensure
+	  outio.rewind
+	  outio.each_line {|line| puts "CVSOUT #{line}" }
+	  errio.rewind
+	  errio.each_line {|line| puts "CVSERR #{line}" }
+	end
+      }
     }
   end
 end

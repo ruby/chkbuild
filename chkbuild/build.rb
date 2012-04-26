@@ -1311,6 +1311,9 @@ End
     if !opts.include?(:output_interval_timeout)
       opts[:output_interval_timeout] = '10min'
     end
+    if !opts.include?(:process_remain_timeout)
+      opts[:process_remain_timeout] = '1min'
+    end
 
     separated_stderr = nil
     if opts[:stderr] == :separate

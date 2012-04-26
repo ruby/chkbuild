@@ -110,6 +110,10 @@ module TimeoutCommand
     if opts[:output_interval_timeout]
       output_interval_timeout = parse_timespan(opts[:output_interval_timeout])
     end
+    process_remain_timeout = nil
+    if opts[:process_remain_timeout]
+      process_remain_timeout = parse_timespan(opts[:process_remain_timeout])
+    end
     file_list = opts[:output_interval_file_list] || [STDOUT, STDERR]
     if command_timeout < 0
       raise CommandTimeout, 'no time to run a command'
@@ -173,6 +177,24 @@ module TimeoutCommand
       ensure
         if processgroup_alive?(pid)
           msgout.puts "some descendant process in process group #{pid} remain." if msgout
+	  IO.popen("ps jaxww") {|psio|
+	    psresult = psio.to_a
+	    pat = /\b#{pid}\b/
+	    first = true
+	    psresult.each {|line|
+	      if first || pat =~ line
+		puts "PSOUT #{line}"
+	      end
+	      first = false
+	    }
+	  }
+	  if process_remain_timeout
+	    timelimit = Time.now + process_remain_timeout
+	    while Time.now < timelimit
+	      sleep 1
+	      break if !processgroup_alive?(pid)
+	    end
+	  end
           kill_processgroup(pid, msgout)
         end
       end
