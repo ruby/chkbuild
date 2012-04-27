@@ -30,6 +30,13 @@ require 'chkbuild'
 
 #ENV['LC_ALL'] = 'C'
 
+# Workaround for GCC with Multiarch.
+# http://wiki.debian.org/Multiarch.
+# (Ubuntu Natty and Debian Wheezy)
+#
+#   ENV['CPATH'] = '/usr/include/i386-linux-gnu'
+#   ENV['LIBRARY_PATH'] = '/usr/lib/i386-linux-gnu'
+
 # resource limits
 word_bytes = [nil].pack("p").length
 ChkBuild.limit(:cpu => 3600*4) # seconds
