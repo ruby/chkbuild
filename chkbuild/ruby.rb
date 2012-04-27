@@ -556,58 +556,6 @@ ChkBuild.define_diff_preprocess_gsub('ruby', /^(cpu MHz|bogomips)(\t*): [\d.]+/)
   "#{match[1]}#{match[2]}: <nnn>"
 }
 
-# Name:   ruby
-# State:  R (running)
-# Tgid:   11217
-# Pid:    11217
-# PPid:   11214
-# TracerPid:      0
-# Uid:    1000    1000    1000    1000
-# Gid:    1000    1000    1000    1000
-# FDSize: 64
-# Groups: 4 20 24 46 111 119 122 1000 
-# VmPeak:    79108 kB
-# VmSize:    79108 kB
-# VmLck:         0 kB
-# VmHWM:     28700 kB
-# VmRSS:     28700 kB
-# VmData:    26544 kB
-# VmStk:       136 kB
-# VmExe:      2192 kB
-# VmLib:      4416 kB
-# VmPTE:       168 kB
-# VmSwap:        0 kB
-# Threads:        2
-# SigQ:   0/16382
-# SigPnd: 0000000000000000
-# ShdPnd: 0000000000000000
-# SigBlk: 0000000000000000
-# SigIgn: 0000000000000000
-# SigCgt: 0000000182007e47
-# CapInh: 0000000000000000
-# CapPrm: 0000000000000000
-# CapEff: 0000000000000000
-# CapBnd: ffffffffffffffff
-# Cpus_allowed:   1
-# Cpus_allowed_list:      0
-# Mems_allowed:   00000000,00000001
-# Mems_allowed_list:      0
-# voluntary_ctxt_switches:        4285
-# nonvoluntary_ctxt_switches:     6636
-#
-# SleepAVG:      80%
-#
-ChkBuild.define_diff_preprocess_gsub('ruby', /^(Tgid|Pid|PPid|SleepAVG|VmPeak|VmSize|VmLck|VmHWM|VmRSS|VmData|VmStk|VmExe|VmLib|VmPTE|VmSwap|SigQ|voluntary_ctxt_switches|nonvoluntary_ctxt_switches):[ \t]*\d+/) {|match|
-  "#{match[1]}: <nnn>"
-}
-
-# StaBrk:       00606000 kB
-# Brk:  05cbb000 kB
-# StaStk:       7fffe9567f90 kB
-ChkBuild.define_diff_preprocess_gsub('ruby', /^(StaBrk|Brk|StaStk):[ \t]*[0-9a-f]+/) {|match|
-  "#{match[1]}: <nnn>"
-}
-
 # ruby 1.9.2dev (2009-12-07 trunk 26037) [i686-linux]
 # ruby 1.9.1p376 (2009-12-07 revision 26040) [i686-linux]
 # | ruby 1.9.2dev (2010-02-18 trunk 26704) [x86_64-linux]
