@@ -148,7 +148,7 @@ ChkBuild.define_build_proc('gcc') {|b|
     configure_args.concat %W[--disable-multilib]
     b.run("#{rel_srcdir}/configure", "--prefix=#{gcc_prefix}", *configure_args)
     b.make("bootstrap", "install", :timeout=>'5h')
-    b.run("#{gcc_prefix}/bin/gcc", '-v', :section=>'version')
+    b.run("#{gcc_prefix}/bin/gcc", '-v', :section=>'version', "ENV:LC_ALL"=>"C")
   }
 }
 
