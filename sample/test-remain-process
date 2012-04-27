@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+require 'chkbuild'
+
+ChkBuild.def_target("remainprocess") {|b|
+  b.run("sh", "-c", "sleep 10 &")
+}
+
+ChkBuild.main

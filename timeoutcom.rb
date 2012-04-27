@@ -104,6 +104,21 @@ module TimeoutCommand
     end
   end
 
+  def show_process_group(pgid, msgout)
+    # ps -A and -o option is defined by POSIX.
+    IO.popen("ps -A -o 'pgid pid etime pcpu vsz args'") {|psio|
+      psresult = psio.to_a
+      pat = /\A\s*#{pgid}\b/
+      first = true
+      psresult.each {|line|
+	if first || pat =~ line
+	  msgout.puts "PSOUT #{line}"
+	end
+	first = false
+      }
+    }
+  end
+
   def timeout_command(ruby_script, command_timeout, msgout=STDERR, opts={})
     command_timeout = parse_timespan(command_timeout)
     output_interval_timeout = nil
@@ -176,24 +191,21 @@ module TimeoutCommand
         raise
       ensure
         if processgroup_alive?(pid)
-          msgout.puts "some descendant process in process group #{pid} remain." if msgout
-	  IO.popen("ps jaxww") {|psio|
-	    psresult = psio.to_a
-	    pat = /\b#{pid}\b/
-	    first = true
-	    psresult.each {|line|
-	      if first || pat =~ line
-		puts "PSOUT #{line}"
-	      end
-	      first = false
-	    }
-	  }
+	  if msgout
+	    msgout.puts "some descendant process in process group #{pid} remain."
+	    show_process_group(pid, msgout)
+	  end
 	  if process_remain_timeout
 	    timelimit = Time.now + process_remain_timeout
+	    timeout_reason = opts[:process_remain_timeout]
 	    while Time.now < timelimit
 	      sleep 1
-	      break if !processgroup_alive?(pid)
+	      if !processgroup_alive?(pid)
+		timeout_reason = nil
+		break 
+	      end
 	    end
+	    msgout.puts "timeout: #{timeout_reason}" if msgout && timeout_reason
 	  end
           kill_processgroup(pid, msgout)
         end
