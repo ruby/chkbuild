@@ -231,6 +231,9 @@ def (ChkBuild::Ruby::CompleteOptions).merge_dependencies(opts, dep_dirs)
     when /\Aautoconf=/ then hs << { :autoconf_command => "#{$'}/bin/autoconf" }
     when /\Aopenssl=/
       hs << { :configure_args_openssl => "--with-openssl-dir=#{$'}" }
+    when /\Agdbm=/
+      hs << { :configure_args_gdbm => "--with-gdbm-dir=#{$'}" }
+      hs << { :configure_args_dbm => "--with-dbm-dir=#{$'}" }
     end
   }
   hs.each {|h|
