@@ -105,6 +105,7 @@ module TimeoutCommand
   end
 
   def show_process_group(pgid, msgout)
+    return if !msgout
     # ps -A and -o option is defined by POSIX.
     IO.popen("ps -A -o 'pgid pid etime pcpu vsz args'") {|psio|
       psresult = psio.to_a
@@ -178,6 +179,7 @@ module TimeoutCommand
           begin
             Process.kill(0, -pid)
             msgout.puts "timeout: the process group #{pid} is alive." if msgout
+	    show_process_group(pid, msgout)
             kill_processgroup(pid, msgout)
           rescue Errno::ESRCH # no process
           end
