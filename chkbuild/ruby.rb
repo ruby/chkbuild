@@ -550,12 +550,6 @@ ChkBuild.define_title_hook('ruby', nil) {|title, log|
   title.update_title(:mark, mark)
 }
 
-# cpu MHz	: 800.000
-# bogomips	: 1596.02
-ChkBuild.define_diff_preprocess_gsub('ruby', /^(cpu MHz|bogomips)(\t*): [\d.]+/) {|match|
-  "#{match[1]}#{match[2]}: <nnn>"
-}
-
 # ruby 1.9.2dev (2009-12-07 trunk 26037) [i686-linux]
 # ruby 1.9.1p376 (2009-12-07 revision 26040) [i686-linux]
 # | ruby 1.9.2dev (2010-02-18 trunk 26704) [x86_64-linux]
@@ -567,11 +561,6 @@ ChkBuild.define_diff_preprocess_gsub('ruby', /ruby [0-9.a-z]+ \(.*\) \[.*\]$/) {
 ChkBuild.define_diff_preprocess_gsub('ruby', /^tcltklib: (.*)Ruby[\d.]+ \([\d-]+\)/) {|match|
   "tcltklib: #{match[1]}Ruby<version> (<release-date>)"
   "ruby <version>"
-}
-
-# delete trailing spaces.
-ChkBuild.define_diff_preprocess_gsub('ruby', /[ \t]+$/) {|match|
-  ""
 }
 
 # file.c:884: warning: comparison between signed and unsigned

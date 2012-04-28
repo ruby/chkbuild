@@ -184,6 +184,18 @@ module ChkBuild
     define_diff_preprocess_gsub(target_name, /^(StaBrk|Brk|StaStk):[ \t]*[0-9a-f]+/) {|match|
       "#{match[1]}: <nnn>"
     }
+
+    # cpu MHz       : 800.000
+    # bogomips      : 1596.02
+    ChkBuild.define_diff_preprocess_gsub(target_name, /^(cpu MHz|bogomips)(\t*): [\d.]+/) {|match|
+      "#{match[1]}#{match[2]}: <nnn>"
+    }
+
+    # delete trailing spaces.
+    ChkBuild.define_diff_preprocess_gsub(target_name, /[ \t]+$/) {|match|
+      ""
+    }
+
   end
 
   @diff_preprocess_sort_patterns_hash = {}
