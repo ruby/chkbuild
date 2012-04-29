@@ -196,6 +196,28 @@ module ChkBuild
       ""
     }
 
+    # svn info prints the last revision in the whole repository
+    # which can be different from the last changed revision.
+    # Revision: 26147
+    ChkBuild.define_diff_preprocess_gsub(target_name, /^Revision: \d+/) {|match|
+      "Revision: <rev>"
+    }
+
+    # svn info prints the last changed revision.
+    # Last Changed Author: nobu
+    # Last Changed Rev: 29180
+    # Last Changed Date: 2010-09-04 10:41:04 +0900 (Sat, 04 Sep 2010)
+    ChkBuild.define_diff_preprocess_gsub(target_name, /^Last Changed Author: (.*)/) {|match|
+      "Last Changed Author: <author>"
+    }
+    ChkBuild.define_diff_preprocess_gsub(target_name, /^Last Changed Rev: (.*)/) {|match|
+      "Last Changed Rev: <rev>"
+    }
+    ChkBuild.define_diff_preprocess_gsub(target_name, /^Last Changed Date: (.*)/) {|match|
+      "Last Changed Date: <date>"
+    }
+
+
   end
 
   @diff_preprocess_sort_patterns_hash = {}
