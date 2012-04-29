@@ -47,8 +47,10 @@ def tpp(obj)
   open("/dev/tty", "w") {|f| PP.pp(obj, f) }
 end
 
-def h(str)
-  str.encode("US-ASCII", Encoding.find("locale"), :invalid=>:replace, :undef=>:replace, :xml=>:text)
+if "".respond_to? :encode
+  def h(str)
+    str.encode("US-ASCII", Encoding.find("locale"), :invalid=>:replace, :undef=>:replace, :xml=>:text)
+  end
 end
 
 def ha(str)
