@@ -696,9 +696,28 @@ End
   end
 
   def encode_invalid(str)
-    str.gsub(/[^\t\r\n -~]+/) {|invalid|
-      "[" + invalid.unpack("H*")[0] + "]"
-    }
+    if str.respond_to? :ascii_only?
+      if str.ascii_only?
+        ustr = str.dup.force_encoding("UTF-8")
+	ustr
+      else
+        hstr = str.encode("US-ASCII", Encoding.find("locale"), :invalid=>:replace, :undef=>:replace, :xml=>:text)
+	ustr = hstr.gsub(/&(amp|lt|gt|\#x([0-9A-F]+));/) {
+	  case $1
+	  when 'amp' then '&'
+	  when 'lt' then '<'
+	  when 'gt' then '>'
+	  else
+	    [$2.to_i(16)].pack("U")
+	  end
+	}
+	ustr
+      end
+    else
+      str = str.gsub(/[^\t\r\n -~]+/) {|invalid|
+	"[" + invalid.unpack("H*")[0] + "]"
+      }
+    end
   end
 
   def markup_log_line(line)

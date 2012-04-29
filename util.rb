@@ -47,6 +47,10 @@ def tpp(obj)
   open("/dev/tty", "w") {|f| PP.pp(obj, f) }
 end
 
+def h(str)
+  str.encode("US-ASCII", Encoding.find("locale"), :invalid=>:replace, :undef=>:replace, :xml=>:text)
+end
+
 def ha(str)
   '"' + h(str) + '"'
 end
