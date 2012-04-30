@@ -26,14 +26,15 @@ chkbuild は、定期的にソフトウェアをビルドし、
   比較結果には表れません。
   個々のビルド固有の設定で置換する対象を設定することも可能です。
 
-* cvs, svn でソースを取得する場合、ViewVC による diff へのリンクを生成できます。
+* git, svn, cvs でソースを取得する場合、diff へのリンクを生成できます。
+  (現在のところ、git に対して GitHub, Savannah を、 svn, cvs に対して ViewVC に対応しています)
 
 * ひとつのビルド中で失敗が起きたときに、その失敗に依存しない部分を続行することができます。
 
 == 短気なユーザのための設置および試しに ruby の最新版をビルドしてみる方法
 
   % cd $HOME
-  % cvs -d :pserver:anonymous@cvs.m17n.org:/cvs/ruby co chkbuild
+  % git clone git://github.com/akr/chkbuild.git
   % cd chkbuild
   % ruby start-build
 
@@ -57,7 +58,7 @@ chkbuild は、定期的にソフトウェアをビルドし、
 
       % export U=foo
       % cd /home/$U
-      % cvs -d :pserver:anonymous@cvs.m17n.org:/cvs/ruby co chkbuild
+      % git clone git://github.com/akr/chkbuild.git
 
 (2) chkbuild の設定
 
@@ -232,7 +233,7 @@ chkbuild.rb を利用するスクリプトを記述することが設定とな�
 
 == セキュリティ
 
-chkbuild により、cvs/svn/git サーバなどから入手できる最新版をコンパイルすることは、
+chkbuild により、git/svn/cvs サーバなどから入手できる最新版をコンパイルすることは、
 サーバに書き込める開発者と サーバに入っているコードを信用することになります。
 
 開発者を信用することは通常問題ありません。
