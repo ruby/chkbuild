@@ -49,17 +49,31 @@ bison_choices = [
 ]
 
 ChkBuild.define_build_proc('bison') {|b|
-  dir = b.build_dir
-  b.git('git://git.savannah.gnu.org/bison.git', 'bison',
-    :branch=>b.opts[:bison_branch])
-  Dir.chdir('bison') {
-    b.run(*%w[git submodule update --init])
-    b.run(*%w[./bootstrap])
-    b.run("./configure", "--prefix=#{dir}")
-    b.make
-    b.make("install")
+  bdir = b.build_dir
+  tdir = b.target_dir
+  Dir.chdir(tdir) {
+    first = !File.directory?('bison')
+    b.git('git://git.savannah.gnu.org/bison.git', 'bison',
+      :branch=>b.opts[:bison_branch])
+    Dir.chdir("bison") {
+      if first
+        b.run('git', 'submodule', 'update', '--init')
+      else
+        b.run('git', 'submodule', 'update')
+      end
+      b.run('git', 'submodule')
+      b.run('git', 'status')
+      b.run('git', 'diff')
+    }
   }
-  b.run("#{dir}/bin/bison", '--version', :section=>'version')
+  b.run('sh', '-c', "( cd #{tdir}; tar cf - bison ) | ( cd #{bdir}; tar xf - )", :section => 'copy-working-directory')
+  Dir.chdir('bison') {
+    b.run('./bootstrap')
+    b.run('./configure', "--prefix=#{bdir}")
+    b.make
+    b.make('install')
+  }
+  b.run("#{bdir}/bin/bison", '--version', :section=>'version')
 }
 
 ChkBuild.define_title_hook('bison', 'version') {|title, log|
