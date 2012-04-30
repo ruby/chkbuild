@@ -234,6 +234,8 @@ def (ChkBuild::Ruby::CompleteOptions).merge_dependencies(opts, dep_dirs)
     when /\Agdbm=/
       hs << { :configure_args_gdbm => "--with-gdbm-dir=#{$'}" }
       hs << { :configure_args_dbm => "--with-dbm-dir=#{$'}" }
+    when /\Azlib=/
+      hs << { :configure_args_zlib => "--with-zlib-dir=#{$'}" }
     end
   }
   hs.each {|h|
