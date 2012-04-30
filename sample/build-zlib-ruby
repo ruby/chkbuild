@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-# sample/build-openssl-ruby - build script for openssl and ruby
+# sample/build-zlib-ruby - build script for zlib and ruby
 #
 # Copyright (C) 2012 Tanaka Akira  <akr@fsij.org>
 # 
@@ -35,76 +35,36 @@ ChkBuild.limit(:stack => 1024*1024*10*word_bytes) # bytes
 ChkBuild.limit(:data => 1024*1024*500*word_bytes) # bytes
 ChkBuild.limit(:as => 1024*1024*500*word_bytes) # bytes
 
-# cvs -d anonymous@cvs.openssl.org:/openssl-cvs co openssl
-# branch: OpenSSL_x_y_z-stable
-#  OpenSSL_1_0_2-stable
-#  OpenSSL_1_0_1-stable
-#  OpenSSL_1_0_0-stable
-#  OpenSSL_0_9_8-stable
-#  ...
-
-openssl_choices = [
-  {
-    :suffix_? => '-1.0.2',
-    :openssl_branch => 'OpenSSL_1_0_2-stable',
-  },
-  {
-    :suffix_? => '-1.0.1',
-    :openssl_branch => 'OpenSSL_1_0_1-stable',
-  },
-  {
-    :suffix_? => '-1.0.0',
-    :openssl_branch => 'OpenSSL_1_0_0-stable',
-  },
-  {
-    :suffix_? => '-0.9.8',
-    :openssl_branch => 'OpenSSL_0_9_8-stable',
-  },
-]
-
-ChkBuild.define_build_proc('openssl') {|b|
-  cvs_shared_dir = ChkBuild.build_top + 'cvs-repos'
-  FileUtils.mkdir_p(cvs_shared_dir)
-  b.run('rsync', '-rztpv', '--delete',
-        'rsync://dev.openssl.org/openssl-cvs/',
-        "#{cvs_shared_dir}/openssl-cvs")
-  b.cvs("#{cvs_shared_dir}/openssl-cvs",
-        'openssl',
-        b.opts[:openssl_branch],
-        b.opts)
+ChkBuild.define_build_proc('zlib') {|b|
+  opts2 = b.opts.dup
+  opts2[:branch] = 'develop'
+  b.github('madler', 'zlib', 'zlib', opts2)
   bdir = b.build_dir
-  Dir.chdir('openssl') {
-    b.run('./config',
-      "--prefix=#{bdir}",
-      "--openssldir=#{bdir}/ssl",
-      'shared',
-      'zlib')
+  Dir.chdir('zlib') {
+    b.run('./configure',
+      "--prefix=#{bdir}")
     b.make
     b.make('test')
     b.make('install')
     b.catch_error {
-      b.run("#{bdir}/bin/openssl", 'version', '-a', :section=>"version")
-    }
-    b.catch_error {
-      b.run("cat", "#{bdir}/lib/pkgconfig/openssl.pc", :section=>"pkgconfig")
+      b.run("cat", "#{bdir}/lib/pkgconfig/zlib.pc", :section=>"version")
     }
   }
 }
 
-ChkBuild.define_title_hook('openssl', 'version') {|title, log|
-  # OpenSSL 0.9.8x-dev xx XXX xxxx
+ChkBuild.define_title_hook('zlib', 'version') {|title, log|
+  # Version: 1.2.7-motley
   case log
-  when /^(OpenSSL .*)$/
-    ver = $1
-    ver.sub!(/ xx XXX xxxx\z/, '')
+  when /^Version: (.*)$/
+    ver = "zlib #{$1}"
     title.update_title(:version, ver)
   end
 }
 
-openssl = ChkBuild.def_target('openssl', openssl_choices)
+zlib = ChkBuild.def_target('zlib')
 
 ChkBuild::Ruby.def_target(
   %w[trunk],
-  openssl)
+  zlib)
 
 ChkBuild.main
