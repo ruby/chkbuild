@@ -85,6 +85,9 @@ ChkBuild.define_build_proc('openssl') {|b|
     b.catch_error {
       b.run("#{bdir}/bin/openssl", 'version', '-a', :section=>"version")
     }
+    b.catch_error {
+      b.run("cat", "#{bdir}/lib/pkgconfig/openssl.pc", :section=>"pkgconfig")
+    }
   }
 }
 
