@@ -37,28 +37,24 @@ class ChkBuild::Build
     opts = opts.dup
     opts[:section] ||= 'cvs'
     working_dir = opts.fetch(:working_dir, mod)
+    if opts[:viewvc]||opts[:viewcvs]||opts[:cvsweb]
+      viewvc = ChkBuild::ViewVC.new(opts[:viewvc]||opts[:viewcvs]||opts[:cvsweb], opts[:viewvc]==nil)
+    else
+      viewvc = nil
+    end
     if !File.exist? "#{ENV['HOME']}/.cvspass"
       opts['ENV:CVS_PASSFILE'] = '/dev/null' # avoid warning
     end
     if File.directory?(working_dir)
       Dir.chdir(working_dir) {
-        h1 = cvs_revisions
 	cvs_logfile(opts) {|outio, errio, opts2|
 	  opts2[:output_interval_file_list] = [STDOUT, STDERR, outio, errio]
 	  self.run("cvs", "-f", "-z3", "update", "-kb", "-dP", opts2)
 	}
         h2 = cvs_revisions
-        cvs_print_revisions(h1, h2, opts[:viewvc]||opts[:viewcvs]||opts[:cvsweb])
+        cvs_print_revisions(cvsroot, mod, branch, h2, viewvc)
       }
     else
-      h1 = nil
-      if File.identical?(@build_dir, '.') &&
-         !(ts = build_time_sequence - [@start_time]).empty? &&
-         File.directory?(old_working_dir = "#{@target_dir}/#{ts.last}/#{working_dir}")
-        Dir.chdir(old_working_dir) {
-          h1 = cvs_revisions
-        }
-      end
       if branch
 	command = ["cvs", "-f", "-z3", "-d", cvsroot, "co", "-kb", "-d", working_dir, "-P", "-r", branch, mod]
       else
@@ -71,7 +67,7 @@ class ChkBuild::Build
       }
       Dir.chdir(working_dir) {
         h2 = cvs_revisions
-        cvs_print_revisions(h1, h2, opts[:viewvc]||opts[:viewcvs]||opts[:cvsweb])
+        cvs_print_revisions(cvsroot, mod, branch, h2, viewvc)
       }
     end
   end
@@ -129,9 +125,15 @@ class ChkBuild::Build
     }
   end
 
-  def cvs_print_revisions(h1, h2, viewcvs=nil)
-    cvs_print_changes(h1, h2, viewcvs) if h1
-    puts 'revisions:'
+  def cvs_print_revisions(cvsroot, mod, branch, h2, viewvc=nil)
+    puts "CHECKOUT cvs #{cvsroot} #{mod} #{branch || ''}"
+    if viewvc
+      if viewvc.old
+	puts "VIEWER ViewCVS #{viewvc.uri}"
+      else
+	puts "VIEWER ViewVC #{viewvc.uri}"
+      end
+    end
     h2.keys.sort.each {|k|
       f = k.flatten.join('/')
       cvsroot2, repository2, r2 = h2[k] || [nil, nil, 'none']
