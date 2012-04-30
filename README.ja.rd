@@ -1,39 +1,40 @@
 = chkbuild
 
-chkbuild �ϡ����Ū�˥��եȥ�������ӥ�ɤ���
-�ӥ�ɤε�Ͽ�� HTML �ڡ����Ȥ����������ޤ���
+chkbuild は、定期的にソフトウェアをビルドし、
+ビルドの記録を HTML ページとして生成します。
 
-== ���
+== 作者
 
-���� ů <akr@fsij.org>
+田中 哲 <akr@fsij.org>
 
-== ��ħ
+== 特徴
 
-* timeout ������Ǥ��ޤ�
+* timeout を設定できます
 
-  ���ꤷ�����֤��᤮���顢�ץ������� kill ���ޤ���
-  ���Τ��ᡢ�ӥ�ɤ���λ���ʤ����꤬���ä����Ǥ⡢���ꤷ�����֤ǽ�λ���ޤ���
+  設定した時間が過ぎたら、プロセスを kill します。
+  このため、ビルドが終了しない問題があった場合でも、指定した時間で終了します。
 
-* backtrace ��ưŪ�ˤȤ�ޤ�
+* backtrace を自動的にとります
 
-  �ӥ�ɤη�� core ����������Ƥ����顢��ưŪ�� gdb ��ư����
-  backtrace ��Ͽ���ޤ���
+  ビルドの結果 core を生成されていたら、自動的に gdb を起動し、
+  backtrace を記録します。
 
-* ���ε�Ͽ�ϼ�ưŪ�� gzip ���̤���ޤ�
+* 過去の記録は自動的に gzip 圧縮されます
 
-* ����ε�Ͽ�Ȥ���Ӥ�Ԥ��ޤ�
-  ���ΤȤ����ޥ�ɤ�¹Ԥ�������ʤɡ����ۤʤ�Τ������ʤ�Τϻ������ִ����졢
-  ��ӷ�̤ˤ�ɽ��ޤ���
-  �ġ��Υӥ�ɸ�ͭ��������ִ������оݤ����ꤹ�뤳�Ȥ��ǽ�Ǥ���
+* 前回の記録との比較を行います
+  このときコマンドを実行した時刻など、毎回異なるのが当然なものは事前に置換され、
+  比較結果には表れません。
+  個々のビルド固有の設定で置換する対象を設定することも可能です。
 
-* cvs, svn �ǥ���������������硢ViewVC �ˤ�� diff �ؤΥ�󥯤������Ǥ��ޤ���
+* git, svn, cvs でソースを取得する場合、diff へのリンクを生成できます。
+  (現在のところ、git に対して GitHub, Savannah を、 svn, cvs に対して ViewVC に対応しています)
 
-* �ҤȤĤΥӥ����Ǽ��Ԥ��������Ȥ��ˡ����μ��Ԥ˰�¸���ʤ���ʬ��³�Ԥ��뤳�Ȥ��Ǥ��ޤ���
+* ひとつのビルド中で失敗が起きたときに、その失敗に依存しない部分を続行することができます。
 
-== û���ʥ桼���Τ�������֤���ӻ�� ruby �κǿ��Ǥ�ӥ�ɤ��Ƥߤ���ˡ
+== 短気なユーザのための設置および試しに ruby の最新版をビルドしてみる方法
 
   % cd $HOME
-  % cvs -d :pserver:anonymous@cvs.m17n.org:/cvs/ruby co chkbuild
+  % git clone git://github.com/akr/chkbuild.git
   % cd chkbuild
   % ruby start-build
 
@@ -43,55 +44,55 @@ chkbuild �ϡ����Ū�˥��եȥ�������ӥ�ɤ���
 
   % rm -rf tmp
 
-  ������ˡ�Ϥ����ޤǤ���ư������ΤǤ��äơ�
-  ����� cron �����Ū�˼¹Ԥ��뤳�ȤϤ��ʤ��Ǥ���������
+  この方法はあくまでも試しに動かすものであって、
+  これを cron で定期的に実行することはしないでください。
 
-== ����
+== 設置
 
-�ʲ�����Ǥϡ����ʤ��Υ桼��̾�� foo �ǡ�
-/home/foo/chkbuild �� chkbuild �����֤��뤳�Ȥ��ꤷ�ޤ���
-�����������ޥ��������������� $U �Ȥ���Ȥ����ϼºݤˤ� foo �⤷����
-�ºݤ������оݤˤ��碌��Ŭ�ڤ��ѹ����Ƥ���������
+以下の例では、あなたのユーザ名が foo で、
+/home/foo/chkbuild に chkbuild を設置することを仮定します。
+ただし、コマンド例や設定例の中に $U とあるところは実際には foo もしくは
+実際の設置対象にあわせて適切に変更してください。
 
-(1) chkbuild �Υ���������ɡ�Ÿ��
+(1) chkbuild のダウンロード・展開
 
       % export U=foo
       % cd /home/$U
-      % cvs -d :pserver:anonymous@cvs.m17n.org:/cvs/ruby co chkbuild
+      % git clone git://github.com/akr/chkbuild.git
 
-(2) chkbuild ������
+(2) chkbuild の設定
 
-    ���ޤ��ޤʥ���ץ�����꤬ sample �ǥ��쥯�ȥ�ˤ���ޤ��Τǡ�
-    Ŭ���ʤ�Τ��Խ����ޤ���
-    �ޤ���start-build �ϥ���ץ��ƤӽФ�������ץȤǤ���
+    さまざまなサンプルの設定が sample ディレクトリにありますので、
+    適当なものを編集します。
+    また、start-build はサンプルを呼び出すスクリプトです。
 
       % cd chkbuild
       % vi sample/build-ruby
       % vi start-build
 
-    �������ƤˤĤ��ƾܤ����ϼ���ǽҤ٤ޤ���
+    設定内容について詳しくは次節で述べます。
 
-    �Ȥ������դ�ɬ�פʤΤϡ�RSS ��Ȥ��������� URL ���̤�������ɬ�פ����뤿�ᡢ
-    ��̤�������� URL �� ChkBuild.top_uri = "..." �����ꤹ��ɬ�פ�����ޤ���
-    ����ˤĤ��Ƥ� sample/build-ruby �˥����Ȥ�����ޤ���
-    (���������Ԥ�ʤ���硢��Ŭ�ڤ� URL �� HTML �������ޤ�ޤ���)
+    とくに注意が必要なのは、RSS を使う場合は絶対 URL を結果に埋め込む必要があるため、
+    結果を公開する URL を ChkBuild.top_uri = "..." と設定する必要があります。
+    これについては sample/build-ruby にコメントがあります。
+    (この設定を行わない場合、不適切な URL が HTML に埋め込まれます。)
 
-    �ʤ�����������Ƥ��ѹ�������ruby start-build �Ȥ��Ƽ¹Ԥ������ϡ�
-    Ruby �� main trunk �Ȥ����Ĥ��Υ֥�����
-    /home/$U/chkbuild/tmp �ʲ��ǥӥ�ɤ��ޤ���
+    なお、設定の内容を変更せず、ruby start-build として実行した場合は、
+    Ruby の main trunk といくつかのブランチを
+    /home/$U/chkbuild/tmp 以下でビルドします。
 
-    $U �桼���ǥӥ�ɤ�����硢���� chkbuild �桼���ǤΥӥ�ɤμ���ˤʤ�ޤ��Τǡ�
-    �ӥ�ɷ�̤������Ƥ����ޤ���
+    $U ユーザでビルドした場合、次の chkbuild ユーザでのビルドの邪魔になりますので、
+    ビルド結果を削除しておきます。
 
       % rm -rf tmp
 
-(3) chkbuild �桼���κ���
+(3) chkbuild ユーザの作成
 
-    chkbuild ��ư�����ѤΥ桼�������롼�פ���ޤ���
-    �������ƥ��Τ��ᡢɬ�����ѥ桼�������롼�פ��äƤ���������
-    �ޤ���chkbuild ���롼�פ� $U ��ä������
-    �ޤ����ʲ��Τ褦�ʥ����ʡ����롼�ס��⡼�ɤǥǥ��쥯�ȥ���ꡢ
-    chkbuild �桼�����Ȥ� build, public_html �ʲ��ˤ����񤭹���ʤ��褦�ˤ��ޤ���
+    chkbuild の動作専用のユーザ・グループを作ります。
+    セキュリティのため、必ず専用ユーザ・グループを作ってください。
+    また、chkbuild グループに $U を加えた上で
+    また、以下のようなオーナ・グループ・モードでディレクトリを作り、
+    chkbuild ユーザ自身は build, public_html 以下にしか書き込めないようにします。
 
       /home/chkbuild              user=$U group=chkbuild mode=2755
       /home/chkbuild/build        user=$U group=chkbuild mode=2775
@@ -110,32 +111,32 @@ chkbuild �ϡ����Ū�˥��եȥ�������ӥ�ɤ���
       # chmod 2775 chkbuild/build chkbuild/public_html
       # exit
 
-(4) �����ǥ��쥯�ȥ������
+(4) 生成ディレクトリの設定
 
       % ln -s /home/chkbuild /home/$U/chkbuild/tmp
 
-    �ǥե���Ȥ�����Τޤ� /home/chkbuild �ʲ��ǥӥ�ɤ��������ˤϤ��Τ褦��
-    ����ܥ�å���󥯤���Τ���ñ�Ǥ���
+    デフォルトの設定のまま /home/chkbuild 以下でビルドしたい場合にはこのように
+    シンボリックリンクを作るのが簡単です。
 
-(5) rsync �ˤ��ե�����Υ��åץ�����
+(5) rsync によるファイルのアップロード
 
-    chkbuild ��ư�����ۥ��Ȥ� chkbuild �����������ե�������������
-    HTTP �����Ф��ۤʤ��硢ssh ��ͳ�� rsync �ǥ��ԡ����뤳�Ȥ��Ǥ��ޤ���
+    chkbuild を動かすホストと chkbuild が生成したファイルを公開する
+    HTTP サーバが異なる場合、ssh 経由の rsync でコピーすることができます。
 
-    ���Τ���ˤϡ��ޤ��̿��˻��Ѥ��� (�ѥ��ե졼���Τʤ�) ssh ���Ф��������ޤ���
+    このためには、まず通信に使用する (パスフレーズのない) ssh 鍵対を生成します。
 
       % ssh-keygen -N '' -t rsa -f chkbuild-upload -C chkbuild-upload
 
-    ���åץ����ɤ����ե�������Ǽ����ǥ��쥯�ȥ�� HTTP �����ФǺ��ޤ�
-    �����Ǥ� /home/$U/public_html/chkbuild ��Ȥ����Ȥˤ��ޤ���
+    アップロードしたファイルを格納するディレクトリを HTTP サーバで作ります
+    ここでは /home/$U/public_html/chkbuild を使うことにします。
 
       % mkdir -p /home/$U/public_html/chkbuild
  
-    HTTP �����Фǥ��åץ����ɤ������뤿��� rsync daemon ���������ޤ���
-    (daemon �Ȥ��äƤ���ư�����Ƥ����櫓�ǤϤ���ޤ��󤬡�)
-    �����Ǥ� /home/$U/.ssh/chkbuild-rsyncd.conf �˺��Ȥ��ޤ���
-    ���������Ȥä� rsync daemon �� /home/$U/public_html/chkbuild ���ؤ�
-    �񤭹������Ѥˤʤ�ޤ���
+    HTTP サーバでアップロードを受け取るための rsync daemon の設定を作ります。
+    (daemon といっても常に動かしておくわけではありませんが。)
+    ここでは /home/$U/.ssh/chkbuild-rsyncd.conf に作るとします。
+    この設定を使った rsync daemon は /home/$U/public_html/chkbuild 下への
+    書き込み専用になります。
 
       /home/$U/.ssh/chkbuild-rsyncd.conf :
       [upload]
@@ -144,118 +145,118 @@ chkbuild �ϡ����Ū�˥��եȥ�������ӥ�ɤ���
       read only = no
       write only = yes
     
-    HTTP �����Фǥ��åץ����ɤ�������桼���� ~/.ssh/authorized_keys ��
-    �ʲ���ä��ޤ���
-    ����Ϥ����ǻȤ����Ф��嵭������Ǥ� rsync daemon �ε�ư���Ѥˤ����ΤǤ���
+    HTTP サーバでアップロードを受け取るユーザの ~/.ssh/authorized_keys に
+    以下を加えます。
+    これはここで使う鍵対が上記の設定での rsync daemon の起動専用にするものです。
 
-      command="/usr/bin/rsync --server --daemon --config=/home/$U/.ssh/chkbuild-rsyncd.conf .",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty �嵭���������������� chkbuild-upload.pub ������
+      command="/usr/bin/rsync --server --daemon --config=/home/$U/.ssh/chkbuild-rsyncd.conf .",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty 上記で生成した公開鍵 chkbuild-upload.pub の内容
 
-    chkbuild ��ư�����ۥ��Ȥǡ�HTTP �����Ф� ssh fingerprint ��Ͽ���ޤ���
-    HTTP �����ФΥۥ���̾�� http-server �Ȥ��ޤ���
+    chkbuild を動作させるホストで、HTTP サーバの ssh fingerprint を記録します。
+    HTTP サーバのホスト名を http-server とします。
 
       % mkdir /home/chkbuild/.ssh                                         
       % ssh-keyscan -t rsa http-server > /home/chkbuild/.ssh/known_hosts
 
-    ��������������Ф���̩���� chkbuild ��ư�����ۥ��Ȥ�
-    /home/chkbuild/.ssh/ �˥��ԡ����ޤ�
-    ��������̩���� chkbild �桼�����ɤ��褦�ʥ��롼�ץѡ��ߥå�����
-    ���ꤷ�ޤ���
+    上で生成した鍵対の秘密鍵を chkbuild を動作させるホストの
+    /home/chkbuild/.ssh/ にコピーします
+    そして秘密鍵を chkbild ユーザが読めるようなグループパーミッションを
+    設定します。
 
       % cp chkbuild-upload chkbuild-upload.pub /home/chkbuild/.ssh/
       % su
       # chgrp chkbuild /home/chkbuild/.ssh/chkbuild-upload
       # chmod g+r /home/chkbuild/.ssh/chkbuild-upload
 
-    �����ơ�start-build ��ǰʲ��ιԤ�ͭ���ˤ��ޤ���
+    そして、start-build 内で以下の行を有効にします。
 
       ChkBuild.rsync_ssh_upload_target("remoteuser@http-server::upload/dir", "/home/chkbuild/.ssh/chkbuild-upload")
 
-    ����ˤ�� HTTP �����Ф� /home/$U/public_html/chkbuild/dir �˥��ԡ������
-    �褦�ˤʤ�ޤ���
+    これにより HTTP サーバの /home/$U/public_html/chkbuild/dir にコピーされる
+    ようになります。
 
-(6) HTTP �����Ф�����
+(6) HTTP サーバの設定
 
-    chkbuild �ϥǥ��������Ӱ�����󤹤뤿�ᡢ�ե������ gzip ���̤��ޤ���
-    ���̤����ե������ *.html.gz �� *.txt.gz �Ȥ����ե�����̾�ˤʤ�ޤ���
-    �����Υե������֥饦������������뤿��ˤϰʲ��Τ褦�ʥإå���
-    HTTP �����Ф���֥饦���������ʤ���Фʤ�ޤ���
+    chkbuild はディスクと帯域を節約するため、ファイルを gzip 圧縮します。
+    圧縮したファイルは *.html.gz や *.txt.gz というファイル名になります。
+    これらのファイルをブラウザから閲覧するためには以下のようなヘッダが
+    HTTP サーバからブラウザに送られなければなりません。
 
       Content-Type: text/html
       Content-Encoding: gzip
 
-    �ޤ���rss �Ȥ����ե�����Ǥ� RSS ���󶡤���Τǡ��ʲ��Υإå���Ĥ��ޤ���
+    また、rss というファイルでは RSS を提供するので、以下のヘッダをつけます。
 
       Content-Type: application/rss+xml
 
-    ������Ԥ�������ˡ�� HTTP �����Ф˰�¸���ޤ�����
-    Apache �ξ��� mod_mime �⥸�塼��ǥإå�������Ǥ��ޤ���
+    これらを行う設定方法は HTTP サーバに依存しますが、
+    Apache の場合は mod_mime モジュールでヘッダを制御できます。
     http://httpd.apache.org/docs/2.2/mod/mod_mime.html
 
-    ���Ū������ξ����ˤ�äƶ���Ū�ʤ�꤫���ϰۤʤ�ޤ�����
-    �㤨�аʲ��Τ褦������� /home/$U/public_html/.htaccess ������뤳�Ȥ�
-    �嵭��¸��Ǥ��뤫�⤷��ޤ���
+    大域的な設定の状況によって具体的なやりかたは異なりますが、
+    例えば以下のような設定を /home/$U/public_html/.htaccess に入れることで
+    上記を実現できるかもしれません。
 
-      # ���������Τ�����ˤ��� .gz ���Ф��� AddType ����������
-      # .gz �ʥե������ Content-Encoding: gzip �Ȥ���
-      # .html ���Ф��� Content-Type: text/html �Ȥ���Τϥ��������Τ������
-      # �Ԥ��Ƥ����ΤȤ��Ƥ����ǤϹԤ�ʤ�
+      # サーバ全体の設定にある .gz に対する AddType を抑制し、
+      # .gz なファイルで Content-Encoding: gzip とする
+      # .html に対して Content-Type: text/html とするのはサーバ全体の設定で
+      # 行われているものとしてここでは行わない
       RemoveType .gz
       AddEncoding gzip .gz
 
-      # rss �Ȥ���̾���Υե������ Content-Type: application/rss+xml �Ȥ���
+      # rss という名前のファイルは Content-Type: application/rss+xml とする
       <Files rss>
       ForceType application/rss+xml
       </Files>
 
-(7) ����¹Ԥ�����
+(7) 定期実行の設定
 
       # vi /etc/crontab
 
-    ���Ȥ��С��������� 3��33ʬ�˼¹Ԥ���ˤ� root �� crontab �ǰʲ��Τ褦��
-    �����Ԥ��ޤ���
+    たとえば、毎日午前 3時33分に実行するには root の crontab で以下のような
+    設定を行います。
 
       33 3 * * * root cd /home/$U/chkbuild; su chkbuild -c /home/$U/chkbuild/start-build
 
-    su chkbuild �ˤ�ꡢchkbuild �桼���� start-build ��ư���ޤ���
+    su chkbuild により、chkbuild ユーザで start-build を起動します。
 
-(8) ���ʥ���
+(8) アナウンス
 
-    Ruby ��ȯ�Ԥ˸����ߤ����ʤ顢Ruby hotlinks ����Ͽ����Ȥ��������Τ�ޤ���
+    Ruby 開発者に見て欲しいなら、Ruby hotlinks に登録するといいかも知れません。
 
     http://www.rubyist.net/~kazu/samidare/latest
 
-== ����
+== 設定
 
-chkbuild ������ϡ�Ruby �ǵ��Ҥ���ޤ���
-�ºݤΤȤ�����chkbuild �����Τ� chkbuild.rb �Ȥ��� Ruby �Υ饤�֥��Ǥ��ꡢ
-chkbuild.rb �����Ѥ��륹����ץȤ򵭽Ҥ��뤳�Ȥ�����Ȥʤ�ޤ���
+chkbuild の設定は、Ruby で記述されます。
+実際のところ、chkbuild の本体は chkbuild.rb という Ruby のライブラリであり、
+chkbuild.rb を利用するスクリプトを記述することが設定となります。
 
-== �������ƥ�
+== セキュリティ
 
-chkbuild �ˤ�ꡢcvs/svn/git �����Фʤɤ�������Ǥ���ǿ��Ǥ򥳥�ѥ��뤹�뤳�Ȥϡ�
-�����Ф˽񤭹���볫ȯ�Ԥ� �����Ф����äƤ��륳���ɤ��Ѥ��뤳�Ȥˤʤ�ޤ���
+chkbuild により、git/svn/cvs サーバなどから入手できる最新版をコンパイルすることは、
+サーバに書き込める開発者と サーバに入っているコードを信用することになります。
 
-��ȯ�Ԥ��Ѥ��뤳�Ȥ��̾����ꤢ��ޤ���
-�⤷��ȯ�Ԥ��Ѥ��ʤ��Τʤ�С����⤽�⤢�ʤ��Ϥ��Υץ�������Ȥ�ʤ��Ǥ��礦��
+開発者を信用することは通常問題ありません。
+もし開発者を信用しないのならば、そもそもあなたはそのプログラムを使わないでしょう。
 
-�������������Ф����äƤ��륳���ɤ��Ѥ���Τ���̯�������Ϥ��Ǥ��ޤ���
-�����Ф�����å����졢���դΤ����ʪ�������ʥ����ɤ����������ǽ��������ޤ���
-���Ȥ��С����ʤ��θ��¤Ǽ¹Ԥ��Ƥ����顢���ʤ��Υۡ���ǥ��쥯�ȥ꤬�������Ƥ��ޤ������Τ�ޤ��󤷡�
-���ʤ�����̩������ޤ�Ƥ��ޤ������Τ�ޤ���
+しかし、サーバに入っているコードを信用するのは微妙な問題をはらんでいます。
+サーバがクラックされ、悪意のある人物が危険なコードを挿入する可能性があります。
+たとえば、あなたの権限で実行していたら、あなたのホームディレクトリが削除されてしまうかも知れませんし、
+あなたの秘密鍵が盗まれてしまうかも知れません。
 
-���Τ��ᡢchkbuild �Ͼ��ʤ��Ȥ����ѥ桼���Ǽ¹Ԥ���
-���ʤ��Υۡ���ǥ��쥯�ȥ���ѹ���ä����ʤ��褦�ˤ��٤��Ǥ���
+このため、chkbuild は少なくとも専用ユーザで実行し、
+あなたのホームディレクトリに変更を加えられないようにすべきです。
 
-�ޤ� chkbuild �Υ�����ץȼ��Ȥ�񤭴������ʤ��褦�ˡ�chkbuild �Ϥ������ѥ桼���Ȥ��̤Υ桼���ν�ͭ�Ȥ��٤��Ǥ���
-�ʤ��������Ǥ������̤Υ桼���פΤ�������ѤΥ桼�����Ѱդ���ɬ�פϤ���ޤ���
-���ʤ��θ��¤Ǥ⤤���Ǥ�����root �Ǥ⤫�ޤ��ޤ���
+また chkbuild のスクリプト自身を書き換えられないように、chkbuild はその専用ユーザとは別のユーザの所有とすべきです。
+なお、ここでいう「別のユーザ」のために専用のユーザを用意する必要はありません。
+あなたの権限でもいいですし、root でもかまいません。
 
-�ʤ�����������տ������ꤿ�����ˤϡ�
-xen, chroot, jail, user mode linux, VMware, ... �ʤɤǴĶ�����ꤹ�뤳�Ȥ⸡Ƥ���Ƥ���������
+なお、さらに注意深くありたい場合には、
+xen, chroot, jail, user mode linux, VMware, ... などで環境を限定することも検討してください。
 
 == TODO
 
-* index.html ����������
+* index.html を生成する
 
 == LICENSE
 
