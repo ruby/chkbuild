@@ -47,12 +47,12 @@ ChkBuild.define_build_proc('zlib') {|b|
     b.make('test')
     b.make('install')
     b.catch_error {
-      b.run("cat", "#{bdir}/lib/pkgconfig/zlib.pc", :section=>"version")
+      b.run("cat", "#{bdir}/lib/pkgconfig/zlib.pc", :section=>"pkgconfig")
     }
   }
 }
 
-ChkBuild.define_title_hook('zlib', 'version') {|title, log|
+ChkBuild.define_title_hook('zlib', 'pkgconfig') {|title, log|
   # Version: 1.2.7-motley
   case log
   when /^Version: (.*)$/
