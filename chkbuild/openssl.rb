@@ -1,6 +1,4 @@
-#!/usr/bin/env ruby
-
-# sample/build-openssl-ruby - build script for openssl and ruby
+# chkbuild/openssl.rb - openssl build module
 #
 # Copyright (C) 2012 Tanaka Akira  <akr@fsij.org>
 # 
@@ -28,44 +26,51 @@
 
 require 'chkbuild'
 
-# resource limits
-word_bytes = [nil].pack("p").length
-ChkBuild.limit(:cpu => 3600*4) # seconds
-ChkBuild.limit(:stack => 1024*1024*10*word_bytes) # bytes
-ChkBuild.limit(:data => 1024*1024*500*word_bytes) # bytes
-ChkBuild.limit(:as => 1024*1024*500*word_bytes) # bytes
+module ChkBuild
+  module OpenSSL
+    module_function
+    def def_target(*args)
+      ChkBuild.def_target('openssl', *args)
+    end
+  end
+end
 
-# cvs -d anonymous@cvs.openssl.org:/openssl-cvs co openssl
-# branch: OpenSSL_x_y_z-stable
-#  OpenSSL_1_0_2-stable
-#  OpenSSL_1_0_1-stable
-#  OpenSSL_1_0_0-stable
-#  OpenSSL_0_9_8-stable
-#  ...
+ChkBuild.define_build_proc('openssl') {|b|
+  cvs_shared_dir = ChkBuild.build_top + 'cvs-repos'
+  FileUtils.mkdir_p(cvs_shared_dir)
+  b.run('rsync', '-rztpv', '--delete',
+        'rsync://dev.openssl.org/openssl-cvs/',
+        "#{cvs_shared_dir}/openssl-cvs")
+  b.cvs("#{cvs_shared_dir}/openssl-cvs",
+        'openssl',
+        b.opts[:openssl_branch],
+        b.opts)
+  bdir = b.build_dir
+  Dir.chdir('openssl') {
+    b.run('./config',
+      "--prefix=#{bdir}",
+      "--openssldir=#{bdir}/ssl",
+      'shared',
+      'zlib')
+    b.make
+    b.make('test')
+    b.make('install')
+    b.catch_error {
+      b.run("#{bdir}/bin/openssl", 'version', '-a', :section=>"version")
+    }
+    b.catch_error {
+      b.run("cat", "#{bdir}/lib/pkgconfig/openssl.pc", :section=>"pkgconfig")
+    }
+  }
+}
 
-openssl_choices = [
-  {
-    :suffix_? => '-1.0.2',
-    :openssl_branch => 'OpenSSL_1_0_2-stable',
-  },
-  {
-    :suffix_? => '-1.0.1',
-    :openssl_branch => 'OpenSSL_1_0_1-stable',
-  },
-  {
-    :suffix_? => '-1.0.0',
-    :openssl_branch => 'OpenSSL_1_0_0-stable',
-  },
-  {
-    :suffix_? => '-0.9.8',
-    :openssl_branch => 'OpenSSL_0_9_8-stable',
-  },
-]
+ChkBuild.define_title_hook('openssl', 'version') {|title, log|
+  # OpenSSL 0.9.8x-dev xx XXX xxxx
+  case log
+  when /^(OpenSSL .*)$/
+    ver = $1
+    ver.sub!(/ xx XXX xxxx\z/, '')
+    title.update_title(:version, ver)
+  end
+}
 
-openssl = ChkBuild::OpenSSL.def_target(openssl_choices)
-
-ChkBuild::Ruby.def_target(
-  %w[trunk],
-  openssl)
-
-ChkBuild.main

@@ -38,7 +38,6 @@ require 'chkbuild/hook'
 require 'chkbuild/target'
 require 'chkbuild/build'
 
-module ChkBuild
-  autoload :Ruby, 'chkbuild/ruby'
-  autoload :GCC, 'chkbuild/gcc'
-end
+require 'chkbuild/ruby'
+require 'chkbuild/gcc'
+require 'chkbuild/openssl'
