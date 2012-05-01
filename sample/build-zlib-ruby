@@ -35,33 +35,7 @@ ChkBuild.limit(:stack => 1024*1024*10*word_bytes) # bytes
 ChkBuild.limit(:data => 1024*1024*500*word_bytes) # bytes
 ChkBuild.limit(:as => 1024*1024*500*word_bytes) # bytes
 
-ChkBuild.define_build_proc('zlib') {|b|
-  opts2 = b.opts.dup
-  opts2[:branch] = 'develop'
-  b.github('madler', 'zlib', 'zlib', opts2)
-  bdir = b.build_dir
-  Dir.chdir('zlib') {
-    b.run('./configure',
-      "--prefix=#{bdir}")
-    b.make
-    b.make('test')
-    b.make('install')
-    b.catch_error {
-      b.run("cat", "#{bdir}/lib/pkgconfig/zlib.pc", :section=>"version")
-    }
-  }
-}
-
-ChkBuild.define_title_hook('zlib', 'version') {|title, log|
-  # Version: 1.2.7-motley
-  case log
-  when /^Version: (.*)$/
-    ver = "zlib #{$1}"
-    title.update_title(:version, ver)
-  end
-}
-
-zlib = ChkBuild.def_target('zlib')
+zlib = ChkBuild::Zlib.def_target()
 
 ChkBuild::Ruby.def_target(
   %w[trunk],

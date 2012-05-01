@@ -1,6 +1,6 @@
-# chkbuild.rb - chkbuild library entry file
+# chkbuild/zlib.rb - zlib build module
 #
-# Copyright (C) 2006-2010 Tanaka Akira  <akr@fsij.org>
+# Copyright (C) 2012 Tanaka Akira  <akr@fsij.org>
 # 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -24,21 +24,40 @@
 # IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
 # OF SUCH DAMAGE.
 
-Encoding.default_external = "ASCII-8BIT" if defined?(Encoding.default_external = nil)
+require 'chkbuild'
 
-require 'chkbuild/main'
-require 'chkbuild/config'
-require 'chkbuild/lock'
-require 'chkbuild/cvs'
-require 'chkbuild/svn'
-require 'chkbuild/git'
-require 'chkbuild/xforge'
-require "util"
-require 'chkbuild/hook'
-require 'chkbuild/target'
-require 'chkbuild/build'
+module ChkBuild
+  module Zlib
+    module_function
+    def def_target(*args)
+      ChkBuild.def_target('zlib', *args)
+    end
+  end
+end
 
-require 'chkbuild/ruby'
-require 'chkbuild/gcc'
-require 'chkbuild/openssl'
-require 'chkbuild/zlib'
+ChkBuild.define_build_proc('zlib') {|b|
+  opts2 = b.opts.dup
+  opts2[:branch] = 'develop'
+  b.github('madler', 'zlib', 'zlib', opts2)
+  bdir = b.build_dir
+  Dir.chdir('zlib') {
+    b.run('./configure',
+      "--prefix=#{bdir}")
+    b.make
+    b.make('test')
+    b.make('install')
+    b.catch_error {
+      b.run("cat", "#{bdir}/lib/pkgconfig/zlib.pc", :section=>"version")
+    }
+  }
+}
+
+ChkBuild.define_title_hook('zlib', 'version') {|title, log|
+  # Version: 1.2.7-motley
+  case log
+  when /^Version: (.*)$/
+    ver = "zlib #{$1}"
+    title.update_title(:version, ver)
+  end
+}
+
