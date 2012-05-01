@@ -42,7 +42,6 @@ openssl_choices = [
     :suffix_? => '-1.0.2',
     :openssl_branch => 'OpenSSL_1_0_2-stable',
   },
-=begin
   {
     :suffix_? => '-1.0.1',
     :openssl_branch => 'OpenSSL_1_0_1-stable',
@@ -55,7 +54,6 @@ openssl_choices = [
     :suffix_? => '-0.9.8',
     :openssl_branch => 'OpenSSL_0_9_8-stable',
   },
-=end
 ]
 
 openssl = ChkBuild::OpenSSL.def_target(openssl_choices, zlib)
