@@ -62,7 +62,7 @@ class ChkBuild::Target
       }
       opts_list << ChkBuild.get_options
       opts = Util.merge_opts(opts_list)
-      if opts[:complete_options]
+      if opts[:complete_options] && opts[:complete_options].respond_to?(:call)
         opts = opts[:complete_options].call(opts)
 	next if !opts
       end
