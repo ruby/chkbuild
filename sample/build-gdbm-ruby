@@ -36,9 +36,11 @@ ChkBuild.limit(:data => 1024*1024*500*word_bytes) # bytes
 ChkBuild.limit(:as => 1024*1024*500*word_bytes) # bytes
 
 # cvs -z3 -d :pserver:anonymous@puszcza.gnu.org.ua:/cvsroot/gdbm co gdbm
+# http://puszcza.gnu.org.ua/viewvc/gdbm/
 
 ChkBuild.define_build_proc('gdbm') {|b|
-  b.cvs(":pserver:anonymous@puszcza.gnu.org.ua:/cvsroot/gdbm", 'gdbm', nil, b.opts)
+  b.cvs(":pserver:anonymous@puszcza.gnu.org.ua:/cvsroot/gdbm", 'gdbm', nil,
+    :viewvc => 'http://puszcza.gnu.org.ua/viewvc/gdbm/?diff_format=u')
   bdir = b.build_dir
   Dir.chdir('gdbm') {
     b.run('./bootstrap')
