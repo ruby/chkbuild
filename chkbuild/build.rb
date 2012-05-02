@@ -1180,6 +1180,39 @@ End
     result
   end
 
+  def generic_output_change_lines(checkout_line, lines1, lines2, out)
+    out.puts "CHG #{checkout_line}"
+    lines1 = lines1.sort
+    lines2 = lines2.sort
+    while !lines1.empty? && !lines2.empty?
+      c = lines1.first <=> lines2.first
+      if c == 0
+        lines1.shift
+        lines2.shift
+	next
+      end
+      if c < 0
+        out.puts "- #{lines1.first}"
+	lines1.shift
+	next
+      end
+      if c > 0
+        out.puts "+ #{lines2.first}"
+	lines2.shift
+	next
+      end
+    end
+    while !lines1.empty?
+      out.puts "- #{lines1.first}"
+      lines1.shift
+    end
+    while !lines2.empty?
+      out.puts "+ #{lines2.first}"
+      lines2.shift
+      next
+    end
+  end
+
   def output_change_lines2(t1, t2, out)
     has_change_line = false
     a1 = collect_checkout_log(t1)
@@ -1202,7 +1235,7 @@ End
 	  if self.respond_to? meth
 	    self.send(meth, lines1, lines2, out)
 	  else
-	    out.puts "CHG #{checkout_line}"
+	    generic_output_change_lines(checkout_line, lines1[2..-1], lines2[2..-1], out)
 	  end
 	end
       else
