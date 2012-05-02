@@ -219,8 +219,7 @@ class ChkBuild::Build
     h
   end
 
-  def output_svn_change_lines(lines1, lines2, out)
-    checkout_line = lines2[0]
+  def output_svn_change_lines(checkout_line, lines1, lines2, out)
     if /CHECKOUT svn (\S+) (\S+)/ !~ checkout_line
       out.puts "unexpected checkout line: #{checkout_line}"
       return 

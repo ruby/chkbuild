@@ -1217,10 +1217,10 @@ End
     has_change_line = false
     a1 = collect_checkout_log(t1)
     h1 = {}
-    a1.each {|lines| h1[lines[0]] = lines }
+    a1.each {|lines| h1[lines[0]] = lines[1..-1] }
     a2 = collect_checkout_log(t2)
     h2 = {}
-    a2.each {|lines| h2[lines[0]] = lines }
+    a2.each {|lines| h2[lines[0]] = lines[1..-1] }
     checkout_lines = a1.map {|lines| lines[0] }
     checkout_lines |= a2.map {|lines| lines[0] }
     checkout_lines.each {|checkout_line|
@@ -1233,9 +1233,9 @@ End
 	  reptype = $1
 	  meth = "output_#{reptype}_change_lines"
 	  if self.respond_to? meth
-	    self.send(meth, lines1, lines2, out)
+	    self.send(meth, checkout_line, lines1, lines2, out)
 	  else
-	    generic_output_change_lines(checkout_line, lines1[2..-1], lines2[2..-1], out)
+	    generic_output_change_lines(checkout_line, lines1, lines2, out)
 	  end
 	end
       else
