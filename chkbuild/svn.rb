@@ -25,51 +25,8 @@
 # OF SUCH DAMAGE.
 
 require 'fileutils'
-require "uri"
 
 module ChkBuild; end # for testing
-
-class ChkBuild::ViewVC
-  def initialize(uri, old=false)
-    @uri = uri
-    @old = old
-  end
-  attr_reader :uri, :old
-
-  def rev_uri(r)
-    revision = @old ? 'rev' : 'revision'
-    extend_uri("", [['view', 'rev'], [revision, r.to_s]]).to_s
-  end
-
-  def markup_uri(d, f, r)
-    pathrev = @old ? 'rev' : 'pathrev'
-    extend_uri("/#{d}/#{f}", [['view', 'markup'], [pathrev, r.to_s]]).to_s
-  end
-
-  def dir_uri(d, f, r)
-    pathrev = @old ? 'rev' : 'pathrev'
-    extend_uri("/#{d}/#{f}", [[pathrev, r.to_s]]).to_s
-  end
-
-  def diff_uri(d, f, r1, r2)
-    pathrev = @old ? 'rev' : 'pathrev'
-    extend_uri("/#{d}/#{f}", [
-      ['p1', "#{d}/#{f}"],
-      ['r1', r1.to_s],
-      ['r2', r2.to_s],
-      [pathrev, r2.to_s]]).to_s
-  end
-
-  def extend_uri(path, params)
-    uri = URI.parse(@uri)
-    uri.path = uri.path + Escape.uri_path(path).to_s
-    params = params.dup
-    query = Escape.html_form(params).to_s
-    (uri.query || '').split(/[;&]/).each {|param| query << '&' << param }
-    uri.query = query
-    uri
-  end
-end
 
 class ChkBuild::Build
   def svn(svnroot, rep_dir, working_dir, opts={})
@@ -192,20 +149,6 @@ class ChkBuild::Build
     }
   end
 
-  def svn_find_viewvc_line(lines)
-    viewvc = nil
-    lines.each {|line|
-      if /\AVIEWER\s+ViewVC\s+(\S+)/ =~ line
-        viewvc = ChkBuild::ViewVC.new($1)
-	break
-      elsif /\AVIEWER\s+ViewCVS\s+(\S+)/ =~ line
-        viewvc = ChkBuild::ViewVC.new($1, true)
-	break
-      end
-    }
-    viewvc
-  end
-
   def svn_restore_file_info(lines)
     h = {}
     lines.each {|line|
@@ -226,7 +169,7 @@ class ChkBuild::Build
     end
     svnroot = $1
     rep_dir = $2
-    viewvc = svn_find_viewvc_line(lines2)
+    viewvc = ChkBuild::ViewVC.find_viewvc_line(lines2)
     h1 = svn_restore_file_info(lines1)
     h2 = svn_restore_file_info(lines2)
     svn_print_changes(h1, h2, viewvc, rep_dir, out)

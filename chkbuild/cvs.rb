@@ -147,7 +147,7 @@ class ChkBuild::Build
     mod = $2
     branch = $3
     branch = nil if branch.empty?
-    viewvc = svn_find_viewvc_line(lines2) # xxx: branch
+    viewvc = ChkBuild::ViewVC.find_viewvc_line(lines2) # xxx: branch
     h1 = cvs_restore_file_info(lines1)
     h2 = cvs_restore_file_info(lines2)
     cvs_print_changes(mod, h1, h2, viewvc, out)
