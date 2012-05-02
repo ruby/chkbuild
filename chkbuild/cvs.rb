@@ -1,6 +1,6 @@
 # chkbuild/cvs.rb - cvs access method
 #
-# Copyright (C) 2006,2007,2009 Tanaka Akira  <akr@fsij.org>
+# Copyright (C) 2006-2012 Tanaka Akira  <akr@fsij.org>
 # 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -103,28 +103,6 @@ class ChkBuild::Build
     uri.to_s
   end
 
-  def cvs_print_changes(h1, h2, viewcvs=nil)
-    (h1.keys | h2.keys).sort.each {|k|
-      f = k.flatten.join('/')
-      cvsroot1, repository1, r1 = h1[k] || [nil, nil, 'none']
-      cvsroot2, repository2, r2 = h2[k] || [nil, nil, 'none']
-      if r1 != r2
-        if r1 == 'none'
-          line = "ADD"
-        elsif r2 == 'none'
-          line = "DEL"
-        else
-          line = "CHG"
-        end
-        line << " #{f}\t#{r1}->#{r2}"
-        if viewcvs
-          line << "\t" << cvs_uri(viewcvs, repository1 || repository2, k[1], r1, r2)
-        end
-        puts line
-      end
-    }
-  end
-
   def cvs_print_revisions(cvsroot, mod, branch, h2, viewvc=nil)
     puts "CHECKOUT cvs #{cvsroot} #{mod} #{branch || ''}"
     if viewvc
@@ -157,6 +135,60 @@ class ChkBuild::Build
 	  errio.each_line {|line| puts "CVSERR #{line}" }
 	end
       }
+    }
+  end
+
+  def output_cvs_change_lines(checkout_line, lines1, lines2, out)
+    if /CHECKOUT cvs (\S+) (\S+) (\S*)\n/ !~ checkout_line
+      out.puts "unexpected checkout line: #{checkout_line}"
+      return 
+    end
+    cvsroot = $1
+    mod = $2
+    branch = $3
+    branch = nil if branch.empty?
+    viewvc = svn_find_viewvc_line(lines2) # xxx: branch
+    h1 = cvs_restore_file_info(lines1)
+    h2 = cvs_restore_file_info(lines2)
+    cvs_print_changes(mod, h1, h2, viewvc, out)
+  end
+
+  def cvs_restore_file_info(lines)
+    h = {}
+    lines.each {|line|
+      case line
+      when /\AFILE (\S+)\t(\S+)/
+	h[$1] = $2
+      end
+    }
+    h
+  end
+
+  def cvs_print_changes(mod, h1, h2, viewvc, out)
+    (h1.keys | h2.keys).sort.each {|f|
+      r1 = h1[f] || 'none'
+      r2 = h2[f] || 'none'
+      if r1 != r2
+        if r1 == 'none'
+          line = "ADD"
+        elsif r2 == 'none'
+          line = "DEL"
+        else
+          line = "CHG"
+        end
+        line << " #{f}\t#{r1}->#{r2}"
+        if viewvc
+	  if r1 == 'none'
+	    uri = viewvc.markup_uri(mod, f, r2)
+	  elsif r2 == 'none'
+	    uri = viewvc.markup_uri(mod, f, r1)
+	  else
+	    uri = viewvc.diff_uri(mod, f, r1, r2)
+	  end
+	  line << "\t" << uri
+        end
+        out.puts line
+      end
     }
   end
 end
