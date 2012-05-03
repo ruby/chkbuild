@@ -79,7 +79,10 @@ ChkBuild.define_diff_preprocess_gsub('autoconf', /^autoconf \(GNU Autoconf\) \S*
 
 ChkBuild.define_build_proc('autoconf') {|b|
   dir = b.build_dir
-  b.git('git://git.sv.gnu.org/autoconf.git', 'autoconf')
+  # http://git.savannah.gnu.org/gitweb/?p=autoconf.git
+  # http://git.savannah.gnu.org/cgit/autoconf.git
+  # git://git.savannah.gnu.org/autoconf.git
+  b.git('git://git.savannah.gnu.org/autoconf.git', 'autoconf')
   Dir.chdir('autoconf') {
     b.run("autoreconf", "-vi")
     b.run("./configure", "--prefix=#{dir}")

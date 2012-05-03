@@ -53,6 +53,7 @@ ChkBuild.define_build_proc('bison') {|b|
   tdir = b.target_dir
   Dir.chdir(tdir) {
     first = !File.directory?('bison')
+    # http://git.savannah.gnu.org/cgit/bison.git
     b.git('git://git.savannah.gnu.org/bison.git', 'bison',
       :branch=>b.opts[:bison_branch])
     Dir.chdir("bison") {
