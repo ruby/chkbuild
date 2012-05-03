@@ -43,6 +43,7 @@ ChkBuild.define_build_proc('gdbm') {|b|
     :viewvc => 'http://puszcza.gnu.org.ua/viewvc/gdbm/?diff_format=u')
   bdir = b.build_dir
   Dir.chdir('gdbm') {
+    b.install_rsync_wrapper
     b.run('./bootstrap')
     b.run('./configure', "--prefix=#{bdir}", '--enable-libgdbm-compat')
     b.make

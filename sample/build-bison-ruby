@@ -68,6 +68,7 @@ ChkBuild.define_build_proc('bison') {|b|
   }
   b.run('sh', '-c', "( cd #{tdir}; tar cf - bison ) | ( cd #{bdir}; tar xf - )", :section => 'copy-working-directory')
   Dir.chdir('bison') {
+    b.install_rsync_wrapper
     b.run('./bootstrap')
     b.run('./configure', "--prefix=#{bdir}")
     b.make

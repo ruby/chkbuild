@@ -1,6 +1,6 @@
 # chkbuild/build.rb - build object implementation.
 #
-# Copyright (C) 2006-2011 Tanaka Akira  <akr@fsij.org>
+# Copyright (C) 2006-2012 Tanaka Akira  <akr@fsij.org>
 # 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -135,7 +135,7 @@ class ChkBuild::Build
     @depbuilds.each {|depbuild|
       dep_dirs << "#{depbuild.target.target_name}=#{depbuild.dir}"
       bindir = "#{depbuild.dir}/bin"
-      additional_path << bindir if File.directory? bindir
+      additional_path << bindir if File.directory?(bindir) && !(Dir.entries(bindir) - %w[. ..]).empty?
     }
     if @opts[:complete_options] && @opts[:complete_options].respond_to?(:merge_dependencies)
       @opts = @opts[:complete_options].merge_dependencies(@opts, dep_dirs)
@@ -300,9 +300,10 @@ class ChkBuild::Build
     force_link "log", @current_txt
     make_local_tmpdir
     remove_old_build(prebuilt_start_time, @opts.fetch(:old, ChkBuild.num_oldbuilds))
-    if @opts[:additional_path] && !@opts[:additional_path].empty?
-      ENV['PATH'] = (@opts[:additional_path] + ENV['PATH'].split(/:/)).join(':')
-    end
+    path = ["#{@build_dir}/bin"]
+    path.concat @opts[:additional_path] if @opts[:additional_path]
+    path.concat ENV['PATH'].split(/:/)
+    ENV['PATH'] = path.join(':')
   end
 
   def show_options
@@ -1519,5 +1520,62 @@ End
         self.run("gmake", target, *(make_opts + [h]))
       }
     end
+  end
+
+  def install_rsync_wrapper(bindir="#{@build_dir}/bin")
+    real_rsync = Util.search_command 'rsync'
+    return false if !real_rsync
+    rsync_repos = ChkBuild.build_top + 'rsync-repos'
+    FileUtils.mkpath rsync_repos
+    script = <<-"End1".gsub(/^[ \t]*/, '') + <<-'End2'
+      #!#{RbConfig.ruby}
+
+      require 'fileutils'
+
+      real_rsync = #{real_rsync.dump}
+      rsync_repos = #{rsync_repos.to_s.dump}
+    End1
+      mirrors = []
+      argv2 = []
+      ARGV.each_with_index {|arg, i|
+        if i == ARGV.length - 1
+	  m = nil
+	elsif %r{/\z} !~ arg
+	  m = nil
+        elsif /::/ =~ arg
+	  m = rsync_repos + '/' + arg.sub(/::/, '/')
+	elsif %r{\Arsync://} =~ arg
+	  m = $'
+	  m = nil if /%/ =~ m # URL escape
+	else
+	  m = nil
+	end
+	if m && %r{(?:\A|/)\.\.(?:/|\z)} =~ m
+	  m = nil
+	end
+	if m
+	  mirrors << [arg, m.chomp('/')]
+	  argv2.push m
+	else
+	  argv2.push arg
+	end
+      }
+
+      mirrors.each {|src, m|
+        FileUtils.mkpath m
+        mirror_command = [real_rsync, '-Lrtvz', src, m]
+	STDERR.puts mirror_command.join(' ')
+	system *mirror_command
+      }
+
+      command = [real_rsync, *argv2]
+      STDERR.puts command.join(' ')
+      system *command
+    End2
+    FileUtils.mkpath bindir
+    open("#{bindir}/rsync", 'w', 0755) {|f|
+      f.print script
+    }
+    true
   end
 end
