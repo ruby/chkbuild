@@ -39,6 +39,10 @@ zlib = ChkBuild::Zlib.def_target()
 
 openssl_choices = [
   {
+    :suffix_? => '-trunk',
+    :openssl_branch => nil,
+  },
+  {
     :suffix_? => '-1.0.2',
     :openssl_branch => 'OpenSSL_1_0_2-stable',
   },
