@@ -1563,7 +1563,7 @@ End
 
       mirrors.each {|src, m|
         FileUtils.mkpath m
-        mirror_command = [real_rsync, '-Lrtvz', src, m]
+        mirror_command = [real_rsync, '-Lrtvzp', '--delete', src, m]
 	STDERR.puts mirror_command.join(' ')
 	system *mirror_command
       }
