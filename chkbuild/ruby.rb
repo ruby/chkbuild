@@ -173,7 +173,7 @@ def (ChkBuild::Ruby::CompleteOptions).call(target_opts)
     hs << { :configure_args_with_opt_dir => ["--with-opt-dir=#{v}"] }
   end
 
-  if ENV['PATH'].split(/:/).any? {|d| File.executable?("#{d}/git") }
+  if Util.search_command('git')
     hs << { :use_rubyspec => true }
   end
 

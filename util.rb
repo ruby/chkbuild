@@ -199,6 +199,16 @@ module Util
     Dir.chdir(dir, &b)
   end
 
+  def search_command(c, path=ENV['PATH'])
+    path.split(/:/).each {|d|
+      f = File.join(d, c)
+      if File.file?(f) && File.executable?(f)
+        return f
+      end
+    }
+    nil
+  end
+
   def resource_unlimit(resource)
     if Symbol === resource
       begin
