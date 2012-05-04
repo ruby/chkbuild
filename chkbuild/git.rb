@@ -326,7 +326,7 @@ class ChkBuild::Build
     segment_regexp = '(?:[A-Za-z0-9\-._~!$&\'()*+,;=:@]|%[0-9A-Fa-f][0-9A-Fa-f])*'
     if %r{\Agit://github\.com/(#{segment_regexp})/(#{segment_regexp})\.git\z}o =~ cloneurl
       user = $1
-      project = $1
+      project = $2
       return ['GitHub', "https://github.com/#{user}/#{project}"]
     elsif %r{\Agit://git\.savannah\.gnu\.org/(#{segment_regexp})\.git\z}o =~ cloneurl
       project_basename = $1
