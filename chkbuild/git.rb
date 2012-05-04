@@ -324,4 +324,3 @@ ChkBuild.define_file_changes_viewer('git',
   # project_basename = CGI.escape(CGI.unescape($1)) # segment to query component
   # ChkBuild::Build::GitWeb.new("http://git.savannah.gnu.org/gitweb/?p=#{project_basename}.git")
 }
-
