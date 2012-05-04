@@ -314,12 +314,12 @@ ChkBuild.define_build_proc('ruby') {|b|
   use_rubyspec &&= b.catch_error {
     opts2 = bopts.dup
     opts2[:section] = "git-mspec"
-    b.github("rubyspec", "mspec", "mspec", opts2)
+    b.git('git://github.com/rubyspec/mspec.git', 'mspec', opts2)
   }
   use_rubyspec &&= b.catch_error {
     opts2 = bopts.dup
     opts2[:section] = "git-rubyspec"
-    b.github("rubyspec", "rubyspec", "rubyspec", opts2)
+    b.git('git://github.com/rubyspec/rubyspec.git', 'rubyspec', opts2)
   }
 
   b.mkcd("ruby")

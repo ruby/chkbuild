@@ -38,7 +38,7 @@ end
 ChkBuild.define_build_proc('zlib') {|b|
   opts2 = b.opts.dup
   opts2[:branch] = 'develop'
-  b.github('madler', 'zlib', 'zlib', opts2)
+  b.git('git://github.com/madler/zlib.git', 'zlib', opts2)
   bdir = b.build_dir
   Dir.chdir('zlib') {
     b.run('./configure',

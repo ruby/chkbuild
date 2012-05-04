@@ -48,7 +48,7 @@ ChkBuild.limit(:as => 1024*1024*500*word_bytes) # bytes
 
 ChkBuild.define_build_proc('mruby') {|b|
   dir = b.build_dir
-  b.github('mruby', 'mruby', 'mruby')
+  b.git('git://github.com/mruby/mruby.git', 'mruby')
   Dir.chdir('mruby') {
     b.make
     b.run('bin/mruby', '-v')
