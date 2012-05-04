@@ -750,7 +750,7 @@ End
 
   def markup_diff_line(line)
     line = encode_invalid(line)
-    if %r{\A((?:OLDREV|NEWREV|CHG|ADD|DEL|COMMIT) .*)\s(http://\S*)\s*\z} =~ line
+    if %r{\A((?:OLDREV|NEWREV|CHG|ADD|DEL|COMMIT) .*)\s(https?://\S*)\s*\z} =~ line
       content = $1
       url = $2
       "<a href=#{ha url}>#{h content.strip}</a>"
