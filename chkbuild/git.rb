@@ -1,6 +1,6 @@
 # chkbuild/git.rb - git access method
 #
-# Copyright (C) 2008-2010 Tanaka Akira  <akr@fsij.org>
+# Copyright (C) 2008-2012 Tanaka Akira  <akr@fsij.org>
 # 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -25,9 +25,10 @@
 # OF SUCH DAMAGE.
 
 require 'fileutils'
-require "uri"
+require 'uri'
+require 'cgi'
 
-require "pp"
+require 'pp'
 
 module ChkBuild; end # for testing
 
@@ -63,11 +64,15 @@ class ChkBuild::Build
   GIT_SHARED_DIR = ChkBuild.build_top + 'git-repos'
 
   def git_internal(cloneurl, working_dir, opts={})
-    urigen = nil
+    viewer = nil
     opts = opts.dup
     opts[:section] ||= 'git'
     if opts[:github]
-      urigen = GitHub.new(*opts[:github])
+      viewer = ['GitHub', opts[:github]]
+    elsif opts[:gitweb]
+      viewer = ['GitWeb', opts[:gitweb]]
+    elsif opts[:cgit]
+      viewer = ['cgit', opts[:cgit]]
     end
     FileUtils.mkdir_p(GIT_SHARED_DIR)
     opts_shared = opts.dup
@@ -125,14 +130,13 @@ class ChkBuild::Build
 	puts "LASTLOG #{line}"
       }
       puts "CHECKOUT git #{cloneurl} #{working_dir}"
+      puts "VIEWER #{viewer[0]} #{viewer[1]}" if viewer
       puts "LASTCOMMIT #{new_head}"
     }
   end
 
   def github(user, project, working_dir, opts={})
-    opts = opts.dup
-    opts[:github] = [user, project]
-    git("git://github.com/#{user}/#{project}.git", working_dir, opts)
+    git("git://github.com/#{u user}/#{u project}.git", working_dir, opts)
   end
 
   def git_single_log(rev)
@@ -211,16 +215,54 @@ class ChkBuild::Build
   end
 
   class GitHub
-    def initialize(user, project)
-      @user = user
-      @project = project
+    def initialize(uri)
+      # https://github.com/rubyspec/rubyspec
+      @user, @project = uri.split(%r{/})[-2, 2]
     end
 
     def call(commit_hash)
-      # http://github.com/brixen/rubyspec/commit/b8f8eb6765afe915f2ecfdbbe59a53e6393d6865
-      "http://github.com/#{@user}/#{@project}/commit/#{commit_hash}"
+      # https://github.com/rubyspec/rubyspec/commit/b8f8eb6765afe915f2ecfdbbe59a53e6393d6865
+      "https://github.com/#{@user}/#{@project}/commit/#{commit_hash}"
     end
   end
+
+  class GitWeb
+    def initialize(uri)
+      # http://git.savannah.gnu.org/gitweb/?p=autoconf.git
+      @uri = URI(uri)
+      @git_project_name = CGI.parse(@uri.query)['p'][0]
+    end
+
+    def call(hash)
+      # http://git.savannah.gnu.org/gitweb/?p=autoconf.git;a=commit;h=cc2118d83698708c7c0334ad72f2cd03c4f81f0b
+      uri = @uri.dup
+      query = [
+        ['p', @git_project_name],
+        ['a', 'commit'],
+        ['h', hash]
+      ]
+      uri.query = query.map {|k, v| "#{k}=#{CGI.escape v}" }.join(';')
+      uri.to_s
+    end
+  end
+
+  class Cgit
+    def initialize(uri)
+      # http://git.savannah.gnu.org/cgit/autoconf.git
+      @uri = uri
+    end
+
+    def call(hash)
+      # http://git.savannah.gnu.org/cgit/autoconf.git/commit/?id=7fbb553727ed7e0e689a17594b58559ecf3ea6e9
+      "#{@uri}/commit/?id=#{hash}"
+    end
+  end
+
+  GIT_VIEWERS = {
+    'GitHub' => GitHub,
+    'GitWeb' => GitWeb,
+    'cgit' => Cgit,
+  }
 
   def git_print_logs(logs, urigen, out)
     logs.each {|commit_hash, title_line|
@@ -241,16 +283,20 @@ class ChkBuild::Build
     end
     cloneurl = $1
     working_dir = $2
-    urigen = nil
-    if %r{\Agit://github.com/([^/]+)/([^/]+).git\z} =~ cloneurl
-      urigen = GitHub.new($1, $2)
-    elsif %r{\Agit://git\.sv\.gnu\.org/([^/]+)\.git\z} =~ cloneurl
-      # git://git.sv.gnu.org/autoconf.git
-      # http://git.savannah.gnu.org/gitweb/?p=autoconf.git;a=commit;h=cc2118d83698708c7c0334ad72f2cd03c4f81f0b
-      git_project_basename = $1
-      urigen = lambda {|hash| 
-        "http://git.savannah.gnu.org/gitweb/?p=#{git_project_basename}.git;a=commit;h=#{hash}"
-      }
+    viewer = nil
+    viewer_line_pattern = /\AVIEWER\s+(#{Regexp.union GIT_VIEWERS.keys})\s+(\S+)/
+    lines2.each {|line|
+      if viewer_line_pattern =~ line
+        viewer = [$1, $2]
+	break
+      end
+    }
+    if !viewer
+      viewer = git_find_viewer(cloneurl)
+    end
+    if viewer
+      urigen_class = GIT_VIEWERS[viewer[0]]
+      urigen = urigen_class.new(viewer[1])
     end
 
     lastcommit1 = lines1.find {|line| /\ALASTCOMMIT / =~ line }
@@ -268,4 +314,30 @@ class ChkBuild::Build
       git_print_logs(logs, urigen, out)
     }
   end
+
+  # find a viewer for major source code hosting sites.
+  def git_find_viewer(cloneurl)
+    # segment       = *pchar
+    # pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
+    # unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
+    # pct-encoded   = "%" HEXDIG HEXDIG
+    # sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
+    #               / "*" / "+" / "," / ";" / "="
+    segment_regexp = '(?:[A-Za-z0-9\-._~!$&\'()*+,;=:@]|%[0-9A-Fa-f][0-9A-Fa-f])*'
+    if %r{\Agit://github\.com/(#{segment_regexp})/(#{segment_regexp})\.git\z}o =~ cloneurl
+      user = $1
+      project = $1
+      return ['GitHub', "https://github.com/#{user}/#{project}"]
+    elsif %r{\Agit://git\.savannah\.gnu\.org/(#{segment_regexp})\.git\z}o =~ cloneurl
+      project_basename = $1
+      # git://git.savannah.gnu.org/autoconf.git
+      # http://git.savannah.gnu.org/cgit/autoconf.git
+      # http://git.savannah.gnu.org/gitweb/?p=autoconf.git
+      return ['cgit', "http://git.savannah.gnu.org/cgit/#{project_basename}.git"]
+      # project_basename = CGI.escape(CGI.unescape($1)) # segment to query component
+      # return ['GitWeb', "http://git.savannah.gnu.org/gitweb/?p=#{project_basename}.git"]
+    end
+    nil
+  end
+
 end
