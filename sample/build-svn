@@ -34,8 +34,7 @@ ChkBuild.limit(:data=>1024*1024*800, :as=>1024*1024*800)
 
 ChkBuild.def_target("svn") {|b|
   dir = b.build_dir
-  b.svn('http://svn.apache.org/repos/asf', 'subversion/trunk', 'subversion',
-       :viewvc=>"http://svn.apache.org/viewvc?diff_format=u")
+  b.svn('http://svn.apache.org/repos/asf', 'subversion/trunk', 'subversion')
   Dir.chdir("subversion") {
     b.run("./autogen.sh")
     b.run("./configure", "--prefix=#{dir}")

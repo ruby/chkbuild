@@ -29,23 +29,10 @@ require "uri"
 module ChkBuild; end # for testing
 
 class ChkBuild::ViewVC
-  def self.find_viewvc_line(lines)
-    viewvc = nil
-    lines.each {|line|
-      if /\AVIEWER\s+ViewVC\s+(\S+)/ =~ line
-        viewvc = ChkBuild::ViewVC.new($1)
-	break
-      elsif /\AVIEWER\s+ViewCVS\s+(\S+)/ =~ line
-        viewvc = ChkBuild::ViewVC.new($1, true)
-	break
-      end
-    }
-    viewvc
-  end
-
-  def initialize(uri, old=false)
+  def initialize(uri, old=false, mod=nil)
     @uri = uri
     @old = old
+    @mod = mod
   end
   attr_reader :uri, :old
 
@@ -56,18 +43,30 @@ class ChkBuild::ViewVC
 
   def markup_uri(d, f, r)
     pathrev = @old ? 'rev' : 'pathrev'
-    extend_uri("/#{d}/#{f}", [['view', 'markup'], [pathrev, r.to_s]]).to_s
+    path = ''
+    path << "/#{@mod}" if @mod
+    path << "/#{d}" if d
+    path << "/#{f}"
+    extend_uri(path, [['view', 'markup'], [pathrev, r.to_s]]).to_s
   end
 
   def dir_uri(d, f, r)
     pathrev = @old ? 'rev' : 'pathrev'
-    extend_uri("/#{d}/#{f}", [[pathrev, r.to_s]]).to_s
+    path = ''
+    path << "/#{@mod}" if @mod
+    path << "/#{d}" if d
+    path << "/#{f}"
+    extend_uri(path, [[pathrev, r.to_s]]).to_s
   end
 
   def diff_uri(d, f, r1, r2)
     pathrev = @old ? 'rev' : 'pathrev'
-    extend_uri("/#{d}/#{f}", [
-      ['p1', "#{d}/#{f}"],
+    path = ''
+    path << "/#{@mod}" if @mod
+    path << "/#{d}" if d
+    path << "/#{f}"
+    extend_uri(path, [
+      ['p1', path],
       ['r1', r1.to_s],
       ['r2', r2.to_s],
       [pathrev, r2.to_s]]).to_s
@@ -75,7 +74,11 @@ class ChkBuild::ViewVC
 
   def extend_uri(path, params)
     uri = URI.parse(@uri)
-    uri.path = uri.path + Escape.uri_path(path).to_s
+    path_suffix = Escape.uri_path(path).to_s
+    if %r{\A/} =~ path_suffix
+      uri.path = uri.path.chomp('/')
+    end
+    uri.path = uri.path + path_suffix
     params = params.dup
     query = Escape.html_form(params).to_s
     (uri.query || '').split(/[;&]/).each {|param| query << '&' << param }

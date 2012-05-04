@@ -130,7 +130,6 @@ class ChkBuild::Build
 	puts "LASTLOG #{line}"
       }
       puts "CHECKOUT git #{cloneurl} #{working_dir}"
-      puts "VIEWER #{viewer[0]} #{viewer[1]}" if viewer
       puts "LASTCOMMIT #{new_head}"
     }
   end
@@ -258,12 +257,6 @@ class ChkBuild::Build
     end
   end
 
-  GIT_VIEWERS = {
-    'GitHub' => GitHub,
-    'GitWeb' => GitWeb,
-    'cgit' => Cgit,
-  }
-
   def git_print_logs(logs, urigen, out)
     logs.each {|commit_hash, title_line|
       if urigen
@@ -283,21 +276,7 @@ class ChkBuild::Build
     end
     cloneurl = $1
     working_dir = $2
-    viewer = nil
-    viewer_line_pattern = /\AVIEWER\s+(#{Regexp.union GIT_VIEWERS.keys})\s+(\S+)/
-    lines2.each {|line|
-      if viewer_line_pattern =~ line
-        viewer = [$1, $2]
-	break
-      end
-    }
-    if !viewer
-      viewer = git_find_viewer(cloneurl)
-    end
-    if viewer
-      urigen_class = GIT_VIEWERS[viewer[0]]
-      urigen = urigen_class.new(viewer[1])
-    end
+    urigen = ChkBuild.find_file_changes_viewer('git', cloneurl)
 
     lastcommit1 = lines1.find {|line| /\ALASTCOMMIT / =~ line }
     lastrev1 = $1 if lastcommit1 && /\ALASTCOMMIT ([0-9a-fA-F]+)/ =~ lastcommit1
@@ -314,30 +293,35 @@ class ChkBuild::Build
       git_print_logs(logs, urigen, out)
     }
   end
-
-  # find a viewer for major source code hosting sites.
-  def git_find_viewer(cloneurl)
-    # segment       = *pchar
-    # pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
-    # unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
-    # pct-encoded   = "%" HEXDIG HEXDIG
-    # sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
-    #               / "*" / "+" / "," / ";" / "="
-    segment_regexp = '(?:[A-Za-z0-9\-._~!$&\'()*+,;=:@]|%[0-9A-Fa-f][0-9A-Fa-f])*'
-    if %r{\Agit://github\.com/(#{segment_regexp})/(#{segment_regexp})\.git\z}o =~ cloneurl
-      user = $1
-      project = $1
-      return ['GitHub', "https://github.com/#{user}/#{project}"]
-    elsif %r{\Agit://git\.savannah\.gnu\.org/(#{segment_regexp})\.git\z}o =~ cloneurl
-      project_basename = $1
-      # git://git.savannah.gnu.org/autoconf.git
-      # http://git.savannah.gnu.org/cgit/autoconf.git
-      # http://git.savannah.gnu.org/gitweb/?p=autoconf.git
-      return ['cgit', "http://git.savannah.gnu.org/cgit/#{project_basename}.git"]
-      # project_basename = CGI.escape(CGI.unescape($1)) # segment to query component
-      # return ['GitWeb', "http://git.savannah.gnu.org/gitweb/?p=#{project_basename}.git"]
-    end
-    nil
-  end
-
 end
+
+# segment       = *pchar
+# pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
+# unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
+# pct-encoded   = "%" HEXDIG HEXDIG
+# sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
+#               / "*" / "+" / "," / ";" / "="
+segment_regexp = '(?:[A-Za-z0-9\-._~!$&\'()*+,;=:@]|%[0-9A-Fa-f][0-9A-Fa-f])*'
+
+ChkBuild.define_file_changes_viewer('git',
+  %r{\Agit://github\.com/(#{segment_regexp})/(#{segment_regexp})\.git\z}o) {
+  |match, reptype, pat, checkout_line|
+  user = match[1]
+  project = match[2]
+  ChkBuild::Build::GitHub.new("https://github.com/#{user}/#{project}")
+}
+
+ChkBuild.define_file_changes_viewer('git',
+  %r{\Agit://(?:git\.savannah\.gnu\.org|git\.sv\.gnu\.org)/(#{segment_regexp})\.git\z}o) {
+  |match, reptype, pat, checkout_line|
+  # git://git.savannah.gnu.org/autoconf.git
+  # http://git.savannah.gnu.org/cgit/autoconf.git
+  project_basename = match[1]
+  ChkBuild::Build::Cgit.new("http://git.savannah.gnu.org/cgit/#{project_basename}.git")
+
+  # # GitWeb:
+  # # http://git.savannah.gnu.org/gitweb/?p=autoconf.git
+  # project_basename = CGI.escape(CGI.unescape($1)) # segment to query component
+  # ChkBuild::Build::GitWeb.new("http://git.savannah.gnu.org/gitweb/?p=#{project_basename}.git")
+}
+

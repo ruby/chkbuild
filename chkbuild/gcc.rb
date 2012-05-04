@@ -137,7 +137,6 @@ ChkBuild.define_build_proc('gcc') {|b|
     ChkBuild::GCC.remove_symlink("gcc/mpfr")
     ChkBuild::GCC.remove_symlink("gcc/mpc")
     b.svn("svn://gcc.gnu.org/svn/gcc", gcc_branch, 'gcc',
-      :viewvc=>"http://gcc.gnu.org/viewcvs",
       :output_interval_timeout => '30min')
     b.svn_info('gcc')
     ChkBuild::GCC.download_lib(b, ChkBuild::GCC::URL_GMP, "gcc/gmp") if opts[:build_gmp]
@@ -190,5 +189,24 @@ ChkBuild.define_diff_preprocess_gsub('gcc', %r{--date=\d+-\d\d-\d\d}) {
 
 ChkBuild.define_diff_preprocess_gsub('gcc', %r{^gcc version .*}) {
   'gcc version ...'
+}
+
+# segment       = *pchar
+# pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
+# unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
+# pct-encoded   = "%" HEXDIG HEXDIG
+# sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
+#               / "*" / "+" / "," / ";" / "="
+segment_regexp = '(?:[A-Za-z0-9\-._~!$&\'()*+,;=:@]|%[0-9A-Fa-f][0-9A-Fa-f])*'
+
+ChkBuild.define_file_changes_viewer('svn',
+  %r{\Asvn://gcc\.gnu\.org/svn/gcc (#{segment_regexp}(/#{segment_regexp})*)?\z}o) {
+  |match, reptype, pat, checkout_line|
+  # svn://gcc.gnu.org/svn/gcc
+  # http://gcc.gnu.org/viewcvs
+
+  mod = match[1]
+  mod = nil if mod && mod.empty?
+  ChkBuild::ViewVC.new('http://gcc.gnu.org/viewcvs', false, mod)
 }
 

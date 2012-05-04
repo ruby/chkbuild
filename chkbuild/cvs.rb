@@ -37,11 +37,6 @@ class ChkBuild::Build
     opts = opts.dup
     opts[:section] ||= 'cvs'
     working_dir = opts.fetch(:working_dir, mod)
-    if opts[:viewvc]||opts[:viewcvs]||opts[:cvsweb]
-      viewvc = ChkBuild::ViewVC.new(opts[:viewvc]||opts[:viewcvs]||opts[:cvsweb], opts[:viewvc]==nil)
-    else
-      viewvc = nil
-    end
     if !File.exist? "#{ENV['HOME']}/.cvspass"
       opts['ENV:CVS_PASSFILE'] = '/dev/null' # avoid warning
     end
@@ -52,7 +47,7 @@ class ChkBuild::Build
 	  self.run("cvs", "-f", "-z3", "update", "-kb", "-dP", opts2)
 	}
         h2 = cvs_revisions
-        cvs_print_revisions(cvsroot, mod, branch, h2, viewvc)
+        cvs_print_revisions(cvsroot, mod, branch, h2)
       }
     else
       if branch
@@ -67,7 +62,7 @@ class ChkBuild::Build
       }
       Dir.chdir(working_dir) {
         h2 = cvs_revisions
-        cvs_print_revisions(cvsroot, mod, branch, h2, viewvc)
+        cvs_print_revisions(cvsroot, mod, branch, h2)
       }
     end
   end
@@ -103,15 +98,8 @@ class ChkBuild::Build
     uri.to_s
   end
 
-  def cvs_print_revisions(cvsroot, mod, branch, h2, viewvc=nil)
+  def cvs_print_revisions(cvsroot, mod, branch, h2)
     puts "CHECKOUT cvs #{cvsroot} #{mod} #{branch || ''}"
-    if viewvc
-      if viewvc.old
-	puts "VIEWER ViewCVS #{viewvc.uri}"
-      else
-	puts "VIEWER ViewVC #{viewvc.uri}"
-      end
-    end
     h2.keys.sort.each {|k|
       f = k.flatten.join('/')
       cvsroot2, repository2, r2 = h2[k] || [nil, nil, 'none']
@@ -147,10 +135,10 @@ class ChkBuild::Build
     mod = $2
     branch = $3
     branch = nil if branch.empty?
-    viewvc = ChkBuild::ViewVC.find_viewvc_line(lines2) # xxx: branch
+    viewer = ChkBuild.find_file_changes_viewer('cvs', "#{cvsroot} #{mod}")
     h1 = cvs_restore_file_info(lines1)
     h2 = cvs_restore_file_info(lines2)
-    cvs_print_changes(mod, h1, h2, viewvc, out)
+    cvs_print_changes(mod, h1, h2, viewer, out)
   end
 
   def cvs_restore_file_info(lines)
@@ -164,7 +152,7 @@ class ChkBuild::Build
     h
   end
 
-  def cvs_print_changes(mod, h1, h2, viewvc, out)
+  def cvs_print_changes(mod, h1, h2, viewer, out)
     (h1.keys | h2.keys).sort.each {|f|
       r1 = h1[f] || 'none'
       r2 = h2[f] || 'none'
@@ -177,13 +165,13 @@ class ChkBuild::Build
           line = "CHG"
         end
         line << " #{f}\t#{r1}->#{r2}"
-        if viewvc
+        if viewer
 	  if r1 == 'none'
-	    uri = viewvc.markup_uri(mod, f, r2)
+	    uri = viewer.markup_uri(nil, f, r2)
 	  elsif r2 == 'none'
-	    uri = viewvc.markup_uri(mod, f, r1)
+	    uri = viewer.markup_uri(nil, f, r1)
 	  else
-	    uri = viewvc.diff_uri(mod, f, r1, r2)
+	    uri = viewer.diff_uri(nil, f, r1, r2)
 	  end
 	  line << "\t" << uri
         end
@@ -192,3 +180,24 @@ class ChkBuild::Build
     }
   end
 end
+
+
+# segment       = *pchar
+# pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
+# unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
+# pct-encoded   = "%" HEXDIG HEXDIG
+# sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
+#               / "*" / "+" / "," / ";" / "="
+segment_regexp = '(?:[A-Za-z0-9\-._~!$&\'()*+,;=:@]|%[0-9A-Fa-f][0-9A-Fa-f])*'
+
+ChkBuild.define_file_changes_viewer('cvs',
+  %r{\A:pserver:anonymous@puszcza\.gnu\.org\.ua:/cvsroot/(#{segment_regexp}) (#{segment_regexp}(/#{segment_regexp})*)?\z}o) {
+  |match, reptype, pat, checkout_line|
+  # :pserver:anonymous@puszcza.gnu.org.ua:/cvsroot/gdbm gdbm
+  # http://puszcza.gnu.org.ua/viewvc/gdbm/
+
+  project = match[1]
+  mod = match[2]
+  ChkBuild::ViewVC.new("http://puszcza.gnu.org.ua/viewvc/#{project}/?diff_format=u", false, mod)
+}
+

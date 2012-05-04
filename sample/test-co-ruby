@@ -4,9 +4,8 @@ require 'chkbuild'
 
 ChkBuild.limit(:data=>1024*1024*2000, :as=>1024*1024*2000)
 
-ChkBuild.def_target("co-ruby") {|b|
-  b.svn("http://svn.ruby-lang.org/repos/ruby", 'trunk', 'ruby',
-    :viewvc=>'http://svn.ruby-lang.org/cgi-bin/viewvc.cgi?diff_format=u')
+ChkBuild.def_target("svnruby") {|b|
+  b.svn("http://svn.ruby-lang.org/repos/ruby", 'trunk', 'ruby')
 }
 
 ChkBuild.main
