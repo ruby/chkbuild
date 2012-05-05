@@ -40,11 +40,6 @@ class ChkBuild::Build
     opts = opts.dup
     opts_info = opts.dup
     opts[:section] ||= "svn/#{working_dir}"
-    if opts[:viewvc]||opts[:viewcvs]
-      viewvc = ChkBuild::ViewVC.new(opts[:viewvc]||opts[:viewcvs], opts[:viewcvs]!=nil)
-    else
-      viewvc = nil
-    end
     if File.exist?(working_dir) && File.exist?("#{working_dir}/.svn")
       Dir.chdir(working_dir) {
         self.run "svn", "cleanup", opts
@@ -55,7 +50,7 @@ class ChkBuild::Build
 	}
         h2 = svn_revisions
 	svn_print_lastlog(h2['.'][0])
-	svn_print_revisions(svnroot, rep_dir, h2, viewvc)
+	svn_print_revisions(svnroot, rep_dir, h2)
       }
     else
       if File.exist?(working_dir)
@@ -74,7 +69,7 @@ class ChkBuild::Build
       Dir.chdir(working_dir) {
         h2 = svn_revisions
 	svn_print_lastlog(h2['.'][0])
-	svn_print_revisions(svnroot, rep_dir, h2, viewvc)
+	svn_print_revisions(svnroot, rep_dir, h2)
       }
     end
   end
@@ -129,15 +124,8 @@ class ChkBuild::Build
     }
   end
 
-  def svn_print_revisions(svnroot, rep_dir, h, viewvc)
+  def svn_print_revisions(svnroot, rep_dir, h)
     puts "CHECKOUT svn #{svnroot} #{rep_dir}"
-    if viewvc
-      if viewvc.old
-	puts "VIEWER ViewCVS #{viewvc.uri}"
-      else
-	puts "VIEWER ViewVC #{viewvc.uri}"
-      end
-    end
     svn_path_sort(h.keys).each {|f|
       r, ftype = h[f]
       if ftype == 'directory'
@@ -169,10 +157,10 @@ class ChkBuild::Build
     end
     svnroot = $1
     rep_dir = $2
-    viewvc = ChkBuild::ViewVC.find_viewvc_line(lines2)
+    viewer = ChkBuild.find_file_changes_viewer('svn', "#{svnroot} #{rep_dir}")
     h1 = svn_restore_file_info(lines1)
     h2 = svn_restore_file_info(lines2)
-    svn_print_changes(h1, h2, viewvc, rep_dir, out)
+    svn_print_changes(h1, h2, viewer, out)
   end
 
   def svn_path_sort(ary)
@@ -191,27 +179,27 @@ class ChkBuild::Build
     }
   end
 
-  def svn_rev_uri(viewvc, r)
-    return nil if !viewvc
-    viewvc.rev_uri(r)
+  def svn_rev_uri(viewer, r)
+    return nil if !viewer
+    viewer.rev_uri(r)
   end
 
-  def svn_markup_uri(viewvc, d, f, r)
-    return nil if !viewvc
-    viewvc.markup_uri(d, f, r)
+  def svn_markup_uri(viewer, f, r)
+    return nil if !viewer
+    viewer.markup_uri(nil, f, r)
   end
 
-  def svn_dir_uri(viewvc, d, f, r)
-    return nil if !viewvc
-    viewvc.dir_uri(d, f, r)
+  def svn_dir_uri(viewer, f, r)
+    return nil if !viewer
+    viewer.dir_uri(nil, f, r)
   end
 
-  def svn_diff_uri(viewvc, d, f, r1, r2)
-    return nil if !viewvc
-    viewvc.diff_uri(d, f, r1, r2)
+  def svn_diff_uri(viewer, f, r1, r2)
+    return nil if !viewer
+    viewer.diff_uri(nil, f, r1, r2)
   end
 
-  def svn_print_changes(h1, h2, viewvc=nil, rep_dir=nil, out=STDOUT)
+  def svn_print_changes(h1, h2, viewer=nil, out=STDOUT)
     top_r1, _ = h1['.']
     top_r2, _ = h2['.']
     h1 = h1.dup
@@ -219,8 +207,8 @@ class ChkBuild::Build
     h1.delete '.'
     h2.delete '.'
     return if top_r1 == top_r2
-    svn_print_oldrev_line(top_r1, svn_rev_uri(viewvc, top_r1), out)
-    svn_print_newrev_line(top_r2, svn_rev_uri(viewvc, top_r2), out)
+    svn_print_oldrev_line(top_r1, svn_rev_uri(viewer, top_r1), out)
+    svn_print_newrev_line(top_r2, svn_rev_uri(viewer, top_r2), out)
     svn_path_sort(h1.keys|h2.keys).each {|f|
       r1, d1 = h1[f] || ['none', nil]
       r2, d2 = h2[f] || ['none', nil]
@@ -228,14 +216,14 @@ class ChkBuild::Build
       next if d1 == 'directory' && d2 == 'directory' # skip directory changes
       if d1 == 'file' && d2 == 'file' && r1 != 'none' && r2 != 'none'
         svn_print_chg_line(f, r1, r2,
-          svn_diff_uri(viewvc, rep_dir, f, top_r1, top_r2), out)
+          svn_diff_uri(viewer, f, top_r1, top_r2), out)
       else
         svn_print_del_line(f, r1,
-          d1 == 'directory' ? svn_dir_uri(viewvc, rep_dir, f, top_r1) :
-			      svn_markup_uri(viewvc, rep_dir, f, top_r1), out) if r1 != 'none'
+          d1 == 'directory' ? svn_dir_uri(viewer, f, top_r1) :
+			      svn_markup_uri(viewer, f, top_r1), out) if r1 != 'none'
         svn_print_add_line(f, r2,
-          d2 == 'directory' ? svn_dir_uri(viewvc, rep_dir, f, top_r2) :
-			      svn_markup_uri(viewvc, rep_dir, f, top_r2), out) if r2 != 'none'
+          d2 == 'directory' ? svn_dir_uri(viewer, f, top_r2) :
+			      svn_markup_uri(viewer, f, top_r2), out) if r2 != 'none'
       end
     }
   end
@@ -271,3 +259,22 @@ class ChkBuild::Build
   end
 
 end
+
+# segment       = *pchar
+# pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
+# unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
+# pct-encoded   = "%" HEXDIG HEXDIG
+# sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
+#               / "*" / "+" / "," / ";" / "="
+segment_regexp = '(?:[A-Za-z0-9\-._~!$&\'()*+,;=:@]|%[0-9A-Fa-f][0-9A-Fa-f])*'
+
+ChkBuild.define_file_changes_viewer('svn',
+  %r{\Ahttp://svn\.apache\.org/repos/asf (#{segment_regexp}(/#{segment_regexp})*)?\z}o) {
+  |match, reptype, pat, checkout_line|
+  # http://svn.apache.org/repos/asf
+  # http://svn.apache.org/viewvc/?diff_format=u
+
+  mod = match[1]
+  mod = nil if mod && mod.empty?
+  ChkBuild::ViewVC.new('http://svn.apache.org/viewvc/?diff_format=u', false, mod)
+}

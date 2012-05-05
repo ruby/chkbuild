@@ -29,13 +29,12 @@ Encoding.default_external = "ASCII-8BIT" if defined?(Encoding.default_external =
 require 'chkbuild/main'
 require 'chkbuild/config'
 require 'chkbuild/lock'
+require 'chkbuild/hook'
 require 'chkbuild/cvs'
 require 'chkbuild/svn'
 require 'chkbuild/git'
 require 'chkbuild/viewvc'
-require 'chkbuild/xforge'
 require "util"
-require 'chkbuild/hook'
 require 'chkbuild/target'
 require 'chkbuild/build'
 

@@ -288,8 +288,7 @@ ChkBuild.define_build_proc('ruby') {|b|
   srcdir = (checkout_dir+'ruby').relative_path_from(objdir)
 
   Dir.chdir(checkout_dir)
-  b.svn("http://svn.ruby-lang.org/repos/ruby", ruby_branch, 'ruby',
-    :viewvc=>'http://svn.ruby-lang.org/cgi-bin/viewvc.cgi?diff_format=u')
+  b.svn("http://svn.ruby-lang.org/repos/ruby", ruby_branch, 'ruby')
   b.svn_info('ruby')
   svn_info_section = b.logfile.get_section('svn-info/ruby')
   ruby_svn_rev = svn_info_section[/Last Changed Rev: (\d+)/, 1].to_i
@@ -829,5 +828,24 @@ ChkBuild.define_diff_preprocess_gsub('ruby', %r{^( *SIZE:\s+)[0-9]+}) {|match|
 #   SHA256: 677a188cb312453da596e21d5b843ba96d332f8ff93a247cd6c88d93f5e74093
 ChkBuild.define_diff_preprocess_gsub('ruby', %r{^( *(MD5|SHA256):\s+)[0-9a-f]+}) {|match|
   "#{match[1]}<digest>"
+}
+
+# segment       = *pchar
+# pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
+# unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
+# pct-encoded   = "%" HEXDIG HEXDIG
+# sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
+#               / "*" / "+" / "," / ";" / "="
+segment_regexp = '(?:[A-Za-z0-9\-._~!$&\'()*+,;=:@]|%[0-9A-Fa-f][0-9A-Fa-f])*'
+
+ChkBuild.define_file_changes_viewer('svn',
+  %r{\Ahttp://svn\.ruby-lang\.org/repos/ruby (#{segment_regexp}(/#{segment_regexp})*)?\z}o) {
+  |match, reptype, pat, checkout_line|
+  # http://svn.ruby-lang.org/repos/ruby
+  # http://svn.ruby-lang.org/cgi-bin/viewvc.cgi?diff_format=u
+
+  mod = match[1]
+  mod = nil if mod && mod.empty?
+  ChkBuild::ViewVC.new('http://svn.ruby-lang.org/cgi-bin/viewvc.cgi?diff_format=u', false, mod)
 }
 

@@ -232,5 +232,26 @@ module ChkBuild
       /\A#{Regexp.union(*@diff_preprocess_sort_patterns_hash[target_name])}/
     end
   end
+
+  @file_changes_viewer_hash = {}
+  def ChkBuild.define_file_changes_viewer(reptype, pat, &block)
+    @file_changes_viewer_hash[reptype] ||= []
+    @file_changes_viewer_hash[reptype] << [pat, block]
+  end
+  def ChkBuild.find_file_changes_viewer(reptype, reploc)
+    assoc = @file_changes_viewer_hash[reptype]
+    return nil if !assoc
+    assoc.each {|pat, block|
+      if pat.respond_to? :match
+        m = pat.match(reploc)
+      else
+        m = pat == reploc
+      end
+      if m
+        return block.call(m, reptype, pat, reploc)
+      end
+    }
+    nil
+  end
 end
 
