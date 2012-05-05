@@ -34,7 +34,6 @@ require 'chkbuild/cvs'
 require 'chkbuild/svn'
 require 'chkbuild/git'
 require 'chkbuild/viewvc'
-require 'chkbuild/xforge'
 require "util"
 require 'chkbuild/target'
 require 'chkbuild/build'
