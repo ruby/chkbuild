@@ -132,16 +132,22 @@ class ChkBuild::Build
   def build
     dep_dirs = []
     additional_path = []
+    additional_pkg_config_path = []
     @depbuilds.each {|depbuild|
       dep_dirs << "#{depbuild.target.target_name}=#{depbuild.dir}"
       bindir = "#{depbuild.dir}/bin"
       additional_path << bindir if File.directory?(bindir) && !(Dir.entries(bindir) - %w[. ..]).empty?
+      pkg_config_path = "#{depbuild.dir}/lib/pkgconfig"
+      additional_pkg_config_path << pkg_config_path if !Dir.entries(pkg_config_path).grep(/\.pc\z/).empty?
     }
     if @opts[:complete_options] && @opts[:complete_options].respond_to?(:merge_dependencies)
       @opts = @opts[:complete_options].merge_dependencies(@opts, dep_dirs)
     end
     if !additional_path.empty?
       @opts[:additional_path] = additional_path
+    end
+    if !additional_pkg_config_path.empty?
+      @opts[:additional_pkg_config_path] = additional_pkg_config_path
     end
     status = self.build_in_child
     status.to_i == 0
@@ -304,6 +310,13 @@ class ChkBuild::Build
     path.concat @opts[:additional_path] if @opts[:additional_path]
     path.concat ENV['PATH'].split(/:/)
     ENV['PATH'] = path.join(':')
+    if @opts[:additional_pkg_config_path]
+      pkg_config_path = @opts[:additional_pkg_config_path]
+      if ENV['PKG_CONFIG_PATH']
+        pkg_config_path += ENV['PKG_CONFIG_PATH'].split(/:/)
+      end
+      ENV['PKG_CONFIG_PATH'] = pkg_config_path.join(':')
+    end
   end
 
   def show_options

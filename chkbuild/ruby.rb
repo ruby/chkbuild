@@ -237,6 +237,8 @@ def (ChkBuild::Ruby::CompleteOptions).merge_dependencies(opts, dep_dirs)
       hs << { :configure_args_dbm => "--with-dbm-dir=#{$'}" }
     when /\Azlib=/
       hs << { :configure_args_zlib => "--with-zlib-dir=#{$'}" }
+    when /\Alibffi=/
+      hs << { :configure_args_fiddle => "--with-libffi-dir=#{$'}" }
     end
   }
   hs.each {|h|
