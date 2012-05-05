@@ -226,9 +226,11 @@ def (ChkBuild::Ruby::CompleteOptions).merge_dependencies(opts, dep_dirs)
   hs = []
   dep_dirs.each {|s|
     case s
-    when /\Agcc=/ then hs << { :configure_args_cc => "CC=#{$'}/bin/gcc",
-			       :"make_options_ENV:LD_RUN_PATH" => "#{$'}/lib" }
-    when /\Aautoconf=/ then hs << { :autoconf_command => "#{$'}/bin/autoconf" }
+    when /\Agcc=/ then
+      hs << { :configure_args_cc => "CC=#{$'}/bin/gcc",
+	      :"make_options_ENV:LD_RUN_PATH" => "#{$'}/lib" }
+    when /\Aautoconf=/ then
+      hs << { :autoconf_command => "#{$'}/bin/autoconf" }
     when /\Aopenssl=/
       hs << { :configure_args_openssl => "--with-openssl-dir=#{$'}" }
       hs << { :configure_args_digest => "--with-digest-dir=#{$'}" }
