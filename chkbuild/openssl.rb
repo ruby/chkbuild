@@ -97,3 +97,49 @@ ChkBuild.define_title_hook('openssl', 'version') {|title, log|
   end
 }
 
+class ChkBuild::CVSTrac
+  def initialize(uri, mod)
+    @uri = uri
+    @mod = mod
+  end
+
+  def markup_uri(d, f, r)
+    path = [@mod, d, f].compact.join('/')
+    uri = URI(@uri)
+    uri.path << '/' if %r{/\z} !~ uri.path
+    uri.path << 'fileview'
+    uri.query = "f=#{CGI.escape path}&v=#{CGI.escape r}"
+    uri.to_s
+  end
+
+  def diff_uri(d, f, r1, r2)
+    path = [@mod, d, f].compact.join('/')
+    uri = URI(@uri)
+    uri.path << '/' if %r{/\z} !~ uri.path
+    uri.path << 'filediff'
+    uri.query = "f=#{CGI.escape path}&v1=#{CGI.escape r1}&v2=#{CGI.escape r2}"
+    uri.to_s
+  end
+end
+
+# segment       = *pchar
+# pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
+# unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
+# pct-encoded   = "%" HEXDIG HEXDIG
+# sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
+#               / "*" / "+" / "," / ";" / "="
+segment_regexp = '(?:[A-Za-z0-9\-._~!$&\'()*+,;=:@]|%[0-9A-Fa-f][0-9A-Fa-f])*'
+
+ChkBuild.define_file_changes_viewer('cvs',
+  %r{\A#{ChkBuild.build_top}/cvs-repos/openssl-cvs (#{segment_regexp}(/#{segment_regexp})*)?\z}o) {
+  |match, reptype, pat, checkout_line|
+  # rsync://dev.openssl.org/openssl-cvs/
+  # http://cvs.openssl.org/index (CVSTrac)
+  # http://cvs.openssl.org/fileview?f=openssl/doc/HOWTO/proxy_certificates.txt&v=1.3
+  # http://cvs.openssl.org/filediff?f=openssl/doc/HOWTO/proxy_certificates.txt&v1=1.3&v2=1.4
+
+  mod = match[1]
+  mod = nil if mod && mod.empty?
+  ChkBuild::CVSTrac.new('http://cvs.openssl.org/', mod)
+}
+
