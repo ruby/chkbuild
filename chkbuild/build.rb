@@ -136,9 +136,13 @@ class ChkBuild::Build
     @depbuilds.each {|depbuild|
       dep_dirs << "#{depbuild.target.target_name}=#{depbuild.dir}"
       bindir = "#{depbuild.dir}/bin"
-      additional_path << bindir if File.directory?(bindir) && !(Dir.entries(bindir) - %w[. ..]).empty?
+      if File.directory?(bindir) && !(Dir.entries(bindir) - %w[. ..]).empty?
+	additional_path << bindir
+      end
       pkg_config_path = "#{depbuild.dir}/lib/pkgconfig"
-      additional_pkg_config_path << pkg_config_path if !Dir.entries(pkg_config_path).grep(/\.pc\z/).empty?
+      if File.directory?(pkg_config_path) && !Dir.entries(pkg_config_path).grep(/\.pc\z/).empty?
+	additional_pkg_config_path << pkg_config_path
+      end
     }
     if @opts[:complete_options] && @opts[:complete_options].respond_to?(:merge_dependencies)
       @opts = @opts[:complete_options].merge_dependencies(@opts, dep_dirs)
