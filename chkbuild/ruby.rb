@@ -356,6 +356,14 @@ ChkBuild.define_build_proc('ruby') {|b|
     end
   }
   b.catch_error { b.run("./miniruby", '-e', ChkBuild::Ruby::METHOD_LIST_SCRIPT, :section=>"method-list") }
+
+  # Ruby 1.9 provides 'main' target to build ruby excluding documents.
+  makefile = File.read('Makefile')
+  makefile << File.read('uncommon.mk') if File.file?('GNUmakefile') && File.file?('uncommon.mk')
+  if /^main:/ =~ makefile
+    b.make('main', make_options)
+  end
+
   b.make(make_options)
   b.catch_error { b.run("./ruby", "-v", :section=>"version") }
   b.make("install-nodoc", make_options)
