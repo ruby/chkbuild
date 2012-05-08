@@ -265,6 +265,7 @@ ChkBuild.define_build_proc('ruby') {|b|
   use_rubyspec = bopts[:use_rubyspec]
   force_gperf = bopts[:force_gperf]
   inplace_build = bopts[:inplace_build]
+  parallel = bopts[:parallel]
 
   b.run(autoconf_command, '--version', :section=>'autoconf-version')
   b.run('bison', '--version', :section=>'bison-version')
@@ -344,7 +345,9 @@ ChkBuild.define_build_proc('ruby') {|b|
     end
   end
 
-  b.make("miniruby", make_options)
+  make_args = ["miniruby", make_options]
+  make_args.unshift "-j#{parallel}" if parallel
+  b.make(*make_args)
   b.catch_error { b.run("./miniruby", "-v", :section=>"miniversion") }
   if File.directory? "#{srcdir}/bootstraptest"
     b.catch_error { b.make("btest", "OPTS=-v -q", make_options.merge(:section=>"btest")) }
@@ -361,10 +364,14 @@ ChkBuild.define_build_proc('ruby') {|b|
   makefile = File.read('Makefile')
   makefile << File.read('uncommon.mk') if File.file?('GNUmakefile') && File.file?('uncommon.mk')
   if /^main:/ =~ makefile
-    b.make('main', make_options)
+    make_args = ['main', make_options]
+    make_args.unshift "-j#{parallel}" if parallel
+    b.make(*make_args)
   end
 
-  b.make(make_options)
+  make_args = [make_options]
+  make_args.unshift "-j#{parallel}" if parallel
+  b.make(*make_args)
   b.catch_error { b.run("./ruby", "-v", :section=>"version") }
   b.make("install-nodoc", make_options)
   bindir = ruby_build_dir+'bin'
@@ -375,7 +382,9 @@ ChkBuild.define_build_proc('ruby') {|b|
   end
   #b.catch_error { b.run("./ruby", "#{srcdir+'test/runner.rb'}", "-v", :section=>"test-all") }
   b.catch_error {
-    b.make("test-all", "TESTS=-v", "RUBYOPT=-w", make_options.merge(:section=>"test-all"))
+    parallel_option = ''
+    parallel_option = "j#{parallel}" if parallel
+    b.make("test-all", "TESTS=-v#{parallel_option}", "RUBYOPT=-w", make_options.merge(:section=>"test-all"))
   }
   b.catch_error {
     if /^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors/ !~ b.logfile.get_section('test-all')

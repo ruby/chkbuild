@@ -1525,7 +1525,7 @@ End
     opts = opts.dup
     opts[:alt_commands] = ['make']
 
-    make_opts, targets = args.partition {|a| /=/ =~ a }
+    make_opts, targets = args.partition {|a| /\A-|=/ =~ a }
     if targets.empty?
       opts[:section] ||= 'make'
       self.run("gmake", *(make_opts + [opts]))
@@ -1534,7 +1534,7 @@ End
         h = opts.dup
         h[:reason] = target
         h[:section] ||= target
-        self.run("gmake", target, *(make_opts + [h]))
+        self.run("gmake", *(make_opts + [target, h]))
       }
     end
   end
