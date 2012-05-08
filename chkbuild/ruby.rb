@@ -368,7 +368,6 @@ ChkBuild.define_build_proc('ruby') {|b|
   b.catch_error { b.run("./ruby", "-v", :section=>"version") }
   b.make("install-nodoc", make_options)
   bindir = ruby_build_dir+'bin'
-  make_options["ENV:PATH"] = "#{bindir}:#{ENV['PATH']}"
   b.catch_error { b.make("install-doc", make_options) }
   b.catch_error { b.run("./ruby", '-e', ChkBuild::Ruby::VERSION_LIST_SCRIPT, :section=>"version-list") }
   if File.file? "#{srcdir}/KNOWNBUGS.rb"
@@ -413,7 +412,6 @@ ChkBuild.define_build_proc('ruby') {|b|
       # command << "rubyspec"
       command.concat ChkBuild::Ruby.rubyspec_exclude_directories(excludes, ["rubyspec"])
       command << {
-	"ENV:PATH"=>"#{bindir}:#{ENV['PATH']}",
 	:section=>"rubyspec"
       }
       b.run(*command)
@@ -436,7 +434,6 @@ ChkBuild.define_build_proc('ruby') {|b|
 	    command = %W[bin/ruby mspec/bin/mspec -V -f s -B #{config} -t #{rubybin}]
 	    command << f.to_s
 	    command << {
-	      "ENV:PATH"=>"#{bindir}:#{ENV['PATH']}",
 	      :section=>f.to_s
 	    }
 	    b.run(*command)
