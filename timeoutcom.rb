@@ -111,12 +111,31 @@ module TimeoutCommand
       psresult = psio.to_a
       pat = /\A\s*#{pgid}\b/
       first = true
+      pids = []
       psresult.each {|line|
-	if first || pat =~ line
+	if first
 	  msgout.puts "PSOUT #{line}"
+	elsif pat =~ line
+	  msgout.puts "PSOUT #{line}"
+	  if /\A\s*\d+\s+(\d+)/ =~ line
+	    pids << $1
+	  end
 	end
 	first = false
       }
+      if !pids.empty?
+        lsof_command = "lsof -p #{pids.join(',')}"
+	begin
+	  lsofresult = `#{lsof_command}`
+	rescue Errno::ENOENT
+	  lsofresult = nil
+	end
+	if lsofresult
+	  lsofresult.each_line {|line|
+	    msgout.puts "LSOFOUT #{line}"
+	  }
+	end
+      end
     }
   end
 
