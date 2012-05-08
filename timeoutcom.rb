@@ -107,7 +107,7 @@ module TimeoutCommand
   def show_process_group(pgid, msgout)
     return if !msgout
     # ps -A and -o option is defined by POSIX.
-    IO.popen("ps -A -o 'pgid pid etime pcpu vsz args'") {|psio|
+    IO.popen("ps -A -o 'pgid pid etime pcpu vsz comm args'") {|psio|
       psresult = psio.to_a
       pat = /\A\s*#{pgid}\b/
       first = true
