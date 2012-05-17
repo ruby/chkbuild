@@ -599,6 +599,18 @@ ChkBuild.define_diff_preprocess_gsub_state('ruby', /\A([^:]*:)(\d+)(:((?:\d+:)? 
   "#{pre}<line_#{id}>#{post}"
 }
 
+# Doxygen:
+# Running dot for graph 1/405
+ChkBuild.define_diff_preprocess_gsub('ruby', %r{Running dot for graph \d+/\d+}) {|match|
+  'Running dot for graph <num>/<num>'
+}
+
+# Doxygen:
+# Inserting map/figure 1/342
+ChkBuild.define_diff_preprocess_gsub('ruby', %r{Inserting map/figure \d+/\d+}) {|match|
+  'Inserting map/figure <num>/<num>'
+}
+
 # gcc ... -DRUBY_RELEASE_DATE=\"2010-05-04\" ... tcltklib.c
 ChkBuild.define_diff_preprocess_gsub('ruby', /-DRUBY_RELEASE_DATE=\\"\d+-\d\d-\d\d\\"/) {|match|
   '-DRUBY_RELEASE_DATE=\"YYYY-MM-DD\"'
