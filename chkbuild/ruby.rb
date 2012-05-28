@@ -361,26 +361,33 @@ ChkBuild.define_build_proc('ruby') {|b|
   b.catch_error { b.run("./miniruby", '-e', ChkBuild::Ruby::METHOD_LIST_SCRIPT, :section=>"method-list") }
 
   # Ruby 1.9 provides 'main' target to build ruby excluding documents.
-  makefile = File.read('Makefile')
-  makefile << File.read('uncommon.mk') if File.file?('GNUmakefile') && File.file?('uncommon.mk')
-  if /^main:/ =~ makefile
+  makefile_lines = IO.readlines('Makefile')
+  makefile_lines.concat IO.readlines('uncommon.mk') if File.file?('GNUmakefile') && File.file?('uncommon.mk')
+
+  do_rdoc = true
+  if makefile_lines.grep(/\Aall:.*\S/).sort == ["all: showflags main docs\n"]
+    b.make('showflags', make_options)
     make_args = ['main', make_options]
+    make_args.unshift "-j#{parallel}" if parallel
+    b.make(*make_args)
+    do_rdoc &&= b.catch_error { 
+      make_args = ['docs', make_options]
+      make_args.unshift "-j#{parallel}" if parallel
+      b.make(*make_args)
+    }
+  else
+    make_args = [make_options]
     make_args.unshift "-j#{parallel}" if parallel
     b.make(*make_args)
   end
 
-  make_args = [make_options]
-  make_args.unshift "-j#{parallel}" if parallel
-  b.make(*make_args)
   b.catch_error { b.run("./ruby", "-v", :section=>"version") }
   b.make("install-nodoc", make_options)
-  bindir = ruby_build_dir+'bin'
-  b.catch_error { b.make("install-doc", make_options) }
+  do_rdoc &&= b.catch_error { b.make("install-doc", make_options) }
   b.catch_error { b.run("./ruby", '-e', ChkBuild::Ruby::VERSION_LIST_SCRIPT, :section=>"version-list") }
   if File.file? "#{srcdir}/KNOWNBUGS.rb"
     b.catch_error { b.make("test-knownbug", "OPTS=-v -q", make_options) }
   end
-  #b.catch_error { b.run("./ruby", "#{srcdir+'test/runner.rb'}", "-v", :section=>"test-all") }
   b.catch_error {
     parallel_option = ''
     parallel_option = "j#{parallel}" if parallel
