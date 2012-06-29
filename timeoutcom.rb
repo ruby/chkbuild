@@ -110,7 +110,12 @@ module TimeoutCommand
     # COLUMNS is also described for ps command in POSIX.
     # (FreeBSD 8.2 ps uses COLUMNS even for pipe output.
     # GNU/Linux (Debian squeeze) ps doesn't use COLUMNS for pipe output, though.)
-    IO.popen("COLUMNS=10240 ps -A -o 'pgid pid etime pcpu vsz comm args'") {|psio|
+    ps_additional_options = ''
+    case RUBY_PLATFORM
+    when /\blinux\b/
+      ps_additional_options << ' -L' # show threads
+    end
+    IO.popen("COLUMNS=10240 ps -A#{ps_additional_options} -o 'pgid pid etime pcpu vsz comm args'") {|psio|
       psresult = psio.to_a
       pat = /\A\s*#{pgid}\b/
       first = true
