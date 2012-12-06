@@ -746,6 +746,11 @@ ChkBuild.define_diff_preprocess_gsub('ruby', %r{__ms_-?\d+_}) {|match|
   '__ms_<object_id>_'
 }
 
+# called with unexpected arguments (__mspec_70137220810560_respond_to_missing?__ false)
+ChkBuild.define_diff_preprocess_gsub('ruby', %r{__mspec_-?\d+_}) {|match|
+  '__mspec_<object_id>_'
+}
+
 # miniunit:
 # Complex_Test#test_parse: 0.01 s: .
 # Test_REXMLStreamParser#test_fault: -0.58 s: .
