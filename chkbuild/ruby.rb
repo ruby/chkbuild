@@ -83,7 +83,7 @@ End
   DOMAINLABEL = /[A-Za-z0-9-]+/
   DOMAINPAT = /#{DOMAINLABEL}(\.#{DOMAINLABEL})*/
 
-  MaintainedBranches = %w[trunk 1.9.3 1.9.2 1.8 1.8.7]
+  MaintainedBranches = %w[trunk 2.0.0 1.9.3 1.9.2 1.8 1.8.7]
 
   module_function
 
@@ -148,6 +148,7 @@ def (ChkBuild::Ruby::CompleteOptions).call(target_opts)
     when "mvm" then hs << { :ruby_branch => 'branches/mvm' }
     when "half-baked-1.9" then hs << { :ruby_branch => 'branches/half-baked-1.9' }
     when "matzruby" then hs << { :ruby_branch => 'branches/matzruby' }
+    when "2.0.0" then hs << { :ruby_branch => 'branches/ruby_2_0_0' }
     when "1.9.3" then hs << { :ruby_branch => 'branches/ruby_1_9_3' }
     when "1.9.2" then hs << { :ruby_branch => 'branches/ruby_1_9_2' }
     when "1.9.1" then hs << { :ruby_branch => 'branches/ruby_1_9_1' }
