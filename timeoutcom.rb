@@ -107,15 +107,23 @@ module TimeoutCommand
   def show_process_group(pgid, msgout)
     return if !msgout
     # ps -A and -o option is defined by POSIX.
-    # COLUMNS is also described for ps command in POSIX.
-    # (FreeBSD 8.2 ps uses COLUMNS even for pipe output.
-    # GNU/Linux (Debian squeeze) ps doesn't use COLUMNS for pipe output, though.)
+    # However MirOS BSD (MirBSD 10 GENERIC#1382 i386) don't have -A and -ax can be used instead.
+    #
+    # COLUMNS is described for ps command in POSIX.
+    # FreeBSD 8.2 ps uses COLUMNS even for pipe output.
+    # GNU/Linux (Debian squeeze) ps doesn't use COLUMNS for pipe output, though.
+    #
+    ps_all_process_option = '-A'
+    case RUBY_PLATFORM
+    when /\bmirbsd/
+      ps_all_process_option = '-ax'
+    end
     ps_additional_options = ''
     case RUBY_PLATFORM
     when /\blinux\b/
       ps_additional_options << ' -L' # show threads
     end
-    IO.popen("COLUMNS=10240 ps -A#{ps_additional_options} -o 'pgid pid etime pcpu vsz comm args'") {|psio|
+    IO.popen("COLUMNS=10240 ps #{ps_all_process_option}#{ps_additional_options} -o 'pgid pid etime pcpu vsz comm args'") {|psio|
       psresult = psio.to_a
       pat = /\A\s*#{pgid}\b/
       first = true
