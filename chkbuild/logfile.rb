@@ -57,18 +57,28 @@ class ChkBuild::LogFile
       when /\A3\.1/; codename = 'sarge'
       when /\A4\.0/; codename = 'etch'
       when /\A5\.0/; codename = 'lenny'
+      when /\A6\.0/; codename = 'squeeze'
+      when /\A7\.0/; codename = 'wheezy'
       else codename = nil
       end
-      ver = "Debian GNU/Linux #{ver}"
-      ver << " (#{codename})" if codename
-      return ver
+      rel = ''
+      rel << "Distributor ID:\tDebian\n"
+      rel << "Description:\tDebian GNU/Linux #{ver}"
+      rel << " (#{codename})" if codename
+      rel << "\n"
+      rel << "Release:\t#{ver}\n"
+      rel << "Codename:\t#{codename}\n" if codename
+      return rel
     end
     nil
   end
 
   def self.show_os_version
     puts "Nickname: #{ChkBuild.nickname}"
-    system("uname -mrsv")
+    uname = `uname -mrsv` rescue nil
+    puts "uname: #{uname}" if $?.success?
+    debian_arch = `dpkg --print-architecture` rescue nil
+    puts "Debian Architecture: #{debian_arch}" if $?.success?
     system("sw_vers") # MacOS X
     if !system("lsb_release -idrc") # recent GNU/Linux
       os_ver = self.os_version
