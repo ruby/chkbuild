@@ -76,10 +76,13 @@ class ChkBuild::LogFile
   def self.show_os_version
     puts "Nickname: #{ChkBuild.nickname}"
     uname = `uname -srvm` rescue nil; puts "uname_srvm: #{uname}" if $?.success?
-    uname_s = `uname -s` rescue nil; puts "uname_s: #{uname_s}" if $?.success?
-    uname_r = `uname -r` rescue nil; puts "uname_r: #{uname_r}" if $?.success?
-    uname_v = `uname -v` rescue nil; puts "uname_v: #{uname_v}" if $?.success?
-    uname_m = `uname -m` rescue nil; puts "uname_m: #{uname_m}" if $?.success?
+    uname_s = `uname -s` rescue nil; puts "uname_s: #{uname_s}" if $?.success? # POSIX
+    uname_r = `uname -r` rescue nil; puts "uname_r: #{uname_r}" if $?.success? # POSIX
+    uname_v = `uname -v` rescue nil; puts "uname_v: #{uname_v}" if $?.success? # POSIX
+    uname_m = `uname -m` rescue nil; puts "uname_m: #{uname_m}" if $?.success? # POSIX
+    uname_p = `uname -p` rescue nil; puts "uname_p: #{uname_p}" if $?.success? # GNU/Linux, FreeBSD, NetBSD, OpenBSD, SunOS
+    uname_i = `uname -i` rescue nil; puts "uname_i: #{uname_i}" if $?.success? # GNU/Linux, FreeBSD, SunOS
+    uname_o = `uname -o` rescue nil; puts "uname_o: #{uname_o}" if $?.success? # GNU/Linux, FreeBSD, SunOS
     debian_arch = `dpkg --print-architecture` rescue nil
     puts "Debian Architecture: #{debian_arch}" if $?.success?
     system("sw_vers") # MacOS X
