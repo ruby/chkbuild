@@ -79,7 +79,6 @@ class ChkBuild::Build
     opts_shared[:section] += "(shared)"
     cloneurl2 = "#{GIT_SHARED_DIR}/#{working_dir}.git"
     Dir.chdir(GIT_SHARED_DIR) {
-      p cloneurl2
       if File.directory?(cloneurl2) &&
          Dir.chdir(cloneurl2) { `git config --get remote.origin.url` }.chomp != cloneurl
 	FileUtils.rm_rf(cloneurl2)
