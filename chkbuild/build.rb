@@ -1484,10 +1484,14 @@ End
         end
 
         resource_unlimit(:RLIMIT_CORE)
-        resource_limit(:RLIMIT_CPU, #{limit.fetch(:cpu).to_i})
-        resource_limit(:RLIMIT_STACK, #{limit.fetch(:stack).to_i})
-        resource_limit(:RLIMIT_DATA, #{limit.fetch(:data).to_i})
-        resource_limit(:RLIMIT_AS, #{limit.fetch(:as).to_i})
+	v = #{limit.has_key?(:cpu) ? limit[:cpu].to_i : "nil" }
+	resource_limit(:RLIMIT_CPU, v) if v
+	v = #{limit.has_key?(:stack) ? limit[:stack].to_i : "nil" }
+	resource_limit(:RLIMIT_STACK, v) if v
+	v = #{limit.has_key?(:data) ? limit[:data].to_i : "nil" }
+	resource_limit(:RLIMIT_DATA, v) if v
+	v = #{limit.has_key?(:as) ? limit[:as].to_i : "nil" }
+	resource_limit(:RLIMIT_AS, v) if v
       End
     end
 
