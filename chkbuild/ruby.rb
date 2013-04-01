@@ -382,7 +382,7 @@ ChkBuild.define_build_proc('ruby') {|b|
     b.make(*make_args)
   end
 
-  b.catch_error { b.run("./ruby", "-v", :section=>"version") }
+  b.catch_error { b.run("tool/runruby.rb", "-v", :section=>"version") }
   b.make("install-nodoc", make_options)
   do_rdoc &&= b.catch_error { b.make("install-doc", make_options) }
   b.catch_error { b.run("./ruby", '-e', ChkBuild::Ruby::VERSION_LIST_SCRIPT, :section=>"version-list") }
