@@ -53,7 +53,7 @@ module GDB
       core_path = rename_core(core_path)
       unless gdb_command
         gdb_command = Tempfile.new("gdb-bt")
-        gdb_command.puts "bt"
+        gdb_command.puts "bt 1000"
         gdb_command.close
       end
       puts
