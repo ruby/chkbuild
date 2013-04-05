@@ -1,10 +1,10 @@
 # chkbuild/hook.rb - hook definitions
 #
 # Copyright (C) 2011-2012 Tanaka Akira  <akr@fsij.org>
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
-# 
+#
 #  1. Redistributions of source code must retain the above copyright notice, this
 #     list of conditions and the following disclaimer.
 #  2. Redistributions in binary form must reproduce the above copyright notice,
@@ -12,7 +12,7 @@
 #     and/or other materials provided with the distribution.
 #  3. The name of the author may not be used to endorse or promote products
 #     derived from this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
 # WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
@@ -94,7 +94,7 @@ module ChkBuild
   def ChkBuild.lazy_init_diff_preprocess_hook(target_name)
     if !@diff_preprocess_hook_hash.include?(target_name)
       @diff_preprocess_hook_hash[target_name] = []
-      init_default_diff_preprocess_hooks(target_name) 
+      init_default_diff_preprocess_hooks(target_name)
     end
   end
   def ChkBuild.define_diff_preprocess_hook(target_name, &block)
@@ -141,7 +141,7 @@ module ChkBuild
     # Uid:    1000    1000    1000    1000
     # Gid:    1000    1000    1000    1000
     # FDSize: 64
-    # Groups: 4 20 24 46 111 119 122 1000 
+    # Groups: 4 20 24 46 111 119 122 1000
     # VmPeak:    79108 kB
     # VmSize:    79108 kB
     # VmLck:         0 kB

@@ -1,10 +1,10 @@
 # chkbuild/git.rb - git access method
 #
 # Copyright (C) 2008-2012 Tanaka Akira  <akr@fsij.org>
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
-# 
+#
 #  1. Redistributions of source code must retain the above copyright notice, this
 #     list of conditions and the following disclaimer.
 #  2. Redistributions in binary form must reproduce the above copyright notice,
@@ -12,7 +12,7 @@
 #     and/or other materials provided with the distribution.
 #  3. The name of the author may not be used to endorse or promote products
 #     derived from this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
 # WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
@@ -276,7 +276,7 @@ class ChkBuild::Build
   def output_git_change_lines(checkout_line, lines1, lines2, out)
     if /CHECKOUT git (\S+) (\S+)/ !~ checkout_line
       out.puts "unexpected checkout line: #{checkout_line}"
-      return 
+      return
     end
     cloneurl = $1
     working_dir = $2
@@ -288,7 +288,7 @@ class ChkBuild::Build
     lastrev2 = $1 if lastcommit2 && /\ALASTCOMMIT ([0-9a-fA-F]+)/ =~ lastcommit2
     if !lastrev1 || !lastrev2
       out.puts "no last revision found."
-      return 
+      return
     end
 
     cloneurl2 = "#{GIT_SHARED_DIR}/#{working_dir}.git"

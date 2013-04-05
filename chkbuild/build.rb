@@ -1,10 +1,10 @@
 # chkbuild/build.rb - build object implementation.
 #
 # Copyright (C) 2006-2012 Tanaka Akira  <akr@fsij.org>
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
-# 
+#
 #  1. Redistributions of source code must retain the above copyright notice, this
 #     list of conditions and the following disclaimer.
 #  2. Redistributions in binary form must reproduce the above copyright notice,
@@ -12,7 +12,7 @@
 #     and/or other materials provided with the distribution.
 #  3. The name of the author may not be used to endorse or promote products
 #     derived from this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
 # WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
@@ -347,7 +347,7 @@ class ChkBuild::Build
 
   def show_process_status
     if File.exist?('/bin/pflags') # Solaris
-      self.run('pflags', $$.to_s) 
+      self.run('pflags', $$.to_s)
     elsif File.exist? '/proc/self/status' # GNU/Linux
       # Don't print /proc/self/status on Solaris because it is a binary file.
       self.run('cat', '/proc/self/status', :section => 'process-status')
@@ -594,7 +594,7 @@ class ChkBuild::Build
     dirs[-num..-1] = []
     dirs.each {|d|
       d = @target_dir+d
-      if d.symlink? 
+      if d.symlink?
         if d.exist?
           d.realpath.rmtree
           d.unlink
@@ -1147,7 +1147,7 @@ End
     ret = []
     ret << 'src' if has_change_line
     ret.concat different_sections(tmp1, tmp2)
-    ret 
+    ret
   end
 
   def output_change_lines(t2, out)

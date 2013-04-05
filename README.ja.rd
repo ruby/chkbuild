@@ -38,9 +38,9 @@ chkbuild は、定期的にソフトウェアをビルドし、
   % cd chkbuild
   % ruby start-build
 
-  % w3m tmp/public_html/ruby-trunk/summary.html 
-  % w3m tmp/public_html/ruby-1.8/summary.html 
-  % w3m tmp/public_html/ruby-1.8-pth/summary.html 
+  % w3m tmp/public_html/ruby-trunk/summary.html
+  % w3m tmp/public_html/ruby-1.8/summary.html
+  % w3m tmp/public_html/ruby-1.8-pth/summary.html
 
   % rm -rf tmp
 
@@ -131,7 +131,7 @@ chkbuild は、定期的にソフトウェアをビルドし、
     ここでは /home/$U/public_html/chkbuild を使うことにします。
 
       % mkdir -p /home/$U/public_html/chkbuild
- 
+
     HTTP サーバでアップロードを受け取るための rsync daemon の設定を作ります。
     (daemon といっても常に動かしておくわけではありませんが。)
     ここでは /home/$U/.ssh/chkbuild-rsyncd.conf に作るとします。
@@ -144,7 +144,7 @@ chkbuild は、定期的にソフトウェアをビルドし、
       use chroot = no
       read only = no
       write only = yes
-    
+
     HTTP サーバでアップロードを受け取るユーザの ~/.ssh/authorized_keys に
     以下を加えます。
     これはここで使う鍵対が上記の設定での rsync daemon の起動専用にするものです。
@@ -154,7 +154,7 @@ chkbuild は、定期的にソフトウェアをビルドし、
     chkbuild を動作させるホストで、HTTP サーバの ssh fingerprint を記録します。
     HTTP サーバのホスト名を http-server とします。
 
-      % mkdir /home/chkbuild/.ssh                                         
+      % mkdir /home/chkbuild/.ssh
       % ssh-keyscan -t rsa http-server > /home/chkbuild/.ssh/known_hosts
 
     上で生成した鍵対の秘密鍵を chkbuild を動作させるホストの

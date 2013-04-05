@@ -1,10 +1,10 @@
 # chkbuild/svn.rb - svn access methods
 #
 # Copyright (C) 2006-2012 Tanaka Akira  <akr@fsij.org>
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
-# 
+#
 #  1. Redistributions of source code must retain the above copyright notice, this
 #     list of conditions and the following disclaimer.
 #  2. Redistributions in binary form must reproduce the above copyright notice,
@@ -12,7 +12,7 @@
 #     and/or other materials provided with the distribution.
 #  3. The name of the author may not be used to endorse or promote products
 #     derived from this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
 # WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
@@ -153,7 +153,7 @@ class ChkBuild::Build
   def output_svn_change_lines(checkout_line, lines1, lines2, out)
     if /CHECKOUT svn (\S+) (\S+)/ !~ checkout_line
       out.puts "unexpected checkout line: #{checkout_line}"
-      return 
+      return
     end
     svnroot = $1
     rep_dir = $2

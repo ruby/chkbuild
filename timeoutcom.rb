@@ -1,10 +1,10 @@
 # timeoutcom.rb - command timeout library
 #
 # Copyright (C) 2005-2012 Tanaka Akira  <akr@fsij.org>
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
-# 
+#
 #  1. Redistributions of source code must retain the above copyright notice, this
 #     list of conditions and the following disclaimer.
 #  2. Redistributions in binary form must reproduce the above copyright notice,
@@ -12,7 +12,7 @@
 #     and/or other materials provided with the distribution.
 #  3. The name of the author may not be used to endorse or promote products
 #     derived from this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
 # WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
@@ -191,7 +191,7 @@ module TimeoutCommand
           join_timeout = limit_time - Time.now
           if join_timeout < 0
             timeout_reason = "command execution time exceeds #{command_timeout} seconds."
-            break 
+            break
           end
           if output_interval_timeout and
              t = last_output_time(file_list) and
@@ -239,7 +239,7 @@ module TimeoutCommand
 	      sleep 1
 	      if !processgroup_alive?(pid)
 		timeout_reason = nil
-		break 
+		break
 	      end
 	    end
 	    msgout.puts "timeout: #{timeout_reason}" if msgout && timeout_reason
