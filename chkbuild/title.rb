@@ -34,7 +34,7 @@ class ChkBuild::Title
     @title[:version] = @logfile.suffixed_name
     @title[:dep_versions] = []
     @title[:hostname] = "(#{ChkBuild.nickname})"
-    @title_order = [:version, :dep_versions, :hostname, :warn, :mark, :status]
+    @title_order = [:revision, :version, :dep_versions, :hostname, :warn, :mark, :status]
     @logfile.each_secname {|secname|
       if @logfile.failed_section?(secname)
 	log = @logfile.get_section(secname)
@@ -102,7 +102,7 @@ class ChkBuild::Title
     a = []
     a = @title_order.map {|key|
       title_hash[key]
-    }.flatten
+    }.flatten.compact
     h = Hash.new(0)
     a.each {|s|
       h[s] += 1

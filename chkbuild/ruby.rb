@@ -299,6 +299,30 @@ ChkBuild.define_build_proc('ruby') {|b|
 
   Dir.chdir("ruby")
 
+  if File.exist? 'version.h'
+    b.logfile.start_section 'version.h'
+    version_macros = %w[
+      RUBY_BRANCH_NAME
+      RUBY_PATCHLEVEL
+      RUBY_RELEASE_CODE
+      RUBY_RELEASE_DATE
+      RUBY_RELEASE_DAY
+      RUBY_RELEASE_MONTH
+      RUBY_RELEASE_YEAR
+      RUBY_VERSION
+      RUBY_VERSION_CODE
+      RUBY_VERSION_MAJOR
+      RUBY_VERSION_MINOR
+      RUBY_VERSION_TEENY
+    ]
+    File.foreach('version.h') {|line|
+      if /\A\#\s*define\s+([A-Z_]+)\s+(\S.*)\n\z/ =~ line &&
+         version_macros.include?($1)
+        puts line
+      end
+    }
+  end
+
   if force_gperf
     b.run('gperf', '--version', :section=>'gperf-version')
     if File.exist?('defs/lex.c.src') && File.exist?('lex.c.blt')
@@ -486,6 +510,12 @@ ChkBuild.define_build_proc('ruby') {|b|
       b.make("dist", "RELNAME=#{relname}")
     end
   }
+}
+
+ChkBuild.define_title_hook('ruby', "svn-info/ruby") {|title, log|
+  if /^Last Changed Rev: (\d+)$/ =~ log
+    title.update_title(:revision, "rev:#{$1}")
+  end
 }
 
 ChkBuild.define_title_hook('ruby', "configure") {|title, log|
