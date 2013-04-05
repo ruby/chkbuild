@@ -1,10 +1,10 @@
 # chkbuild/ruby.rb - ruby build module
 #
 # Copyright (C) 2006-2012 Tanaka Akira  <akr@fsij.org>
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
-# 
+#
 #  1. Redistributions of source code must retain the above copyright notice, this
 #     list of conditions and the following disclaimer.
 #  2. Redistributions in binary form must reproduce the above copyright notice,
@@ -12,7 +12,7 @@
 #     and/or other materials provided with the distribution.
 #  3. The name of the author may not be used to endorse or promote products
 #     derived from this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
 # WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
@@ -371,7 +371,7 @@ ChkBuild.define_build_proc('ruby') {|b|
     make_args = ['main', make_options]
     make_args.unshift "-j#{parallel}" if parallel
     b.make(*make_args)
-    do_rdoc &&= b.catch_error { 
+    do_rdoc &&= b.catch_error {
       make_args = ['docs', make_options]
       make_args.unshift "-j#{parallel}" if parallel
       b.make(*make_args)
@@ -574,7 +574,7 @@ ChkBuild.define_title_hook('ruby', nil) {|title, log|
   numsigbus = ChkBuild::Ruby.count_prefix(/signal SIGBUS/i, log) and mark << " #{numsigbus}[SIGBUS]"
   numsigill = ChkBuild::Ruby.count_prefix(/signal SIGILL/i, log) and mark << " #{numsigill}[SIGILL]"
   numsigabrt = ChkBuild::Ruby.count_prefix(/signal SIGABRT/i, log) and mark << " #{numsigabrt}[SIGABRT]"
-  numfatal = ChkBuild::Ruby.count_prefix(/\[FATAL\]/i, log) and mark << " #{numfatal}[FATAL]" 
+  numfatal = ChkBuild::Ruby.count_prefix(/\[FATAL\]/i, log) and mark << " #{numfatal}[FATAL]"
   mark.sub!(/\A /, '')
   title.update_title(:mark, mark)
 }
