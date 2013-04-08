@@ -609,6 +609,18 @@ ChkBuild.define_title_hook('ruby', nil) {|title, log|
   title.update_title(:mark, mark)
 }
 
+# #define RUBY_RELEASE_DATE "2013-04-06"
+ChkBuild.define_diff_preprocess_gsub('ruby', /^\#define RUBY_RELEASE_DATE ".*"/) {|match|
+  '#define RUBY_RELEASE_DATE "<year>-<mm>-<dd>"'
+}
+
+# #define RUBY_RELEASE_YEAR 2013
+# #define RUBY_RELEASE_MONTH 4
+# #define RUBY_RELEASE_DAY 6
+ChkBuild.define_diff_preprocess_gsub('ruby', /^\#define RUBY_RELEASE_(YEAR|MONTH|DAY) \d+/) {|match|
+  "\#define RUBY_RELEASE_#{match[1]} <num>"
+}
+
 # ruby 1.9.2dev (2009-12-07 trunk 26037) [i686-linux]
 # ruby 1.9.1p376 (2009-12-07 revision 26040) [i686-linux]
 # | ruby 1.9.2dev (2010-02-18 trunk 26704) [x86_64-linux]
