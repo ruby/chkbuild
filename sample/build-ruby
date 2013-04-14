@@ -71,12 +71,13 @@ ChkBuild::Ruby.def_target(
   # [nil, { :suffix_? => "-outofplace", :inplace_build => false}]
 
   # :autoconf_command => 'autoconf',
-  # :configure_args => %w[--with-valgrind],
+  # :configure_args_valgrind => %w[--with-valgrind],
   # :cppflags => %w[-DRUBY_DEBUG_ENV],
   # :optflags => %w[-O2],
   # :debugflags => %w[-g],
   # :warnflags => %w[-W -Wall -Wformat=2 -Wundef -Wno-parentheses -Wno-unused-parameter -Wno-missing-field-initializers],
   # :dldflags => %w[],
+  # :validate_dependencies => false,    # needs gmake and gcc 4.5 or later.
 
   # :old => 1,
 

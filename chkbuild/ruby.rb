@@ -192,6 +192,7 @@ def (ChkBuild::Ruby::CompleteOptions).call(target_opts)
     :force_gperf => false,
     :use_rubyspec => false,
     :inplace_build => true,
+    :validate_dependencies => false,
   }
 
   opts = target_opts.dup
@@ -217,6 +218,10 @@ def (ChkBuild::Ruby::CompleteOptions).call(target_opts)
        %r{\Abranches/matzruby} !~ ruby_branch
       return nil
     end
+  end
+
+  if ruby_branch != "trunk"
+    opts[:validate_dependencies] = false
   end
 
   opts
@@ -267,9 +272,14 @@ ChkBuild.define_build_proc('ruby') {|b|
   force_gperf = bopts[:force_gperf]
   inplace_build = bopts[:inplace_build]
   parallel = bopts[:parallel]
+  validate_dependencies = bopts[:validate_dependencies]
 
   b.run(autoconf_command, '--version', :section=>'autoconf-version')
   b.run('bison', '--version', :section=>'bison-version')
+
+  if validate_dependencies
+    debugflags += %w[-save-temps=obj]
+  end
 
   if %r{branches/ruby_1_8_} =~ ruby_branch && $' < "8"
     cflags.concat cppflags
@@ -418,6 +428,14 @@ ChkBuild.define_build_proc('ruby') {|b|
   b.make("install-nodoc", make_options)
   do_rdoc &&= b.catch_error { b.make("install-doc", make_options) }
   b.catch_error { b.run("./ruby", '-e', ChkBuild::Ruby::VERSION_LIST_SCRIPT, :section=>"version-list") }
+
+  if validate_dependencies
+    b.catch_error {
+      b.make("golf")
+      b.run("./ruby", "tool/update-deps", :section=>"update-deps")
+    }
+  end
+
   if File.file? "#{srcdir}/KNOWNBUGS.rb"
     b.catch_error { b.make("test-knownbug", "OPTS=-v -q", make_options) }
   end
