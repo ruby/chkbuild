@@ -309,9 +309,8 @@ ChkBuild.define_build_proc('ruby') {|b|
 
   Dir.chdir("ruby")
 
-  if File.exist? 'version.h'
-    b.logfile.start_section 'version.h'
-    version_macros = %w[
+  version_data = {
+    'version.h' => %w[
       RUBY_BRANCH_NAME
       RUBY_PATCHLEVEL
       RUBY_RELEASE_CODE
@@ -324,11 +323,18 @@ ChkBuild.define_build_proc('ruby') {|b|
       RUBY_VERSION_MAJOR
       RUBY_VERSION_MINOR
       RUBY_VERSION_TEENY
-    ]
-    File.foreach('version.h') {|line|
-      if /\A\#\s*define\s+([A-Z_]+)\s+(\S.*)\n\z/ =~ line &&
-         version_macros.include?($1)
-        puts line
+    ],
+  }
+  if version_data.keys.any? {|fn| File.exist? fn }
+    b.logfile.start_section 'version.h'
+    version_data.each {|fn, version_macros|
+      if File.exist? fn
+        File.foreach(fn) {|line|
+          if /\A\#\s*define\s+([A-Z_]+)\s+(\S.*)\n\z/ =~ line &&
+             version_macros.include?($1)
+            puts line
+          end
+        }
       end
     }
   end
@@ -372,6 +378,25 @@ ChkBuild.define_build_proc('ruby') {|b|
   args << "DLDFLAGS=#{dldflags.join(' ')}" unless dldflags.empty?
   args.concat configure_args
   b.run("#{srcdir}/configure", *args)
+
+  verconf_list = [
+    'verconf.h',
+    'config.h',
+    *Dir.glob(".ext/include/*/ruby/config.h")
+  ]
+  if verconf_list.any? {|fn| File.exist? fn }
+    b.logfile.start_section 'verconf.h'
+    verconf_list.each {|fn|
+      if File.exist? fn
+        File.foreach(fn) {|line|
+          if /\A\#\s*define\s+([A-Z_]+)\s+(\S.*)\n\z/ =~ line &&
+             $1 == 'RUBY_PLATFORM'
+            puts line
+          end
+        }
+      end
+    }
+  end
 
   if /^CC[ \t]*=[ \t](.*)/ =~ File.read('Makefile')
     cc = $1
