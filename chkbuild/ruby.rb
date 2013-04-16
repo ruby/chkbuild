@@ -572,6 +572,8 @@ ChkBuild.define_title_hook('ruby', nil) {|title, log|
     str << (patchlev[1] == '-1' ? 'dev' : "p#{patchlev[1]}") if patchlev
     str << " (" << reldate[1] << ")"
     str << " [" << platform[1] << "]" if platform
+    ss = title.suffixed_name.split(/-/)[1..-1].reject {|s| /\A(trunk|1\.8)\z/ =~ s }
+    str << " [#{ss.join(',')}]" if !ss.empty?
     title.update_title(:version, str)
   end
 }
