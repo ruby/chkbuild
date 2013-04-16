@@ -566,16 +566,12 @@ ChkBuild.define_title_hook('ruby', nil) {|title, log|
   reldate = /^#\s*define RUBY_RELEASE_DATE "(\S+)"/.match(log)
   patchlev = /^#\s*define RUBY_PATCHLEVEL (\S+)/.match(log)
   platform = /^#\s*define RUBY_PLATFORM "(\S+)"/.match(log)
-  if version && reldate && patchlev && platform
+  if version && reldate
     str = 'ruby '
     str << version[1]
-    if patchlev[1] == '-1'
-      str << 'dev'
-    else
-      str << 'p' << patchlev[1]
-    end
+    str << (patchlev[1] == '-1' ? 'dev' : "p#{patchlev[1]}") if patchlev
     str << " (" << reldate[1] << ")"
-    str << " [" << platform[1] << "]"
+    str << " [" << platform[1] << "]" if platform
     title.update_title(:version, str)
   end
 }
