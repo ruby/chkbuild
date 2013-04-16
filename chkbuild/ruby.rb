@@ -561,29 +561,48 @@ ChkBuild.define_title_hook('ruby', "svn-info/ruby") {|title, log|
   end
 }
 
-ChkBuild.define_title_hook('ruby', "configure") {|title, log|
-  if /^checking target system type\.\.\. (\S+)$/ =~ log
-    title.update_title(:version, "#{title.suffixed_name} [#{$1}]")
+ChkBuild.define_title_hook('ruby', nil) {|title, log|
+  version = /^#\s*define RUBY_VERSION "(\S+)"/.match(log)
+  reldate = /^#\s*define RUBY_RELEASE_DATE "(\S+)"/.match(log)
+  patchlev = /^#\s*define RUBY_PATCHLEVEL (\S+)/.match(log)
+  platform = /^#\s*define RUBY_PLATFORM "(\S+)"/.match(log)
+  if version && reldate && patchlev && platform
+    str = 'ruby '
+    str << version[1]
+    if patchlev[1] == '-1'
+      str << 'dev'
+    else
+      str << 'p' << patchlev[1]
+    end
+    str << " (" << reldate[1] << ")"
+    str << " [" << platform[1] << "]"
+    title.update_title(:version, str)
   end
 }
 
-ChkBuild.define_title_hook('ruby', "miniversion") {|title, log|
-  if /^ruby [0-9].*$/ =~ log
-    ver = $&
-    ss = title.suffixed_name.split(/-/)[1..-1].reject {|s| /\A(trunk|1\.8)\z/ =~ s }
-    ver << " [#{ss.join(',')}]" if !ss.empty?
-    title.update_title(:version, ver)
-  end
-}
+#ChkBuild.define_title_hook('ruby', "configure") {|title, log|
+#  if /^checking target system type\.\.\. (\S+)$/ =~ log
+#    title.update_title(:version, "#{title.suffixed_name} [#{$1}]")
+#  end
+#}
 
-ChkBuild.define_title_hook('ruby', "version") {|title, log|
-  if /^ruby [0-9].*$/ =~ log
-    ver = $&
-    ss = title.suffixed_name.split(/-/)[1..-1].reject {|s| /\A(trunk|1\.8)\z/ =~ s }
-    ver << " [#{ss.join(',')}]" if !ss.empty?
-    title.update_title(:version, ver)
-  end
-}
+#ChkBuild.define_title_hook('ruby', "miniversion") {|title, log|
+#  if /^ruby [0-9].*$/ =~ log
+#    ver = $&
+#    ss = title.suffixed_name.split(/-/)[1..-1].reject {|s| /\A(trunk|1\.8)\z/ =~ s }
+#    ver << " [#{ss.join(',')}]" if !ss.empty?
+#    title.update_title(:version, ver)
+#  end
+#}
+
+#ChkBuild.define_title_hook('ruby', "version") {|title, log|
+#  if /^ruby [0-9].*$/ =~ log
+#    ver = $&
+#    ss = title.suffixed_name.split(/-/)[1..-1].reject {|s| /\A(trunk|1\.8)\z/ =~ s }
+#    ver << " [#{ss.join(',')}]" if !ss.empty?
+#    title.update_title(:version, ver)
+#  end
+#}
 
 ChkBuild.define_failure_hook('ruby', "btest") {|log|
   if /^FAIL (\d+)\/\d+ tests failed/ =~ log
