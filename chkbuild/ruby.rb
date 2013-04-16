@@ -547,6 +547,7 @@ ChkBuild.define_build_proc('ruby') {|b|
       # "make dist" doesn't support BRANCH@rev.
       relname = nil
     else
+      # "make dist" support BRANCH@rev since Ruby 1.9.3.
       relname = "#{ruby_branch}@#{ruby_svn_rev}"
     end
     if relname
