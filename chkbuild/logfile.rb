@@ -83,7 +83,7 @@ class ChkBuild::LogFile
     uname_p = `uname -p 2>/dev/null` rescue nil; puts "uname_p: #{uname_p}" if $?.success? # GNU/Linux, FreeBSD, NetBSD, OpenBSD, SunOS
     uname_i = `uname -i 2>/dev/null` rescue nil; puts "uname_i: #{uname_i}" if $?.success? # GNU/Linux, FreeBSD, SunOS
     uname_o = `uname -o 2>/dev/null` rescue nil; puts "uname_o: #{uname_o}" if $?.success? # GNU/Linux, FreeBSD, SunOS
-    debian_arch = `dpkg --print-architecture` rescue nil
+    debian_arch = `dpkg --print-architecture 2>/dev/null` rescue nil
     puts "Debian Architecture: #{debian_arch}" if $?.success?
     system("sw_vers") # MacOS X
     if !system("lsb_release -idrc") # recent GNU/Linux
