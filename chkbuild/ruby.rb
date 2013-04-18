@@ -416,7 +416,7 @@ ChkBuild.define_build_proc('ruby') {|b|
   end
   if Util.search_command('ldd')
     b.catch_error {
-      b.run("ldd", "./miniruby", :section=>'miniruby-libraries')
+      b.run("ldd", "./miniruby", :section=>'miniruby-shlibs')
     }
   end
 
@@ -437,15 +437,18 @@ ChkBuild.define_build_proc('ruby') {|b|
   makefile_lines.concat IO.readlines('uncommon.mk') if File.file?('GNUmakefile') && File.file?('uncommon.mk')
 
   do_rdoc = true
+  make_docs = nil
   if makefile_lines.grep(/\Aall:.*\S/).sort == ["all: showflags main docs\n"]
     b.make('showflags', make_options)
     make_args = ['main', make_options]
     make_args.unshift "-j#{parallel}" if parallel
     b.make(*make_args)
-    do_rdoc &&= b.catch_error {
-      make_args = ['docs', make_options]
-      make_args.unshift "-j#{parallel}" if parallel
-      b.make(*make_args)
+    make_docs = lambda {
+      do_rdoc &&= b.catch_error {
+        make_args = ['docs', make_options]
+        make_args.unshift "-j#{parallel}" if parallel
+        b.make(*make_args)
+      }
     }
   else
     make_args = [make_options]
@@ -462,7 +465,7 @@ ChkBuild.define_build_proc('ruby') {|b|
   end
   if Util.search_command('ldd')
     b.catch_error {
-      b.logfile.start_section 'ruby-libraries'
+      b.logfile.start_section 'ruby-shlibs'
       b.run("ldd", "./ruby", :section=>nil)
       Dir.glob(".ext/**/*.so").sort.each {|solib|
         b.run("ldd", solib, :section=>nil)
@@ -471,7 +474,9 @@ ChkBuild.define_build_proc('ruby') {|b|
   end
   b.catch_error { b.run("./ruby", "-v", :section=>"version") }
 
+  make_docs.call if make_docs
   do_rdoc &&= b.catch_error { b.make("install-doc", make_options) }
+
   b.catch_error { b.run("./ruby", '-e', ChkBuild::Ruby::VERSION_LIST_SCRIPT, :section=>"version-list") }
 
   if validate_dependencies
