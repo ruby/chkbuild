@@ -408,6 +408,18 @@ ChkBuild.define_build_proc('ruby') {|b|
   make_args = ["miniruby", make_options]
   make_args.unshift "-j#{parallel}" if parallel
   b.make(*make_args)
+
+  if Util.search_command('file')
+    b.catch_error {
+      b.run("file", "miniruby", :section=>'miniruby-file')
+    }
+  end
+  if Util.search_command('ldd')
+    b.catch_error {
+      b.run("ldd", "./miniruby", :section=>'miniruby-libraries')
+    }
+  end
+
   b.catch_error { b.run("./miniruby", "-v", :section=>"miniversion") }
   if File.directory? "#{srcdir}/bootstraptest"
     b.catch_error { b.make("btest", "OPTS=-v -q", make_options.merge(:section=>"btest")) }
@@ -441,16 +453,24 @@ ChkBuild.define_build_proc('ruby') {|b|
     b.make(*make_args)
   end
 
-  b.catch_error {
-    if File.file? "tool/runruby.rb"
-      # tool/runruby.rb is required if --enable-shared because libruby.so is not installed yet.
-      b.run("tool/runruby.rb", "-v", :section=>"version")
-    else
-      # tool/runruby.rb is not available on Ruby 1.8.
-      b.run("./ruby", "-v", :section=>"version")
-    end
-  }
   b.make("install-nodoc", make_options)
+
+  if Util.search_command('file')
+    b.catch_error {
+      b.run("file", "ruby", :section=>'ruby-file')
+    }
+  end
+  if Util.search_command('ldd')
+    b.catch_error {
+      b.logfile.start_section 'ruby-libraries'
+      b.run("ldd", "./ruby", :section=>nil)
+      Dir.glob(".ext/**/*.so").sort.each {|solib|
+        b.run("ldd", solib, :section=>nil)
+      }
+    }
+  end
+  b.catch_error { b.run("./ruby", "-v", :section=>"version") }
+
   do_rdoc &&= b.catch_error { b.make("install-doc", make_options) }
   b.catch_error { b.run("./ruby", '-e', ChkBuild::Ruby::VERSION_LIST_SCRIPT, :section=>"version-list") }
 
@@ -749,6 +769,13 @@ ChkBuild.define_diff_preprocess_gsub('ruby', /^done\.  \(\d+\.\d\duser \d+\.\d\d
 # 100% [513/513]   doc/re.rdoc
 ChkBuild.define_diff_preprocess_gsub('ruby', %r{^\s*\d+%\s+\[\s*\d+/\d+\]}) {|match|
   "XXX% [XXX/XXX]"
+}
+
+# ldd
+# libpthread.so.0 => /lib/libpthread.so.0 (0x00007f3dcb6c6000)
+# /lib64/ld-linux-x86-64.so.2 (0x00007f3dcbd49000)
+ChkBuild.define_diff_preprocess_gsub('ruby', /(\.so\b.*) \(0x[0-9A-Fa-f]+\)/) {|match|
+  "#{$1} (<address>)"
 }
 
 # test_exception.rb #1 test_exception.rb:1
