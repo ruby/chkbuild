@@ -775,7 +775,7 @@ ChkBuild.define_diff_preprocess_gsub('ruby', %r{^\s*\d+%\s+\[\s*\d+/\d+\]}) {|ma
 # libpthread.so.0 => /lib/libpthread.so.0 (0x00007f3dcb6c6000)
 # /lib64/ld-linux-x86-64.so.2 (0x00007f3dcbd49000)
 ChkBuild.define_diff_preprocess_gsub('ruby', /(\.so\b.*) \(0x[0-9A-Fa-f]+\)/) {|match|
-  "#{$1} (<address>)"
+  "#{match[1]} (<address>)"
 }
 
 # test_exception.rb #1 test_exception.rb:1
