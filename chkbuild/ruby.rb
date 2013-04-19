@@ -419,8 +419,20 @@ ChkBuild.define_build_proc('ruby') {|b|
       b.run("ldd", "./miniruby", :section=>'miniruby-shlibs')
     }
   end
+  if /-gnu|-linux/ =~ RUBY_PLATFORM && /kfreebsd/ !~ RUBY_PLATFORM
+    # glibc shared library (libc.so) is executable on
+    # GNU/Linux and GNU/Hurd but not on GNU/kFreeBSD.
+    ldd_miniruby = `ldd ./miniruby`
+    libc_path = ldd_miniruby[%r{libc\.so.* => (/\S*)}, 1]
+    if libc_path && File.executable?(libc_path)
+      b.catch_error {
+        b.run(libc_path, :section=>'miniruby-libc')
+      }
+    end
+  end
 
   b.catch_error { b.run("./miniruby", "-v", :section=>"miniversion") }
+
   if File.directory? "#{srcdir}/bootstraptest"
     b.catch_error { b.make("btest", "OPTS=-v -q", make_options.merge(:section=>"btest")) }
   end
