@@ -583,7 +583,7 @@ ChkBuild.define_build_proc('ruby') {|b|
 
 ChkBuild.define_title_hook('ruby', "svn-info/ruby") {|title, log|
   if /^Last Changed Rev: (\d+)$/ =~ log
-    title.update_title(:revision, "rev:#{$1}")
+    title.update_title(:revision, "r#{$1}")
   end
 }
 
