@@ -422,6 +422,10 @@ ChkBuild.define_build_proc('ruby') {|b|
   if /-gnu|-linux/ =~ RUBY_PLATFORM && /kfreebsd/ !~ RUBY_PLATFORM
     # glibc shared library (libc.so) is executable on
     # GNU/Linux and GNU/Hurd but not on GNU/kFreeBSD.
+    # Several examples of RUBY_PLATFORM:
+    #   GNU/Linux: "x86_64-linux"
+    #   GNU/Hurd: "i486-gnu"
+    #   GNU/kFreeBSD: "x86_64-kfreebsd-gnu"
     ldd_miniruby = `ldd ./miniruby`
     libc_path = ldd_miniruby[%r{libc\.so.* => (/\S*)}, 1]
     if libc_path && File.executable?(libc_path)
