@@ -603,7 +603,8 @@ ChkBuild.define_title_hook('ruby', "svn-info/ruby") {|title, log|
   end
 }
 
-ChkBuild.define_title_hook('ruby', nil) {|title, log|
+ChkBuild.define_title_hook('ruby', %w[version.h verconf.h]) {|title, logs|
+  log = logs.join('')
   version = /^#\s*define RUBY_VERSION "(\S+)"/.match(log)
   reldate = /^#\s*define RUBY_RELEASE_DATE "(\S+)"/.match(log)
   patchlev = /^#\s*define RUBY_PATCHLEVEL (\S+)/.match(log)
