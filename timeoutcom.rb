@@ -173,8 +173,8 @@ module TimeoutCommand
       pid = io.pid
       io.puts 'STDIN.reopen("/dev/null", "r")'
       io.puts "open(#{output_filename.to_s.dump}, File::RDWR|File::CREAT|File::APPEND) {|f|"
-      io.puts '  STDOUT.reopen(f, File::RDWR|File::CREAT|File::APPEND)'
-      io.puts '  STDERR.reopen(f, File::RDWR|File::CREAT|File::APPEND)'
+      io.puts '  STDOUT.reopen(f)'
+      io.puts '  STDERR.reopen(f)'
       io.puts '  STDOUT.sync = true'
       io.puts '  STDERR.sync = true'
       io.puts '}'
