@@ -7,7 +7,8 @@ ChkBuild.def_target("fail") {|b|
   b.run("false")
 }
 
-ChkBuild.define_title_hook('fail', nil) {|title, log|
+ChkBuild.define_title_hook('fail', nil) {|title, logfile|
+  log = logfile.get_all_log
   mark = ''
   mark << "[BUG]" if /\[BUG\]/i =~ log
   mark << "[SEGV]" if /Segmentation fault/i =~ log

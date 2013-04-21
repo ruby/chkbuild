@@ -271,6 +271,11 @@ class ChkBuild::LogFile
     @io.read
   end
 
+  def each_line(&block)
+    @io.rewind
+    @io.each_line(&block)
+  end
+
   def modify_section(secname, data)
     raise "not opened for writing" if !@writemode
     spos = @sections[secname]

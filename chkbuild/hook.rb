@@ -64,8 +64,13 @@ module ChkBuild
         end
       }
     }
-    define_title_hook(target_name, nil) {|title, log|
-      num_warns = log.scan(/warn/i).length
+    define_title_hook(target_name, nil) {|title, logfile|
+      num_warns = 0
+      logfile.each_line {|line|
+        line.scan(/warn/i) {
+          num_warns += 1
+        }
+      }
       title.update_title(:warn) {|val| "#{num_warns}W" } if 0 < num_warns
     }
     define_title_hook(target_name, 'dependencies') {|title, log|

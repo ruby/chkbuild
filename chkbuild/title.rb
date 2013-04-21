@@ -67,7 +67,7 @@ class ChkBuild::Title
   def run_title_hooks
     ChkBuild.fetch_title_hook(@target.target_name).each {|secname, block|
       if secname == nil
-        block.call self, @logfile.get_all_log
+        block.call self, @logfile
       elsif Array === secname
         log = []
         secname.each {|sn|

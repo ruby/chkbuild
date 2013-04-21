@@ -700,17 +700,25 @@ ChkBuild.define_failure_hook('ruby', "rubyspec") {|log|
   end
 }
 
-ChkBuild.define_title_hook('ruby', nil) {|title, log|
-  log = log.gsub(/^LASTLOG .*/, '') # skip commit message.
-  log = log.sub(/combination may cause frequent hang or segmentation fault|hangs or segmentation faults/, '') # skip tk message.
+ChkBuild.define_title_hook('ruby', nil) {|title, logfile|
+  numbugs = numsegv = numsigbus = numsigill = numsigabrt = numfatal = 0
+  logfile.each_line {|line|
+    line = line.gsub(/^LASTLOG .*/, '') # skip commit message.
+    line = line.sub(/combination may cause frequent hang or segmentation fault|hangs or segmentation faults/, '') # skip tk message.
+    numbugs += line.scan(/\[BUG\]/i).length
+    numsegv += line.scan(/segmentation fault|signal segv/i).length
+    numsigbus += line.scan(/signal SIGBUS/i).length
+    numsigill += line.scan(/signal SIGILL/i).length
+    numsigabrt += line.scan(/signal SIGABRT/i).length
+    numfatal += line.scan(/\[FATAL\]/i).length
+  }
   mark = ''
-  numbugs = ChkBuild::Ruby.count_prefix(/\[BUG\]/i, log) and mark << " #{numbugs}[BUG]"
-  numsegv = ChkBuild::Ruby.count_prefix( /segmentation fault|signal segv/i, log) and
-    mark << " #{numsegv}[SEGV]"
-  numsigbus = ChkBuild::Ruby.count_prefix(/signal SIGBUS/i, log) and mark << " #{numsigbus}[SIGBUS]"
-  numsigill = ChkBuild::Ruby.count_prefix(/signal SIGILL/i, log) and mark << " #{numsigill}[SIGILL]"
-  numsigabrt = ChkBuild::Ruby.count_prefix(/signal SIGABRT/i, log) and mark << " #{numsigabrt}[SIGABRT]"
-  numfatal = ChkBuild::Ruby.count_prefix(/\[FATAL\]/i, log) and mark << " #{numfatal}[FATAL]"
+  mark << " #{numbugs == 1 ? '' : numbugs}[BUG]" if 0 < numbugs
+  mark << " #{numsegv == 1 ? '' : numsegv}[SEGV]" if 0 < numsegv
+  mark << " #{numsigbus == 1 ? '' : numsigbus}[SIGBUS]" if 0 < numsigbus
+  mark << " #{numsigill == 1 ? '' : numsigill}[SIGILL]" if 0 < numsigill
+  mark << " #{numsigabrt == 1 ? '' : numsigabrt}[SIGABRT]" if 0 < numsigabrt
+  mark << " #{numfatal == 1 ? '' : numfatal}[FATAL]" if 0 < numfatal
   mark.sub!(/\A /, '')
   title.update_title(:mark, mark)
 }
