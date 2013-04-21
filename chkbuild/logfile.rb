@@ -171,6 +171,7 @@ class ChkBuild::LogFile
     @mark = read_separator
     @sections = detect_sections
   end
+  attr_reader :filename
 
   def read_separator
     mark = nil

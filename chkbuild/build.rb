@@ -1408,7 +1408,7 @@ End
     pos = STDOUT.pos
     ruby_script = script_to_run_in_child(opts, command, alt_commands, *args)
     begin
-      command_status = TimeoutCommand.timeout_command(ruby_script, opts.fetch(:timeout, '1h'), STDERR, opts)
+      command_status = TimeoutCommand.timeout_command(ruby_script, @logfile.filename, opts.fetch(:timeout, '1h'), STDERR, opts)
     ensure
       exc = $!
       if exc && secname

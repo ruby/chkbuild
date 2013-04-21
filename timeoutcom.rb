@@ -155,7 +155,7 @@ module TimeoutCommand
     }
   end
 
-  def timeout_command(ruby_script, command_timeout, msgout=STDERR, opts={})
+  def timeout_command(ruby_script, output_filename, command_timeout, msgout=STDERR, opts={})
     command_timeout = parse_timespan(command_timeout)
     output_interval_timeout = nil
     if opts[:output_interval_timeout]
@@ -172,6 +172,12 @@ module TimeoutCommand
     IO.popen(RbConfig.ruby, "w") {|io|
       pid = io.pid
       io.puts 'STDIN.reopen("/dev/null", "r")'
+      io.puts "open(#{output_filename.to_s.dump}, File::RDWR|File::CREAT|File::APPEND) {|f|"
+      io.puts '  STDOUT.reopen(f, File::RDWR|File::CREAT|File::APPEND)'
+      io.puts '  STDERR.reopen(f, File::RDWR|File::CREAT|File::APPEND)'
+      io.puts '  STDOUT.sync = true'
+      io.puts '  STDERR.sync = true'
+      io.puts '}'
       io.puts "Process.setpgid($$, $$)"
       io.puts ruby_script
       io.puts '__END__'
