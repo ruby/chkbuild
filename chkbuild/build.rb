@@ -1496,10 +1496,10 @@ End
     end
 
     if opts.include?(:stdout)
-      ruby_script << "STDOUT.reopen(#{opts[:stdout].dump}, 'w')\n"
+      ruby_script << "open(#{opts[:stdout].dump}, 'a') {|f| STDOUT.reopen(f) }\n"
     end
     if opts.include?(:stderr)
-      ruby_script << "STDERR.reopen(#{opts[:stderr].dump}, 'w')\n"
+      ruby_script << "open(#{opts[:stderr].dump}, 'a') {|f| STDERR.reopen(f) }\n"
     end
 
     ruby_script << "command = #{command.dump}\n"
