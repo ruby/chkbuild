@@ -117,6 +117,14 @@ end
 class Output
   def initialize
     @last_filename = nil
+    @at_beginning_of_line = true
+  end
+
+  def move_to_bol
+    return if @at_beginning_of_line
+    puts
+    STDOUT.flush
+    @at_beginning_of_line = true
   end
 
   def prefix(filename)
@@ -135,18 +143,24 @@ class Output
   end
 
   def notice(filename, mesg)
+    move_to_bol
     puts "#{prefix filename} #{mesg}"
     STDOUT.flush
     @last_filename = filename
+    @at_beginning_of_line = true
   end
 
   def output(filename, data)
+    return if data.empty?
     if @last_filename != filename
+      move_to_bol
       puts "#{prefix filename}"
       @last_filename = filename
     end
-    puts escape(data)
+    edata = escape(data)
+    print edata
     STDOUT.flush
+    @at_beginning_of_line = /\n\z/ =~ edata ? true : false
   end
 end
 
