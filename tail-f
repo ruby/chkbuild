@@ -1,0 +1,161 @@
+#!/usr/bin/ruby
+
+# Copyright (C) 2013 Tanaka Akira  <akr@fsij.org>
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#  1. Redistributions of source code must retain the above copyright
+#     notice, this list of conditions and the following disclaimer.
+#  2. Redistributions in binary form must reproduce the above
+#     copyright notice, this list of conditions and the following
+#     disclaimer in the documentation and/or other materials provided
+#     with the distribution.
+#  3. The name of the author may not be used to endorse or promote
+#     products derived from this software without specific prior
+#     written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
+# OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+# GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+# OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+# EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# usage:
+#  tail-f [options] file...
+
+require 'optparse'
+
+$opt_t = false
+
+class Follower
+  def initialize(filename, out)
+    @filename = filename
+    @out = out
+    @io = nil
+  end
+
+  LAST_BLOCK_LINES = 10
+  LAST_BLOCK_BYTES = 4096
+
+  def show_last_lines
+    size = @io.stat.size
+    return if size == 0
+    pos = size
+    pos -= LAST_BLOCK_BYTES
+    pos = 0 if pos < 0
+    @io.seek(pos)
+    @io.gets if pos != 0 # skip a partial line.
+    data = @io.read
+    lines = []
+    data.each_line {|line|
+      lines << line
+    }
+    if LAST_BLOCK_LINES < lines.length
+      lines = lines[-LAST_BLOCK_LINES, LAST_BLOCK_LINES]
+    end
+    lines.each {|line|
+      @out.output(@filename, line)
+    }
+  end
+
+  def show_rest_lines
+    @io.seek(0, IO::SEEK_CUR)
+    data = @io.read
+    return if !data || data.empty?
+    data.each_line {|line|
+      @out.output(@filename, line)
+    }
+  end
+
+  def check
+    if @io
+      if !FileTest.identical?(@io, @filename)
+        show_rest_lines
+        @io.close
+        @io = nil
+        @out.notice(@filename, "removed.")
+      elsif @io.stat.size < @io.pos
+        @io.rewind
+        @out.notice(@filename, "shrinked.")
+      end
+    end
+    if !@io
+      begin
+        @io = open(@filename, 'rb')
+      rescue Errno::ENOENT
+        return
+      end
+      @out.notice(@filename, "found.")
+      show_last_lines
+    end
+    show_rest_lines
+  end
+end
+
+class Output
+  def initialize
+    @last_filename = nil
+  end
+
+  def prefix(filename)
+    if $opt_t
+      now = Time.now.strftime("%F %T")
+      "#{now} ==> #{filename} <=="
+    else
+      "==> #{filename} <=="
+    end
+  end
+
+  def escape(str)
+    str.gsub(/[\x00-\x07\x0b-\x1f\x7f]/) {
+      "<%02X>" % $&.ord
+    }
+  end
+
+  def notice(filename, mesg)
+    puts "#{prefix filename} #{mesg}"
+    STDOUT.flush
+    @last_filename = filename
+  end
+
+  def output(filename, data)
+    if @last_filename != filename
+      puts "#{prefix filename}"
+      @last_filename = filename
+    end
+    puts escape(data)
+    STDOUT.flush
+  end
+end
+
+def optionparser
+  o = OptionParser.new
+  o.def_option('-h', 'show this message') { puts o; exit }
+  o.def_option('-t', 'show time') { $opt_t = true }
+  o
+end
+
+def main(argv)
+  o = optionparser
+  o.parse!(argv)
+  out = Output.new
+  followers = argv.map {|arg|
+    Follower.new(arg, out)
+  }
+  while true
+    followers.each {|follower|
+      follower.check
+    }
+    sleep 1
+  end
+end
+
+main(ARGV)
