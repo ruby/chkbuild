@@ -43,6 +43,15 @@ class Follower
     @first = true
   end
 
+  def check_existence
+    begin
+      File.stat(@filename)
+    rescue Errno::ENOENT
+      @out.notice(@filename, "not found.")
+      return nil
+    end
+  end
+
   LAST_BLOCK_LINES = 10
   LAST_BLOCK_BYTES = 4096
 
@@ -155,6 +164,14 @@ def main(argv)
   followers = argv.map {|arg|
     Follower.new(arg, out)
   }
+  list = []
+  followers.each_with_index {|follower, i|
+    list << [follower, follower.check_existence, i]
+  }
+  list = list.sort_by {|follower, st, i|
+    [st ? st.mtime.to_f : 1.0/0.0, i]
+  }
+  followers = list.map {|follower, st, i| follower }
   while true
     followers.each {|follower|
       follower.check
