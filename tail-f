@@ -40,6 +40,7 @@ class Follower
     @filename = filename
     @out = out
     @io = nil
+    @first = true
   end
 
   LAST_BLOCK_LINES = 10
@@ -94,7 +95,10 @@ class Follower
         return
       end
       @out.notice(@filename, "found.")
-      show_last_lines
+      if @first
+        show_last_lines
+        @first = false
+      end
     end
     show_rest_lines
   end
