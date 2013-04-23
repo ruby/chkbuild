@@ -116,7 +116,7 @@ class Output
 
   def escape(str)
     str.gsub(/[\x00-\x07\x0b-\x1f\x7f]/) {
-      "<%02X>" % $&.ord
+      "<" + $&.unpack("H*")[0] + ">"
     }
   end
 
