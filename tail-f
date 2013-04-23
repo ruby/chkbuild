@@ -97,10 +97,11 @@ class Follower
       @out.notice(@filename, "found.")
       if @first
         show_last_lines
-        @first = false
       end
     end
     show_rest_lines
+  ensure
+    @first = false
   end
 end
 
