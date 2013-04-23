@@ -158,8 +158,12 @@ module TimeoutCommand
   def timeout_command(ruby_script, output_filename, command_timeout, msgout=STDERR, opts={})
     command_timeout = parse_timespan(command_timeout)
     output_interval_timeout = nil
+    output_line_max = nil
     if opts[:output_interval_timeout]
       output_interval_timeout = parse_timespan(opts[:output_interval_timeout])
+    end
+    if opts[:output_line_max]
+      output_line_max = opts[:output_line_max]
     end
     process_remain_timeout = nil
     if opts[:process_remain_timeout]
@@ -194,21 +198,22 @@ module TimeoutCommand
         limit_time = start_time + command_timeout
         command_status = nil
         while true
-          join_timeout = limit_time - Time.now
-          if join_timeout < 0
+	  now = Time.now
+          if limit_time < now
             timeout_reason = "command execution time exceeds #{command_timeout} seconds."
             break
           end
           if output_interval_timeout and
              t = last_output_time(file_list) and
-             (tmp_join_timeout = t + output_interval_timeout - Time.now) < join_timeout
-            join_timeout = tmp_join_timeout
-            if join_timeout < 0
-              timeout_reason = "output interval exceeds #{output_interval_timeout} seconds."
-              break
-            end
+	     t + output_interval_timeout < now
+	    timeout_reason = "output interval exceeds #{output_interval_timeout} seconds."
+	    break
           end
-          if wait_thread.join(join_timeout)
+	  if open(output_filename, "r") {|f| output_line_max < f.stat.size and f.seek(-output_line_max, IO::SEEK_END) and /\n/ !~ f.read }
+	    timeout_reason = "too long line. (#{output_line_max} bytes at least.)"
+	    break
+	  end
+          if wait_thread.join(1.0)
             command_status = wait_thread.value
             break
           end

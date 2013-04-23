@@ -30,7 +30,8 @@ module ChkBuild
     :limit_cpu => 3600 * 4,
     :limit_stack => 1024 * 1024 * 40,
     :limit_data => 1024 * 1024 * 100,
-    :limit_as => 1024 * 1024 * 150
+    :limit_as => 1024 * 1024 * 150,
+    :output_line_max => 1024 * 10 # Test periodically.  Not rigorous.
   }
 
   def self.get_options
