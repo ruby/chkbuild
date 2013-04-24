@@ -30,6 +30,11 @@
 
 # usage:
 #  tail-f [options] file...
+#
+# feature:
+# - Support multiple files
+# - Escape control characters.
+# - Show timestamps for events such as file found/removal.
 
 require 'optparse'
 
