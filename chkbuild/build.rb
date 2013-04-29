@@ -723,16 +723,24 @@ End
         ustr = str.dup.force_encoding("UTF-8")
 	ustr
       else
-        hstr = str.encode("US-ASCII", Encoding.find("locale"), :invalid=>:replace, :undef=>:replace, :xml=>:text)
-	ustr = hstr.gsub(/&(amp|lt|gt|\#x([0-9A-F]+));/) {
-	  case $1
-	  when 'amp' then '&'
-	  when 'lt' then '<'
-	  when 'gt' then '>'
-	  else
-	    [$2.to_i(16)].pack("U")
-	  end
-	}
+        locale_encoding = Encoding.find("locale")
+        if locale_encoding == Encoding::US_ASCII
+          ustr = str.dup.force_encoding("ASCII-8BIT")
+          ustr.gsub!(/[^\x00-\x7f]/, '?')
+          ustr.force_encoding("UTF-8")
+        else
+          hstr = str.encode("US-ASCII", Encoding.find("locale"),
+                            :invalid=>:replace, :undef=>:replace, :xml=>:text)
+          ustr = hstr.gsub(/&(amp|lt|gt|\#x([0-9A-F]+));/) {
+            case $1
+            when 'amp' then '&'
+            when 'lt' then '<'
+            when 'gt' then '>'
+            else
+              [$2.to_i(16)].pack("U")
+            end
+          }
+        end
 	ustr
       end
     else
