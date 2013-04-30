@@ -249,8 +249,10 @@ crossruby_args = [
     #{ :suffix_? => 'xtensa', :target => 'xtensa-buildroot-linux-uclibc' }, # buildroot
     #{ :suffix_? => 'android', :target => 'arm-linux-androideabi' }, # Android NDK
   ],
-  :timeout => '1h',
-  :output_interval_timeout => '5min',
+  {
+    :timeout => '1h',
+    :output_interval_timeout => '5min',
+  }
 ]
 
 crossruby_args << baseruby if baseruby
