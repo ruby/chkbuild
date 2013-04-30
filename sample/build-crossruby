@@ -184,6 +184,15 @@ def show_binaries(b)
   end
 end
 
+def show_fake_rb(b)
+  b.catch_error {
+    filenames = Dir.glob('*-fake.rb')
+    args = ['cat', *filenames]
+    args << {:section=>'fake.rb'}
+    b.run(*args)
+  }
+end
+
 ChkBuild.define_build_proc('nativeruby') {|b|
   b.svn("http://svn.ruby-lang.org/repos/ruby", 'trunk', 'ruby')
   b.svn_info('ruby')
@@ -220,6 +229,7 @@ ChkBuild.define_build_proc('crossruby') {|b|
     show_verconf_h(b)
     b.make
     show_binaries(b)
+    show_fake_rb(b)
     b.make('install')
   }
 }
