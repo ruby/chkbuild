@@ -46,9 +46,12 @@ module ChkBuild
       init_default_title_hooks(target_name)
     end
   end
-  def ChkBuild.define_title_hook(target_name, secname, &block)
-    lazy_init_title_hook(target_name)
-    @title_hook_hash[target_name] << [secname, block]
+  def ChkBuild.define_title_hook(target_names, secname, &block)
+    target_names = [target_names] unless Array === target_names
+    target_names.each {|t|
+      lazy_init_title_hook(t)
+      @title_hook_hash[t] << [secname, block]
+    }
   end
   def ChkBuild.fetch_title_hook(target_name)
     lazy_init_title_hook(target_name)
@@ -90,9 +93,12 @@ module ChkBuild
   def ChkBuild.lazy_init_failure_hook(target_name)
     @failure_hook_hash[target_name] ||= []
   end
-  def ChkBuild.define_failure_hook(target_name, secname, &block)
-    lazy_init_failure_hook(target_name)
-    @failure_hook_hash[target_name] << [secname, block]
+  def ChkBuild.define_failure_hook(target_names, secname, &block)
+    target_names = [target_names] unless Array === target_names
+    target_names.each {|target_name|
+      lazy_init_failure_hook(target_name)
+      @failure_hook_hash[target_name] << [secname, block]
+    }
   end
   def ChkBuild.fetch_failure_hook(target_name)
     lazy_init_failure_hook(target_name)
@@ -106,20 +112,31 @@ module ChkBuild
       init_default_diff_preprocess_hooks(target_name)
     end
   end
-  def ChkBuild.define_diff_preprocess_hook(target_name, &block)
-    lazy_init_diff_preprocess_hook(target_name)
-    @diff_preprocess_hook_hash[target_name] << block
+  def ChkBuild.define_diff_preprocess_hook(target_names, &block)
+    target_names = [target_names] unless Array === target_names
+    target_names.each {|target_name|
+      lazy_init_diff_preprocess_hook(target_name)
+      @diff_preprocess_hook_hash[target_name] << block
+    }
   end
   def ChkBuild.fetch_diff_preprocess_hook(target_name)
     lazy_init_diff_preprocess_hook(target_name)
     @diff_preprocess_hook_hash.fetch(target_name)
   end
 
-  def ChkBuild.define_diff_preprocess_gsub_state(target_name, pat, &block)
-    define_diff_preprocess_hook(target_name) {|line, state| line.gsub(pat) { yield $~, state } }
+  def ChkBuild.define_diff_preprocess_gsub_state(target_names, pat, &block)
+    target_names = [target_names] unless Array === target_names
+    target_names.each {|t|
+      define_diff_preprocess_hook(t) {|line, state|
+        line.gsub(pat) { yield $~, state }
+      }
+    }
   end
-  def ChkBuild.define_diff_preprocess_gsub(target_name, pat, &block)
-    define_diff_preprocess_hook(target_name) {|line, state| line.gsub(pat) { yield $~ } }
+  def ChkBuild.define_diff_preprocess_gsub(target_names, pat, &block)
+    target_names = [target_names] unless Array === target_names
+    target_names.each {|t|
+      define_diff_preprocess_hook(t) {|line, state| line.gsub(pat) { yield $~ } }
+    }
   end
 
   CHANGE_LINE_PAT = /^((ADD|DEL|CHG) .*\t.*->.*|COMMIT .*|last commit:)\n/

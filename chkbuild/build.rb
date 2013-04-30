@@ -78,6 +78,10 @@ class ChkBuild::Build
     "\#<#{self.class}: #{self.depsuffixed_name}>"
   end
 
+  def has_suffix?
+    !@suffixes.empty?
+  end
+
   def update_option(opts)
     @opts.update(opts)
   end
@@ -94,7 +98,7 @@ class ChkBuild::Build
   def depsuffixed_name
     name = self.suffixed_name
     @depbuilds.each {|depbuild|
-      name << '_' << depbuild.suffixed_name
+      name << '_' << depbuild.suffixed_name if depbuild.has_suffix?
     }
     name
   end
@@ -1416,7 +1420,7 @@ End
       command, *alt_commands = commands
     end
 
-    puts "+ #{Escape.shell_command [command, *args]}"
+    puts "+ #{Escape.shell_command [command, *args]}" if !opts[:hide_commandline]
     pos = STDOUT.pos
     ruby_script = script_to_run_in_child(opts, command, alt_commands, *args)
     begin

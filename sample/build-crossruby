@@ -1,0 +1,266 @@
+#!/usr/bin/env ruby
+
+# sample/build-cross-ruby - build script for ruby using cross compiler
+#
+# Copyright (C) 2013 Tanaka Akira  <akr@fsij.org>
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#  1. Redistributions of source code must retain the above copyright
+#     notice, this list of conditions and the following disclaimer.
+#  2. Redistributions in binary form must reproduce the above
+#     copyright notice, this list of conditions and the following
+#     disclaimer in the documentation and/or other materials provided
+#     with the distribution.
+#  3. The name of the author may not be used to endorse or promote
+#     products derived from this software without specific prior
+#     written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
+# OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+# GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+# OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+# EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# build-crossruby requirements:
+# * toolchain
+# * (optional) baseruby
+#
+# toolchain:
+#   You need a toolchain for cross-compiling.
+#
+#   OS packages:
+#   - Debian GNU/Linux (squeeze): gcc-mingw32
+#   - Debian GNU/Linux (wheezy): gcc-mingw-w64
+#
+#   Toolchain building systems:
+#   - buildroot
+#
+#   Platform vendor's toolchain:
+#   - Android NDK (See docs/STANDALONE-TOOLCHAIN.html in the archive.)
+#
+#   A cross toolchain contains a cross compiler such as
+#   i686-w64-mingw32-gcc (provided by gcc-mingw-w64).
+#   The prefix, i686-w64-mingw32, is the target system.
+#   You should be sure the command (and other commands which have same prefix)
+#   is available in PATH.
+#
+# baseruby:
+#   Ruby is required to build Ruby, especially for cross-compiling.
+#   By default, build-crossruby builds ruby natively at first.
+#   You can specify another ruby using CROSSRUBY_BASERUBY.
+
+CROSSRUBY_BASERUBY = nil # default.  build each time.
+#CROSSRUBY_BASERUBY = 'ruby' # command name
+#CROSSRUBY_BASERUBY = '/usr/bin/ruby1.9.3' # command path
+
+require 'chkbuild'
+
+ENV['LC_ALL'] = 'C'
+
+# resource limits
+word_bytes = [nil].pack("p").length
+ChkBuild.limit(:cpu => 3600*4) # seconds
+ChkBuild.limit(:stack => 1024*1024*10*word_bytes) # bytes
+ChkBuild.limit(:data => 1024*1024*500*word_bytes) # bytes
+ChkBuild.limit(:as => 1024*1024*500*word_bytes) # bytes
+
+# ChkBuild.nickname identify chkbuild installation.
+# It is used for title of HTML, etc.
+# The default is the hostname (without domain).
+# ChkBuild.nickname = 'nickname'
+
+# ChkBuild.top_uri is used for RSS.
+# ChkBuild.top_uri = "file://#{ChkBuild.public_top}/"
+# ChkBuild.top_uri = nil # use relative URL
+
+module CrossRuby
+  module CompleteOptions
+  end
+end
+
+def (CrossRuby::CompleteOptions).call(target_opts)
+  opts = target_opts.dup
+  opts[:suffix_1] = opts[:target].gsub(/-/, '') if !opts.has_key?(:suffix_1)
+  opts
+end
+
+def show_version_h(b)
+  version_data = {
+    'version.h' => %w[
+      RUBY_BRANCH_NAME
+      RUBY_PATCHLEVEL
+      RUBY_RELEASE_CODE
+      RUBY_RELEASE_DATE
+      RUBY_RELEASE_DAY
+      RUBY_RELEASE_MONTH
+      RUBY_RELEASE_YEAR
+      RUBY_VERSION
+      RUBY_VERSION_CODE
+      RUBY_VERSION_MAJOR
+      RUBY_VERSION_MINOR
+      RUBY_VERSION_TEENY
+    ],
+  }
+  if version_data.keys.any? {|fn| File.exist? fn }
+    b.logfile.start_section 'version.h'
+    version_data.each {|fn, version_macros|
+      if File.exist? fn
+        File.foreach(fn) {|line|
+          if /\A\#\s*define\s+([A-Z_]+)\s+(\S.*)\n\z/ =~ line &&
+             version_macros.include?($1)
+            puts line
+          end
+        }
+      end
+    }
+  end
+end
+
+def show_verconf_h(b)
+  verconf_list = [
+    'verconf.h',
+    'config.h',
+    *Dir.glob(".ext/include/*/ruby/config.h")
+  ]
+  if verconf_list.any? {|fn| File.exist? fn }
+    b.logfile.start_section 'verconf.h'
+    verconf_list.each {|fn|
+      if File.exist? fn
+        File.foreach(fn) {|line|
+          if /\A\#\s*define\s+([A-Z_]+)\s+(\S.*)\n\z/ =~ line &&
+             $1 == 'RUBY_PLATFORM'
+            puts line
+          end
+        }
+      end
+    }
+  end
+end
+
+ChkBuild.define_title_hook(%w[nativeruby crossruby], "svn-info/ruby") {|title, log|
+  if /^Last Changed Rev: (\d+)$/ =~ log
+    title.update_title(:revision, "r#{$1}")
+  end
+}
+
+ChkBuild.define_title_hook(%w[nativeruby crossruby], %w[version.h verconf.h]) {|title, logs|
+  log = logs.join('')
+  version = /^#\s*define RUBY_VERSION "(\S+)"/.match(log)
+  reldate = /^#\s*define RUBY_RELEASE_DATE "(\S+)"/.match(log)
+  patchlev = /^#\s*define RUBY_PATCHLEVEL (\S+)/.match(log)
+  platform = /^#\s*define RUBY_PLATFORM "(\S+)"/.match(log)
+  if version && reldate
+    str = 'ruby '
+    str << version[1]
+    str << (patchlev[1] == '-1' ? 'dev' : "p#{patchlev[1]}") if patchlev
+    str << " (" << reldate[1] << ")"
+    str << " [" << platform[1] << "]" if platform
+    ss = title.suffixed_name.split(/-/)[1..-1].reject {|s|
+      /\A(trunk|1\.8)\z/ =~ s ||
+      version[1] == s
+    }
+    str << " [#{ss.join(',')}]" if !ss.empty?
+    title.update_title(:version, str)
+  end
+}
+
+def show_binaries(b)
+  if Util.search_command('file')
+    b.catch_error {
+      binaries = Dir.glob(%w[ruby ruby.exe rubyw.exe .ext/**/*.so].join("\0"))
+      binaries.sort!
+      args = ["file", *binaries] + [{:section=>'ruby-file', :hide_commandline=>true}]
+      b.run(*args)
+    }
+  end
+end
+
+ChkBuild.define_build_proc('nativeruby') {|b|
+  b.svn("http://svn.ruby-lang.org/repos/ruby", 'trunk', 'ruby')
+  b.svn_info('ruby')
+  Dir.chdir('ruby') {
+    show_version_h(b)
+    b.run('autoconf')
+    configure_args = []
+    configure_args << "--prefix=#{b.build_dir}"
+    configure_args << "--disable-install-doc"
+    b.run('./configure', *configure_args)
+    show_verconf_h(b)
+    b.make
+    b.make('install')
+  }
+}
+
+ChkBuild.define_build_proc('crossruby') {|b|
+  target_system = b.opts[:target]
+  baseruby = CROSSRUBY_BASERUBY || 'ruby'
+  b.catch_error { b.run(baseruby, "-v", :section=>"baseruby-version") }
+  b.svn("http://svn.ruby-lang.org/repos/ruby", 'trunk', 'ruby')
+  b.svn_info('ruby')
+  Dir.chdir('ruby') {
+    show_version_h(b)
+    b.run('autoconf')
+    build_system = `tool/config.guess`.chomp
+    configure_args = []
+    configure_args << "--prefix=#{b.build_dir}"
+    configure_args << "--build=#{build_system}"
+    configure_args << "--host=#{target_system}"
+    configure_args << "--with-baseruby=#{baseruby}" if baseruby != 'ruby'
+    configure_args << "--disable-install-doc"
+    b.run('./configure', *configure_args)
+    show_verconf_h(b)
+    b.make
+    show_binaries(b)
+    b.make('install')
+  }
+}
+
+if !CROSSRUBY_BASERUBY
+  baseruby = ChkBuild.def_target('nativeruby',
+    :timeout => '1h',
+    :output_interval_timeout => '5min')
+else
+  baseruby = nil
+end
+
+crossruby_args = [
+  [
+    { :suffix_? => 'mingw', :target => 'i586-mingw32msvc' }, # Debian (squeeze) gcc-mingw32
+    #{ :suffix_? => 'mingw32', :target => 'i686-w64-mingw32' }, # Debian (wheezy) gcc-mingw-w64
+    #{ :suffix_? => 'mingw64', :target => 'x86_64-w64-mingw32' }, # Debian (wheezy) gcc-mingw-w64
+    #{ :suffix_? => 'amd64', :target => 'x86_64-buildroot-linux-uclibc' }, # buildroot
+    #{ :suffix_? => 'arm', :target => 'arm-buildroot-linux-uclibcgnueabi' }, # buildroot
+    #{ :suffix_? => 'armeb', :target => 'armeb-buildroot-linux-uclibcgnueabi' }, # buildroot
+    #{ :suffix_? => 'i386', :target => 'i586-buildroot-linux-uclibc' }, # buildroot
+    #{ :suffix_? => 'mips', :target => 'mips-buildroot-linux-uclibc' }, # buildroot
+    #{ :suffix_? => 'mipsel', :target => 'mipsel-buildroot-linux-uclibc' }, # buildroot
+    #{ :suffix_? => 'powerpc', :target => 'powerpc-buildroot-linux-uclibc' }, # buildroot
+    #{ :suffix_? => 'sh', :target => 'sh4-buildroot-linux-uclibc' }, # buildroot
+    #{ :suffix_? => 'sparc', :target => 'sparc-buildroot-linux-uclibc' }, # buildroot
+    #{ :suffix_? => 'xtensa', :target => 'xtensa-buildroot-linux-uclibc' }, # buildroot
+    #{ :suffix_? => 'android', :target => 'arm-linux-androideabi' }, # Android NDK
+  ],
+  :timeout => '1h',
+  :output_interval_timeout => '5min',
+]
+
+crossruby_args << baseruby if baseruby
+
+ChkBuild.def_target('crossruby', *crossruby_args)
+
+# done.  (0.07user 0.01system 0.05elapsed)
+ChkBuild.define_diff_preprocess_gsub(%w[nativeruby  crossruby],
+  /^done\.  \(\d+\.\d\duser \d+\.\d\dsystem \d+\.\d\delapsed\)/) {|match|
+  "done.  (X.XXuser X.XXsystem X.XXelapsed)"
+}
+
+ChkBuild.main
