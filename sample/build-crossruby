@@ -39,7 +39,7 @@
 #
 #   Toolchain building system:
 #
-#   - buildroot
+#   - buildroot http://buildroot.uclibc.org/
 #     tar xf buildroot-2013.02.tar.bz2
 #     cd buildroot-2013.02
 #     make menuconfig # Your favorite architecture, zlib, openssl, gdbm, libelf, libffi, ncurses, readline, libyaml
@@ -56,7 +56,8 @@
 #
 #   Platform vendor's toolchain:
 #
-#   - Android NDK (The archive contains docs/STANDALONE-TOOLCHAIN.html.)
+#   - Android NDK http://developer.android.com/tools/sdk/ndk/index.html
+#     (The archive contains docs/STANDALONE-TOOLCHAIN.html.)
 #     tar xf android-ndk-r8e-linux-x86_64.tar.bz2
 #     cd android-ndk-r8e
 #     build/tools/make-standalone-toolchain.sh \
@@ -265,7 +266,7 @@ end
 crossruby_args = [
   [
     {:suffix_? => 'trunk', :branch => 'trunk' },
-    {:suffix_? => '2.0.0', :branch => 'branches/ruby_2_0_0' },
+    #{:suffix_? => '2.0.0', :branch => 'branches/ruby_2_0_0' },
   ],
   [
     { :suffix_? => 'mingw', :target => 'i586-mingw32msvc' }, # Debian (squeeze) gcc-mingw32
@@ -282,6 +283,8 @@ crossruby_args = [
     #{ :suffix_? => 'sparc', :target => 'sparc-buildroot-linux-uclibc' }, # buildroot
     #{ :suffix_? => 'xtensa', :target => 'xtensa-buildroot-linux-uclibc' }, # buildroot
     #{ :suffix_? => 'android', :target => 'arm-linux-androideabi' }, # Android NDK
+    #{ :suffix_? => 'x86android', :target => 'i686-linux-android' }, # Android NDK
+    #{ :suffix_? => 'mipsandroid', :target => 'mipsel-linux-android' }, # Android NDK
   ],
   {
     :timeout => '1h',
