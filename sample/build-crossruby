@@ -297,8 +297,50 @@ crossruby_args << baseruby if baseruby
 
 ChkBuild.def_target('crossruby', *crossruby_args)
 
+# dependencies:
+# nativeruby 20130501T223400Z (ruby 2.1.0dev (2013-05-01) [x86_64-linux])
+ChkBuild.define_diff_preprocess_gsub('crossruby',
+  /^nativeruby .*/) {|match|
+  'nativeruby <datetime> (<version>)'
+}
+
+# #define RUBY_PATCHLEVEL 180
+ChkBuild.define_diff_preprocess_gsub(%w[nativeruby crossruby],
+  /^\#define RUBY_PATCHLEVEL \d*/) {|match|
+  '#define RUBY_PATCHLEVEL <patchlevel>'
+}
+
+# #define RUBY_RELEASE_DATE "2013-04-06"
+ChkBuild.define_diff_preprocess_gsub(%w[nativeruby crossruby],
+  /^\#define RUBY_RELEASE_DATE ".*"/) {|match|
+  '#define RUBY_RELEASE_DATE "<year>-<mm>-<dd>"'
+}
+
+# #define RUBY_RELEASE_YEAR 2013
+# #define RUBY_RELEASE_MONTH 4
+# #define RUBY_RELEASE_DAY 6
+ChkBuild.define_diff_preprocess_gsub(%w[nativeruby crossruby],
+  /^\#define RUBY_RELEASE_(YEAR|MONTH|DAY) \d+/) {|match|
+  "\#define RUBY_RELEASE_#{match[1]} <num>"
+}
+
+# ruby 1.9.2dev (2009-12-07 trunk 26037) [i686-linux]
+# ruby 1.9.1p376 (2009-12-07 revision 26040) [i686-linux]
+# | ruby 1.9.2dev (2010-02-18 trunk 26704) [x86_64-linux]
+ChkBuild.define_diff_preprocess_gsub(%w[nativeruby crossruby],
+  /ruby [0-9.a-z]+ \(.*\) \[.*\]$/) {|match|
+  "ruby <version>"
+}
+
+# fake.rb:
+#   RUBY_DESCRIPTION = "ruby #{RUBY_VERSION} (2013-05-01) [#{RUBY_PLATFORM}]"
+ChkBuild.define_diff_preprocess_gsub('crossruby',
+  /^( *RUBY_DESCRIPTION = )".*"$/) {|match|
+  "#{match[1]}\"<description>\""
+}
+
 # done.  (0.07user 0.01system 0.05elapsed)
-ChkBuild.define_diff_preprocess_gsub(%w[nativeruby  crossruby],
+ChkBuild.define_diff_preprocess_gsub(%w[nativeruby crossruby],
   /^done\.  \(\d+\.\d\duser \d+\.\d\dsystem \d+\.\d\delapsed\)/) {|match|
   "done.  (X.XXuser X.XXsystem X.XXelapsed)"
 }
