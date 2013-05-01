@@ -37,15 +37,34 @@
 # toolchain:
 #   You need a toolchain for cross-compiling.
 #
-#   OS packages:
-#   - Debian GNU/Linux (squeeze): gcc-mingw32
-#   - Debian GNU/Linux (wheezy): gcc-mingw-w64
+#   Toolchain building system:
 #
-#   Toolchain building systems:
 #   - buildroot
+#     tar xf buildroot-2013.02.tar.bz2
+#     cd buildroot-2013.02
+#     make menuconfig # Your favorite architecture, zlib, openssl, gdbm, libelf, libffi, ncurses, readline, libyaml
+#     make
+#     ln -s $PWD/output/host/usr/bin/<Target-Triplets>-* $HOME/bin
+#
+#   OS package:
+#
+#   - Debian GNU/Linux (squeeze): gcc-mingw32
+#     aptitude install gcc-mingw32
+#
+#   - Debian GNU/Linux (wheezy): gcc-mingw-w64
+#     aptitude install gcc-mingw-w64
 #
 #   Platform vendor's toolchain:
-#   - Android NDK (See docs/STANDALONE-TOOLCHAIN.html in the archive.)
+#
+#   - Android NDK (The archive contains docs/STANDALONE-TOOLCHAIN.html.)
+#     tar xf android-ndk-r8e-linux-x86_64.tar.bz2
+#     cd android-ndk-r8e
+#     build/tools/make-standalone-toolchain.sh \
+#       --platform=android-14 \
+#       --toolchain=arm-linux-androideabi-4.6 \
+#       --system=linux-x86_64 \
+#       --install-dir=$HOME/android-arm-toolchain
+#     ln -s $HOME/android-arm-toolchain/bin/* $HOME/bin
 #
 #   A cross toolchain contains a cross compiler such as
 #   i686-w64-mingw32-gcc (provided by gcc-mingw-w64).
@@ -213,7 +232,8 @@ ChkBuild.define_build_proc('crossruby') {|b|
   target_system = b.opts[:target]
   baseruby = CROSSRUBY_BASERUBY || 'ruby'
   b.catch_error { b.run(baseruby, "-v", :section=>"baseruby-version") }
-  b.svn("http://svn.ruby-lang.org/repos/ruby", 'trunk', 'ruby')
+  branch = b.opts[:branch] || 'trunk'
+  b.svn("http://svn.ruby-lang.org/repos/ruby", branch, 'ruby')
   b.svn_info('ruby')
   Dir.chdir('ruby') {
     show_version_h(b)
@@ -243,6 +263,10 @@ else
 end
 
 crossruby_args = [
+  [
+    {:suffix_? => 'trunk', :branch => 'trunk' },
+    {:suffix_? => '2.0.0', :branch => 'branches/ruby_2_0_0' },
+  ],
   [
     { :suffix_? => 'mingw', :target => 'i586-mingw32msvc' }, # Debian (squeeze) gcc-mingw32
     #{ :suffix_? => 'mingw32', :target => 'i686-w64-mingw32' }, # Debian (wheezy) gcc-mingw-w64
