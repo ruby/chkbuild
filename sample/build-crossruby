@@ -272,6 +272,7 @@ crossruby_args = [
     { :suffix_? => 'mingw', :target => 'i586-mingw32msvc' }, # Debian (squeeze) gcc-mingw32
     #{ :suffix_? => 'mingw32', :target => 'i686-w64-mingw32' }, # Debian (wheezy) gcc-mingw-w64
     #{ :suffix_? => 'mingw64', :target => 'x86_64-w64-mingw32' }, # Debian (wheezy) gcc-mingw-w64
+    #{ :suffix_? => 'aarch64', :target => 'aarch64-linux-gnu' }, # buildroot
     #{ :suffix_? => 'amd64', :target => 'x86_64-buildroot-linux-uclibc' }, # buildroot
     #{ :suffix_? => 'arm', :target => 'arm-buildroot-linux-uclibcgnueabi' }, # buildroot
     #{ :suffix_? => 'armeb', :target => 'armeb-buildroot-linux-uclibcgnueabi' }, # buildroot
