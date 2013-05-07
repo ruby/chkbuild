@@ -67,6 +67,13 @@
 #       --install-dir=$HOME/android-arm-toolchain
 #     ln -s $HOME/android-arm-toolchain/bin/* $HOME/bin
 #
+#   Build yourself:
+#
+#   - Cygwin
+#     Cygwin/X Contributor's Guide
+#     Appendix A. Building a cross-compiler
+#     http://x.cygwin.com/docs/cg/cross.html
+#
 #   A cross toolchain contains a cross compiler such as
 #   i686-w64-mingw32-gcc (provided by gcc-mingw-w64).
 #   The prefix, i686-w64-mingw32, is the target system.
@@ -286,6 +293,7 @@ crossruby_args = [
     #{ :suffix_? => 'android', :target => 'arm-linux-androideabi' }, # Android NDK
     #{ :suffix_? => 'x86android', :target => 'i686-linux-android' }, # Android NDK
     #{ :suffix_? => 'mipsandroid', :target => 'mipsel-linux-android' }, # Android NDK
+    #{ :suffix_? => 'cygwin', :target => 'i686-pc-cygwin' }, # Cygwin
   ],
   {
     :timeout => '1h',
