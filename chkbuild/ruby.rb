@@ -168,8 +168,6 @@ def (ChkBuild::Ruby::CompleteOptions).call(target_opts)
     when "pth" then hs << { :configure_args_pthread => %w[--enable-pthread] }
     when "m32" then hs << { :cflags => ['-m32'], :dldflags => ['-m32'] }
     when "m64" then hs << { :cflags => ['-m64'], :dldflags => ['-m64'] }
-    else
-      raise "unexpected suffix: #{s.inspect}"
     end
   }
 
