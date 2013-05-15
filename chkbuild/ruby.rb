@@ -402,7 +402,9 @@ ChkBuild.define_build_proc('ruby') {|b|
   if /^CC[ \t]*=[ \t](.*)/ =~ File.read('Makefile')
     cc = $1
     if /gcc/ =~ cc
-      b.run(cc, '--version', :section=>'cc-version')
+      b.catch_error {
+        b.run(cc, '--version', :section=>'cc-version')
+      }
     end
   end
 
