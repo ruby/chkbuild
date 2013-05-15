@@ -190,7 +190,6 @@ def (ChkBuild::Ruby::CompleteOptions).call(target_opts)
     :cppflags => %w[-DRUBY_DEBUG_ENV],
     :optflags => %w[-O2],
     :debugflags => %w[-g],
-    :warnflags => %w[-W -Wall -Wformat=2 -Wundef -Wno-parentheses -Wno-unused-parameter -Wno-missing-field-initializers],
     :dldflags => %w[],
     :make_options => {},
     :force_gperf => false,
@@ -268,7 +267,7 @@ ChkBuild.define_build_proc('ruby') {|b|
   cppflags = Util.opts2aryparam(bopts, :cppflags)
   optflags = Util.opts2aryparam(bopts, :optflags)
   debugflags = Util.opts2aryparam(bopts, :debugflags)
-  warnflags = Util.opts2aryparam(bopts, :warnflags)
+  warnflags = Util.opts2nullablearyparam(bopts, :warnflags)
   dldflags = Util.opts2aryparam(bopts, :dldflags)
   autoconf_command = bopts[:autoconf_command]
   make_options = Util.opts2hashparam(bopts, :make_options)
@@ -289,7 +288,7 @@ ChkBuild.define_build_proc('ruby') {|b|
     cflags.concat cppflags
     cflags.concat optflags
     cflags.concat debugflags
-    cflags.concat warnflags
+    cflags.concat warnflags if warnflags
     cppflags = nil
     optflags = nil
     debugflags = nil

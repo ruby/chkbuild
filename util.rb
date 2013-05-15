@@ -413,6 +413,13 @@ module Util
     result
   end
 
+  def opts2nullablearyparam(opts, name)
+    return opts2aryparam(opts, name) if opts.has_key?(name)
+    re = /\A#{Regexp.escape name.to_s}_/
+    return opts2aryparam(opts, name) if opts.any? {|k, v| re =~ k.to_s }
+    return nil
+  end
+
   def opts2hashparam(opts, name)
     h = {}
     re = /\A#{Regexp.escape name.to_s}_/
