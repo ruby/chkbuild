@@ -377,7 +377,7 @@ module Util
 
   def opts2aryparam(opts, name)
     template_list = opts.fetch(name, [])
-    return template_list unless Array === template_list
+    return [template_list] unless Array === template_list
     re = /\A#{Regexp.escape name.to_s}_/
     pairs = []
     opts.each {|k, v|
