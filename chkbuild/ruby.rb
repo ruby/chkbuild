@@ -184,7 +184,6 @@ def (ChkBuild::Ruby::CompleteOptions).call(target_opts)
     :autoconf_command => 'autoconf',
     :configure_args => [],
     :configure_args_valgrind => %w[--with-valgrind],
-    :cflags => [],
     :cppflags => %w[-DRUBY_DEBUG_ENV],
     :dldflags => %w[],
     :make_options => {},
@@ -259,7 +258,7 @@ ChkBuild.define_build_proc('ruby') {|b|
   bopts = b.opts
   ruby_branch = bopts[:ruby_branch]
   configure_args = Util.opts2aryparam(bopts, :configure_args)
-  cflags = Util.opts2aryparam(bopts, :cflags)
+  cflags = Util.opts2nullablearyparam(bopts, :cflags)
   cppflags = Util.opts2aryparam(bopts, :cppflags)
   optflags = Util.opts2nullablearyparam(bopts, :optflags)
   debugflags = Util.opts2nullablearyparam(bopts, :debugflags)
@@ -277,15 +276,17 @@ ChkBuild.define_build_proc('ruby') {|b|
   b.run('bison', '--version', :section=>'bison-version')
 
   if validate_dependencies
-    debugflags ||= []
-    debugflags += %w[-save-temps=obj]
+    cflags ||= []
+    cflags += %w[-save-temps=obj]
   end
 
+  large_cflags = nil
   if %r{branches/ruby_1_8_} =~ ruby_branch && $' < "8"
-    cflags.concat cppflags
-    cflags.concat optflags if optflags
-    cflags.concat debugflags if debugflags
-    cflags.concat warnflags if warnflags
+    large_cflags = []
+    large_cflags.concat cppflags
+    large_cflags.concat optflags if optflags
+    large_cflags.concat debugflags if debugflags
+    large_cflags.concat warnflags if warnflags
     cppflags = nil
     optflags = nil
     debugflags = nil
@@ -370,7 +371,8 @@ ChkBuild.define_build_proc('ruby') {|b|
   b.mkcd("ruby")
   args = []
   args << "--prefix=#{ruby_build_dir}"
-  args << "CFLAGS=#{cflags.join(' ')}" if cflags && !cflags.empty?
+  args << "CFLAGS=#{large_cflags.join(' ')}" if large_cflags
+  args << "cflags=#{cflags.join(' ')}" if cflags
   args << "CPPFLAGS=#{cppflags.join(' ')}" if cppflags && !cppflags.empty?
   args << "optflags=#{optflags.join(' ')}" if optflags
   args << "debugflags=#{debugflags.join(' ')}" if debugflags

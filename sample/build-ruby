@@ -83,7 +83,7 @@ ChkBuild::Ruby.def_target(
   # :dldflags => %w[],
 
   # :validate_dependencies => false,
-  # :validate_dependencies => true, :debugflags => %w[-g],      # needs gmake and gcc 4.5 or later.
+  # :validate_dependencies => true,     # needs gmake and gcc 4.5 or later.
 
   # :old => 1,
 
