@@ -81,7 +81,9 @@ ChkBuild::Ruby.def_target(
   # :debugflags => %w[-g],
   # :warnflags => %w[-W -Wall -Wformat=2 -Wundef -Wno-parentheses -Wno-unused-parameter -Wno-missing-field-initializers],
   # :dldflags => %w[],
-  # :validate_dependencies => false,    # needs gmake and gcc 4.5 or later.
+
+  # :validate_dependencies => false,
+  # :validate_dependencies => true, :debugflags => %w[-g],      # needs gmake and gcc 4.5 or later.
 
   # :old => 1,
 
