@@ -191,6 +191,7 @@ def (ChkBuild::Ruby::CompleteOptions).call(target_opts)
     :use_rubyspec => false,
     :inplace_build => true,
     :validate_dependencies => false,
+    :do_test => true,
   }
 
   opts = target_opts.dup
@@ -271,6 +272,7 @@ ChkBuild.define_build_proc('ruby') {|b|
   inplace_build = bopts[:inplace_build]
   parallel = bopts[:parallel]
   validate_dependencies = bopts[:validate_dependencies]
+  do_test = bopts[:do_test]
 
   b.run(autoconf_command, '--version', :section=>'autoconf-version')
   b.run('bison', '--version', :section=>'bison-version')
@@ -441,15 +443,18 @@ ChkBuild.define_build_proc('ruby') {|b|
 
   b.catch_error { b.run("./miniruby", "-v", :section=>"miniversion") }
 
-  if File.directory? "#{srcdir}/bootstraptest"
-    b.catch_error { b.make("btest", "OPTS=-v -q", make_options.merge(:section=>"btest")) }
-  end
-  b.catch_error {
-    b.run("./miniruby", "#{srcdir+'sample/test.rb'}", :section=>"test.rb")
-    if /^end of test/ !~ b.logfile.get_section('test.rb')
-      raise ChkBuild::Build::CommandError.new(0, "test.rb")
+  if do_test
+    if File.directory? "#{srcdir}/bootstraptest"
+      b.catch_error { b.make("btest", "OPTS=-v -q", make_options.merge(:section=>"btest")) }
     end
-  }
+    b.catch_error {
+      b.run("./miniruby", "#{srcdir+'sample/test.rb'}", :section=>"test.rb")
+      if /^end of test/ !~ b.logfile.get_section('test.rb')
+        raise ChkBuild::Build::CommandError.new(0, "test.rb")
+      end
+    }
+  end
+
   b.catch_error { b.run("./miniruby", '-e', ChkBuild::Ruby::METHOD_LIST_SCRIPT, :section=>"method-list") }
 
   # Ruby 1.9 provides 'main' target to build ruby excluding documents.
@@ -506,80 +511,83 @@ ChkBuild.define_build_proc('ruby') {|b|
     }
   end
 
-  if File.file? "#{srcdir}/KNOWNBUGS.rb"
-    b.catch_error { b.make("test-knownbug", "OPTS=-v -q", make_options) }
-  end
-  b.catch_error {
-    parallel_option = ''
-    parallel_option = "j#{parallel}" if parallel
-    b.make("test-all", "TESTS=-v#{parallel_option}", "RUBYOPT=-w", make_options.merge(:section=>"test-all"))
-  }
-  b.catch_error {
-    if /^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors/ !~ b.logfile.get_section('test-all')
-      ts = Dir.entries(srcdir+"test").sort
-      ts.each {|t|
-	next if %r{\A\.} =~ t
-	s = File.lstat(srcdir+"test/#{t}")
-	if s.directory? || (s.file? && /\Atest_/ =~ t)
-	  b.catch_error {
-	    if /\A-/ =~ t
-	      testpath = srcdir+"test/#{t}" # prevent to interpret -ext- as an option
-	    else
-	      testpath = t # "TESTS=-v test/foo" doesn't work on Ruby 1.8
-	    end
-	    b.make("test-all", "TESTS=-v #{testpath}", "RUBYOPT=-w", make_options.merge(:section=>"test/#{t}"))
-	  }
-	end
-      }
+  if do_test
+    if File.file? "#{srcdir}/KNOWNBUGS.rb"
+      b.catch_error { b.make("test-knownbug", "OPTS=-v -q", make_options) }
     end
-  }
+    b.catch_error {
+      parallel_option = ''
+      parallel_option = "j#{parallel}" if parallel
+      b.make("test-all", "TESTS=-v#{parallel_option}", "RUBYOPT=-w", make_options.merge(:section=>"test-all"))
+    }
+    b.catch_error {
+      if /^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors/ !~ b.logfile.get_section('test-all')
+        ts = Dir.entries(srcdir+"test").sort
+        ts.each {|t|
+          next if %r{\A\.} =~ t
+          s = File.lstat(srcdir+"test/#{t}")
+          if s.directory? || (s.file? && /\Atest_/ =~ t)
+            b.catch_error {
+              if /\A-/ =~ t
+                testpath = srcdir+"test/#{t}" # prevent to interpret -ext- as an option
+              else
+                testpath = t # "TESTS=-v test/foo" doesn't work on Ruby 1.8
+              end
+              b.make("test-all", "TESTS=-v #{testpath}", "RUBYOPT=-w", make_options.merge(:section=>"test/#{t}"))
+            }
+          end
+        }
+      end
+    }
+
+    Dir.chdir(ruby_build_dir)
+    if use_rubyspec
+      rubybin = ruby_build_dir + "bin/ruby"
+      excludes = ["rubyspec/optional/ffi"]
+      b.catch_error {
+        FileUtils.rmtree "rubyspec_temp"
+        if %r{branches/ruby_1_8} =~ ruby_branch
+          config = Dir.pwd + "/rubyspec/ruby.1.8.mspec"
+        else
+          config = Dir.pwd + "/rubyspec/ruby.1.9.mspec"
+        end
+        command = %W[bin/ruby mspec/bin/mspec -V -f s -B #{config} -t #{rubybin}]
+        # command << "rubyspec"
+        command.concat ChkBuild::Ruby.rubyspec_exclude_directories(excludes, ["rubyspec"])
+        command << {
+          :section=>"rubyspec"
+        }
+        b.run(*command)
+      }
+      if /^Finished/ !~ b.logfile.get_section('rubyspec')
+        Pathname("rubyspec").children.reject {|f| !f.directory? }.sort.each {|d|
+          d.stable_find {|f|
+            Find.prune if %w[.git fixtures nbproject shared tags].include? f.basename.to_s
+            next if /_spec\.rb\z/ !~ f.basename.to_s
+            Find.prune if excludes.any? {|e| f.to_s.start_with?("#{e}/") }
+            s = f.lstat
+            next if !s.file?
+            b.catch_error {
+              FileUtils.rmtree "rubyspec_temp"
+              if %r{branches/ruby_1_8} =~ ruby_branch
+                config = ruby_build_dir + "rubyspec/ruby.1.8.mspec"
+              else
+                config = ruby_build_dir + "rubyspec/ruby.1.9.mspec"
+              end
+              command = %W[bin/ruby mspec/bin/mspec -V -f s -B #{config} -t #{rubybin}]
+              command << f.to_s
+              command << {
+                :section=>f.to_s
+              }
+              b.run(*command)
+            }
+          }
+        }
+      end
+    end
+  end
 
   Dir.chdir(ruby_build_dir)
-  if use_rubyspec
-    rubybin = ruby_build_dir + "bin/ruby"
-    excludes = ["rubyspec/optional/ffi"]
-    b.catch_error {
-      FileUtils.rmtree "rubyspec_temp"
-      if %r{branches/ruby_1_8} =~ ruby_branch
-	config = Dir.pwd + "/rubyspec/ruby.1.8.mspec"
-      else
-	config = Dir.pwd + "/rubyspec/ruby.1.9.mspec"
-      end
-      command = %W[bin/ruby mspec/bin/mspec -V -f s -B #{config} -t #{rubybin}]
-      # command << "rubyspec"
-      command.concat ChkBuild::Ruby.rubyspec_exclude_directories(excludes, ["rubyspec"])
-      command << {
-	:section=>"rubyspec"
-      }
-      b.run(*command)
-    }
-    if /^Finished/ !~ b.logfile.get_section('rubyspec')
-      Pathname("rubyspec").children.reject {|f| !f.directory? }.sort.each {|d|
-	d.stable_find {|f|
-	  Find.prune if %w[.git fixtures nbproject shared tags].include? f.basename.to_s
-	  next if /_spec\.rb\z/ !~ f.basename.to_s
-	  Find.prune if excludes.any? {|e| f.to_s.start_with?("#{e}/") }
-	  s = f.lstat
-	  next if !s.file?
-	  b.catch_error {
-	    FileUtils.rmtree "rubyspec_temp"
-	    if %r{branches/ruby_1_8} =~ ruby_branch
-	      config = ruby_build_dir + "rubyspec/ruby.1.8.mspec"
-	    else
-	      config = ruby_build_dir + "rubyspec/ruby.1.9.mspec"
-	    end
-	    command = %W[bin/ruby mspec/bin/mspec -V -f s -B #{config} -t #{rubybin}]
-	    command << f.to_s
-	    command << {
-	      :section=>f.to_s
-	    }
-	    b.run(*command)
-	  }
-	}
-      }
-    end
-  end
-
   Dir.chdir('ruby') {
     relname = nil
     case ruby_branch
