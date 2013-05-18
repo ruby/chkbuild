@@ -39,6 +39,7 @@
 require 'optparse'
 
 $opt_t = false
+$opt_first_lines = 10
 
 class Follower
   def initialize(filename, out)
@@ -57,15 +58,24 @@ class Follower
     end
   end
 
-  LAST_BLOCK_LINES = 10
   LAST_BLOCK_BYTES = 4096
 
   def show_last_lines
     size = @io.stat.size
     return if size == 0
+    num_newlines = 0
     pos = size
-    pos -= LAST_BLOCK_BYTES
-    pos = 0 if pos < 0
+    while 0 < pos && num_newlines <= $opt_first_lines
+      if pos % LAST_BLOCK_BYTES == 0
+        block_len = LAST_BLOCK_BYTES
+      else
+        block_len = pos % LAST_BLOCK_BYTES
+      end
+      pos -= block_len
+      @io.seek(pos)
+      block = @io.read(block_len)
+      num_newlines += block.count("\n")
+    end
     @io.seek(pos)
     @io.gets if pos != 0 # skip a partial line.
     data = @io.read
@@ -73,8 +83,8 @@ class Follower
     data.each_line {|line|
       lines << line
     }
-    if LAST_BLOCK_LINES < lines.length
-      lines = lines[-LAST_BLOCK_LINES, LAST_BLOCK_LINES]
+    if $opt_first_lines < lines.length
+      lines = lines[-$opt_first_lines, $opt_first_lines]
     end
     lines.each {|line|
       @out.output(@filename, line)
@@ -173,6 +183,7 @@ def optionparser
   o = OptionParser.new
   o.def_option('-h', 'show this message') { puts o; exit }
   o.def_option('-t', 'show time') { $opt_t = true }
+  o.def_option('--first-lines=NUM', 'number of lines to show at first') {|arg| $opt_first_lines = arg.to_i }
   o
 end
 
