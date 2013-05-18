@@ -139,11 +139,6 @@ class Follower
   ensure
     @first = false
   end
-
-  # should be invoked after +check+ is called.
-  def file_exist?
-    @io != nil
-  end
 end
 
 class Output
