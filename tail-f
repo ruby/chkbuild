@@ -46,7 +46,7 @@ def optionparser
   o = OptionParser.new
   o.def_option('-h', 'show this message') { puts o; exit }
   o.def_option('-t', 'show time') { $opt_t = true }
-  o.def_option('-g', '--glob', 'expand arguments as glob') { $opt_g = true }
+  o.def_option('-g', '--glob', 'expand arguments as glob repeatedly') { $opt_g = true }
   o.def_option('--first-lines=NUM', 'number of lines to show at first') {|arg| $opt_first_lines = arg.to_i }
   o
 end
