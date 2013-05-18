@@ -39,12 +39,14 @@
 require 'optparse'
 
 $opt_t = false
+$opt_g = false
 $opt_first_lines = 10
 
 def optionparser
   o = OptionParser.new
   o.def_option('-h', 'show this message') { puts o; exit }
   o.def_option('-t', 'show time') { $opt_t = true }
+  o.def_option('-g', '--glob', 'expand arguments as glob') { $opt_g = true }
   o.def_option('--first-lines=NUM', 'number of lines to show at first') {|arg| $opt_first_lines = arg.to_i }
   o
 end
@@ -56,6 +58,8 @@ class Follower
     @io = nil
     @first = true
   end
+
+  attr_reader :filename
 
   def check_existence
     begin
@@ -135,6 +139,11 @@ class Follower
   ensure
     @first = false
   end
+
+  # should be invoked after +check+ is called.
+  def file_exist?
+    @io != nil
+  end
 end
 
 class Output
@@ -187,11 +196,29 @@ class Output
   end
 end
 
+def listup_globs(globs)
+  files = []
+  globs.each {|arg| files.concat Dir.glob(arg) }
+  files.reject! {|file|
+    begin
+      !File.stat(file).file?
+    rescue Errno::ENOENT
+      true
+    end
+  }
+  files
+end
+
 def main(argv)
   o = optionparser
   o.parse!(argv)
   out = Output.new
-  followers = argv.map {|arg|
+  if $opt_g
+    files = listup_globs(argv)
+  else
+    files = argv
+  end
+  followers = files.map {|arg|
     Follower.new(arg, out)
   }
   list = []
@@ -207,6 +234,11 @@ def main(argv)
       follower.check
     }
     sleep 1
+    if $opt_g
+      current_files = listup_globs(argv)
+      new_files = current_files - followers.map {|follower| follower.filename }
+      followers.concat(new_files.map {|new_file| Follower.new(new_file, out) })
+    end
   end
 end
 
