@@ -41,6 +41,14 @@ require 'optparse'
 $opt_t = false
 $opt_first_lines = 10
 
+def optionparser
+  o = OptionParser.new
+  o.def_option('-h', 'show this message') { puts o; exit }
+  o.def_option('-t', 'show time') { $opt_t = true }
+  o.def_option('--first-lines=NUM', 'number of lines to show at first') {|arg| $opt_first_lines = arg.to_i }
+  o
+end
+
 class Follower
   def initialize(filename, out)
     @filename = filename
@@ -177,14 +185,6 @@ class Output
     STDOUT.flush
     @at_beginning_of_line = /\n\z/ =~ edata ? true : false
   end
-end
-
-def optionparser
-  o = OptionParser.new
-  o.def_option('-h', 'show this message') { puts o; exit }
-  o.def_option('-t', 'show time') { $opt_t = true }
-  o.def_option('--first-lines=NUM', 'number of lines to show at first') {|arg| $opt_first_lines = arg.to_i }
-  o
 end
 
 def main(argv)
