@@ -250,7 +250,7 @@ ChkBuild.define_build_proc('crossruby') {|b|
     b.run('autoconf')
     build_system = `tool/config.guess`.chomp
     configure_args = []
-    configure_args << "--prefix=#{b.build_dir}"
+    configure_args << "--prefix=/usr"
     configure_args << "--build=#{build_system}"
     configure_args << "--host=#{target_system}"
     configure_args << "--with-baseruby=#{baseruby}" if baseruby != 'ruby'
@@ -260,7 +260,7 @@ ChkBuild.define_build_proc('crossruby') {|b|
     b.make
     show_binaries(b)
     show_fake_rb(b)
-    b.make('install')
+    b.make('install', "DESTDIR=#{b.build_dir}")
   }
 }
 
