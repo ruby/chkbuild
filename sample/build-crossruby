@@ -250,7 +250,7 @@ ChkBuild.define_build_proc('crossruby') {|b|
     b.run('autoconf')
     build_system = `tool/config.guess`.chomp
     configure_args = []
-    configure_args << "--prefix=#{b.build_dir}"
+    configure_args << "--prefix=/usr"
     configure_args << "--build=#{build_system}"
     configure_args << "--host=#{target_system}"
     configure_args << "--with-baseruby=#{baseruby}" if baseruby != 'ruby'
@@ -260,7 +260,7 @@ ChkBuild.define_build_proc('crossruby') {|b|
     b.make
     show_binaries(b)
     show_fake_rb(b)
-    b.make('install')
+    b.make('install', "DESTDIR=#{b.build_dir}")
   }
 }
 
@@ -272,36 +272,38 @@ else
   baseruby = nil
 end
 
-crossruby_args = [
-  [
-    {:suffix_? => 'trunk', :branch => 'trunk' },
-    #{:suffix_? => '2.0.0', :branch => 'branches/ruby_2_0_0' },
-  ],
-  [
-    { :suffix_? => 'mingw', :target => 'i586-mingw32msvc' }, # Debian (squeeze) gcc-mingw32
-    #{ :suffix_? => 'mingw32', :target => 'i686-w64-mingw32' }, # Debian (wheezy) gcc-mingw-w64
-    #{ :suffix_? => 'mingw64', :target => 'x86_64-w64-mingw32' }, # Debian (wheezy) gcc-mingw-w64
-    #{ :suffix_? => 'aarch64', :target => 'aarch64-linux-gnu' }, # buildroot
-    #{ :suffix_? => 'amd64', :target => 'x86_64-buildroot-linux-uclibc' }, # buildroot
-    #{ :suffix_? => 'arm', :target => 'arm-buildroot-linux-uclibcgnueabi' }, # buildroot
-    #{ :suffix_? => 'armeb', :target => 'armeb-buildroot-linux-uclibcgnueabi' }, # buildroot
-    #{ :suffix_? => 'i386', :target => 'i586-buildroot-linux-uclibc' }, # buildroot
-    #{ :suffix_? => 'mips', :target => 'mips-buildroot-linux-uclibc' }, # buildroot
-    #{ :suffix_? => 'mipsel', :target => 'mipsel-buildroot-linux-uclibc' }, # buildroot
-    #{ :suffix_? => 'powerpc', :target => 'powerpc-buildroot-linux-uclibc' }, # buildroot
-    #{ :suffix_? => 'sh', :target => 'sh4-buildroot-linux-uclibc' }, # buildroot
-    #{ :suffix_? => 'sparc', :target => 'sparc-buildroot-linux-uclibc' }, # buildroot
-    #{ :suffix_? => 'xtensa', :target => 'xtensa-buildroot-linux-uclibc' }, # buildroot
-    #{ :suffix_? => 'android', :target => 'arm-linux-androideabi' }, # Android NDK
-    #{ :suffix_? => 'x86android', :target => 'i686-linux-android' }, # Android NDK
-    #{ :suffix_? => 'mipsandroid', :target => 'mipsel-linux-android' }, # Android NDK
-    #{ :suffix_? => 'cygwin', :target => 'i686-pc-cygwin' }, # Cygwin
-  ],
-  {
-    :timeout => '1h',
-    :output_interval_timeout => '5min',
-  }
+crossruby_args = []
+
+crossruby_args << [
+  {:suffix_? => 'trunk', :branch => 'trunk' },
+  {:suffix_? => '2.0.0', :branch => 'branches/ruby_2_0_0' },
 ]
+
+crossruby_args << [
+  { :suffix_? => 'mingw', :target => 'i586-mingw32msvc' }, # Debian (squeeze) gcc-mingw32
+  { :suffix_? => 'mingw32', :target => 'i686-w64-mingw32' }, # Debian (wheezy) gcc-mingw-w64
+  { :suffix_? => 'mingw64', :target => 'x86_64-w64-mingw32' }, # Debian (wheezy) gcc-mingw-w64
+  { :suffix_? => 'aarch64', :target => 'aarch64-linux-gnu' }, # buildroot
+  { :suffix_? => 'amd64', :target => 'x86_64-buildroot-linux-uclibc' }, # buildroot
+  { :suffix_? => 'arm', :target => 'arm-buildroot-linux-uclibcgnueabi' }, # buildroot
+  { :suffix_? => 'armeb', :target => 'armeb-buildroot-linux-uclibcgnueabi' }, # buildroot
+  { :suffix_? => 'i386', :target => 'i586-buildroot-linux-uclibc' }, # buildroot
+  { :suffix_? => 'mips', :target => 'mips-buildroot-linux-uclibc' }, # buildroot
+  { :suffix_? => 'mipsel', :target => 'mipsel-buildroot-linux-uclibc' }, # buildroot
+  { :suffix_? => 'powerpc', :target => 'powerpc-buildroot-linux-uclibc' }, # buildroot
+  { :suffix_? => 'sh', :target => 'sh4-buildroot-linux-uclibc' }, # buildroot
+  { :suffix_? => 'sparc', :target => 'sparc-buildroot-linux-uclibc' }, # buildroot
+  { :suffix_? => 'xtensa', :target => 'xtensa-buildroot-linux-uclibc' }, # buildroot
+  { :suffix_? => 'android', :target => 'arm-linux-androideabi' }, # Android NDK
+  { :suffix_? => 'x86android', :target => 'i686-linux-android' }, # Android NDK
+  { :suffix_? => 'mipsandroid', :target => 'mipsel-linux-android' }, # Android NDK
+  { :suffix_? => 'cygwin', :target => 'i686-pc-cygwin' }, # Cygwin
+].reject {|h| !Util.search_command("#{h[:target]}-gcc") }
+
+crossruby_args << {
+  :timeout => '1h',
+  :output_interval_timeout => '5min',
+}
 
 crossruby_args << baseruby if baseruby
 

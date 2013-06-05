@@ -604,7 +604,7 @@ ChkBuild.define_build_proc('ruby') {|b|
       relname = "#{ruby_branch}@#{ruby_svn_rev}"
     end
     if relname
-      b.make("dist", "RELNAME=#{relname}")
+      b.make("dist", "RELNAME=#{relname}", "AUTOCONF=#{autoconf_command}")
     end
   }
 }
