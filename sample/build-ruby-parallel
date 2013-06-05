@@ -53,17 +53,13 @@ ChkBuild.limit(:as => 1024*1024*500*word_bytes) # bytes
 ChkBuild::Ruby.def_target(
   [
     { :suffix_? => 'trunk', :output_interval_timeout => '10min' },
+    #'2.0.0',
     #'1.9.3',
-    #'1.9.2',
-    #'1.8',
     #'1.8.7',
   ],
 
   # ChkBuild::Ruby::MaintainedBranches,
-  # %w[trunk 1.8],
-  # %w[trunk 1.9.3 1.9.2],
-  # %w[1.9.1],
-  # %w[trunk],
+  # %w[trunk 2.0.0],
 
   # ['o0', 'o1', nil, 'o3', 'os'],
 
