@@ -58,6 +58,13 @@ ChkBuild::Ruby.def_target(
     '1.8.7',
   ],
 
+#   [ # :abi_check needs --enable-shared
+#     { :suffix_? => 'trunk', :output_interval_timeout => '10min' },
+#     { :suffix_? => '2.0.0', :abi_check => '/home/akr/ruby/200p0' },
+#     { :suffix_? => '1.9.3', :abi_check => '/home/akr/ruby/193p0' },
+#     '1.8.7',
+#   ],
+
   # ChkBuild::Ruby::MaintainedBranches,
   # %w[trunk],
   # %w[trunk 2.0.0],
@@ -72,6 +79,7 @@ ChkBuild::Ruby.def_target(
 
   # :autoconf_command => 'autoconf',
   # :configure_args_valgrind => %w[--with-valgrind],
+  # :configure_args_enable_shared => %w[--enable-shared],
   # :cppflags => %w[-DRUBY_DEBUG_ENV],
   # :optflags => %w[-O2],
   # :debugflags => %w[-g],

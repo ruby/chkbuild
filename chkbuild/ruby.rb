@@ -272,6 +272,7 @@ ChkBuild.define_build_proc('ruby') {|b|
   inplace_build = bopts[:inplace_build]
   parallel = bopts[:parallel]
   validate_dependencies = bopts[:validate_dependencies]
+  abi_check = bopts[:abi_check]
   do_test = bopts[:do_test]
 
   b.run(autoconf_command, '--version', :section=>'autoconf-version')
@@ -508,6 +509,15 @@ ChkBuild.define_build_proc('ruby') {|b|
     b.catch_error {
       b.make("golf")
       b.run("./ruby", "tool/update-deps", :section=>"update-deps")
+    }
+  end
+
+  if abi_check
+    b.catch_error {
+      Dir.chdir(ruby_build_dir) {
+        b.run("bin/ruby", "#{ChkBuild::TOP_DIRECTORY}/abi-checker.rb", abi_check, ruby_build_dir.to_s, :section=>"abi-check")
+        b.run("w3m", "-ON", "-dump", "compat_reports/libruby/unspecified_to_unspecified/compat_report.html", :section=>nil)
+      }
     }
   end
 
@@ -820,6 +830,11 @@ ChkBuild.define_diff_preprocess_gsub('ruby', %r{^\s*\d+%\s+\[\s*\d+/\d+\]}) {|ma
 # /lib64/ld-linux-x86-64.so.2 (0x00007f3dcbd49000)
 ChkBuild.define_diff_preprocess_gsub('ruby', /(\.so\b.*) \(0x[0-9A-Fa-f]+\)/) {|match|
   "#{match[1]} (<address>)"
+}
+
+# Generated on Thu Jun 6 10:17:43 2013 for libruby by ABI Compliance Checker 1.99
+ChkBuild.define_diff_preprocess_gsub('ruby', /^Generated on .* for libruby by ABI Compliance Checker/) {|match|
+  "Generated on <date> for libruby by ABI Compliance Checker"
 }
 
 # test_exception.rb #1 test_exception.rb:1
