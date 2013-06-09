@@ -833,7 +833,7 @@ ChkBuild.define_diff_preprocess_gsub('ruby', /(\.so\b.*) \(0x[0-9A-Fa-f]+\)/) {|
 }
 
 # Generated on Thu Jun 6 10:17:43 2013 for libruby by ABI Compliance Checker 1.99
-ChkBuild.define_diff_preprocess_gsub('ruby', /^Generated on .* for libruby by ABI Compliance Checker/) {|match|
+ChkBuild.define_diff_preprocess_gsub('ruby', /Generated on .* for libruby by ABI Compliance Checker/) {|match|
   "Generated on <date> for libruby by ABI Compliance Checker"
 }
 
