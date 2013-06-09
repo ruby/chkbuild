@@ -516,7 +516,7 @@ ChkBuild.define_build_proc('ruby') {|b|
     b.catch_error {
       Dir.chdir(ruby_build_dir) {
         b.run("bin/ruby", "#{ChkBuild::TOP_DIRECTORY}/abi-checker.rb", abi_check, ruby_build_dir.to_s, :section=>"abi-check")
-        b.run("w3m", "-ON", "-dump", "compat_reports/libruby/unspecified_to_unspecified/compat_report.html", :section=>nil)
+        b.run("w3m", "-cols", "100", "-ON", "-dump", "compat_reports/libruby/unspecified_to_unspecified/compat_report.html", :section=>nil)
       }
     }
   end
