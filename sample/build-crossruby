@@ -248,10 +248,17 @@ ChkBuild.define_build_proc('crossruby') {|b|
   Dir.chdir('ruby') {
     show_version_h(b)
     b.run('autoconf')
-    build_system = `tool/config.guess`.chomp
+    if File.exist? 'tool/config.guess'
+      build_system = `tool/config.guess`.chomp
+    elsif nativeruby_build = b.depbuilds.find {|depbuild| depbuild.target.target_name == 'nativeruby' }
+      config_guess = "#{nativeruby_build.dir}/ruby/tool/config.guess"
+      if File.exist? config_guess
+        build_system = `#{config_guess}`.chomp
+      end
+    end
     configure_args = []
     configure_args << "--prefix=/usr"
-    configure_args << "--build=#{build_system}"
+    configure_args << "--build=#{build_system}" if build_system
     configure_args << "--host=#{target_system}"
     configure_args << "--with-baseruby=#{baseruby}" if baseruby != 'ruby'
     configure_args << "--disable-install-doc"
