@@ -276,7 +276,7 @@ crossruby_args = []
 
 crossruby_args << [
   {:suffix_? => 'trunk', :branch => 'trunk' },
-  {:suffix_? => '2.0.0', :branch => 'branches/ruby_2_0_0' },
+  #{:suffix_? => '2.0.0', :branch => 'branches/ruby_2_0_0' },
 ]
 
 crossruby_args << [
