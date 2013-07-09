@@ -75,5 +75,5 @@ template_file = Tempfile.open(["version-template", ".xml"])
 template_file.write(xml_template)
 template_file.flush
 
-`abi-compliance-checker -lib libruby -old #{template_file.path} -relpath1 #{ARGV[0]} -new #{template_file.path} -relpath2 #{ARGV[1]} -skip-headers #{sh_file.path} -skip-symbols #{ss_file.path} `
+`abi-compliance-checker -abi -lib libruby -old #{template_file.path} -relpath1 #{ARGV[0]} -new #{template_file.path} -relpath2 #{ARGV[1]} -skip-headers #{sh_file.path} -skip-symbols #{ss_file.path} `
 
