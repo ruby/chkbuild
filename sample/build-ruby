@@ -58,7 +58,7 @@ ChkBuild::Ruby.def_target(
   ],
 
 #   [ # :abi_check needs --enable-shared
-#     { :suffix_? => 'trunk', :output_interval_timeout => '10min' },
+#     { :suffix_? => 'trunk', :abi_check_notitle => '/home/akr/ruby/200p0', :output_interval_timeout => '10min' },
 #     { :suffix_? => '2.0.0', :abi_check => '/home/akr/ruby/200p0' },
 #     { :suffix_? => '1.9.3', :abi_check => '/home/akr/ruby/193p0' },
 #   ],

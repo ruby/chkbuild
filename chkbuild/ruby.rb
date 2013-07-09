@@ -273,6 +273,7 @@ ChkBuild.define_build_proc('ruby') {|b|
   parallel = bopts[:parallel]
   validate_dependencies = bopts[:validate_dependencies]
   abi_check = bopts[:abi_check]
+  abi_check_notitle = bopts[:abi_check_notitle]
   do_test = bopts[:do_test]
 
   b.run(autoconf_command, '--version', :section=>'autoconf-version')
@@ -512,10 +513,12 @@ ChkBuild.define_build_proc('ruby') {|b|
     }
   end
 
-  if abi_check
+  abi_reference_dir = abi_check || abi_check_notitle
+  if abi_reference_dir
+    secname = abi_check ? 'abi-check' : 'abi-check-notitle'
     b.catch_error {
       Dir.chdir(ruby_build_dir) {
-        b.run("bin/ruby", "#{ChkBuild::TOP_DIRECTORY}/abi-checker.rb", abi_check, ruby_build_dir.to_s, :section=>"abi-check")
+        b.run("bin/ruby", "#{ChkBuild::TOP_DIRECTORY}/abi-checker.rb", abi_reference_dir, ruby_build_dir.to_s, :section=>secname)
         b.run("w3m", "-cols", "132", "-ON", "-dump", "compat_reports/libruby/unspecified_to_unspecified/compat_report.html", :section=>nil)
       }
     }
@@ -721,6 +724,23 @@ ChkBuild.define_failure_hook('ruby', "rubyspec") {|log|
     if failures != 0 || errors != 0
       "rubyspec:#{failures}F#{errors}E"
     end
+  end
+}
+
+ChkBuild.define_title_hook('ruby', "abi-check") {|title, log|
+  high = 0
+  log.scan(/ High +([0-9])+ *$/) { high += $1.to_i }
+  medium = 0
+  log.scan(/ Medium +([0-9])+ *$/) { medium += $1.to_i }
+  #low = 0
+  #log.scan(/ Low +([0-9])+ *$/) { low += $1.to_i }
+  if high != 0 || medium != 0 || low != 0
+    str = "ABI:"
+    str << "#{high}H" if high != 0
+    str << "#{medium}M" if medium != 0
+    #str << "#{low}L" if low != 0
+    str
+    title.update_title(:status, str)
   end
 }
 
