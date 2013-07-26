@@ -33,6 +33,7 @@ require 'optparse'
 
 module ChkBuild
   TOP_DIRECTORY = Pathname.new(__FILE__).realpath.dirname.dirname
+  SAMPLE_DIRECTORY = TOP_DIRECTORY + 'sample'
   def ChkBuild.build_top() TOP_DIRECTORY+"tmp/build" end
   def ChkBuild.public_top() TOP_DIRECTORY+"tmp/public_html" end
 

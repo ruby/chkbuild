@@ -274,6 +274,7 @@ ChkBuild.define_build_proc('ruby') {|b|
   validate_dependencies = bopts[:validate_dependencies]
   abi_check = bopts[:abi_check]
   abi_check_notitle = bopts[:abi_check_notitle]
+  abi_check_options = Util.opts2aryparam(bopts, :abi_check_options)
   do_test = bopts[:do_test]
 
   b.run(autoconf_command, '--version', :section=>'autoconf-version')
@@ -518,7 +519,11 @@ ChkBuild.define_build_proc('ruby') {|b|
     secname = abi_check ? 'abi-check' : 'abi-check-notitle'
     b.catch_error {
       Dir.chdir(ruby_build_dir) {
-        b.run("bin/ruby", "#{ChkBuild::TOP_DIRECTORY}/abi-checker.rb", abi_reference_dir, ruby_build_dir.to_s, :section=>secname)
+        args = ["bin/ruby", "#{ChkBuild::TOP_DIRECTORY}/abi-checker.rb"]
+        args.concat abi_check_options.map {|e| e.to_s }
+        args.concat [abi_reference_dir, ruby_build_dir.to_s]
+        args << {:section=>secname}
+        b.run(*args)
         b.run("w3m", "-cols", "132", "-ON", "-dump",
               "compat_reports/libruby/unspecified_to_unspecified/abi_compat_report.html",
               :section=>nil)
