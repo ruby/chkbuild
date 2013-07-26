@@ -29,10 +29,7 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 require 'tempfile'
-
-if ARGV.size < 2 then
-  puts "usage: abi-checker path-to-old-ruby path-to-new-ruby"
-end
+require "optparse"
 
 skip_headers = <<END
 classext.h
@@ -62,6 +59,18 @@ xml_template = <<END
       {RELPATH}/lib
     </libs>
 END
+
+opts = OptionParser.new
+opts.on("--skip-symbols FILE") {|f|
+  # If --skip-symbols is specified, they are skipped too.
+  skip_symbols += File.open(f).read
+}
+opts.parse!(ARGV)
+
+if ARGV.size < 2 then
+  puts "usage: abi-checker [--skip-symbols FILE] path-to-old-ruby path-to-new-ruby"
+end
+
 
 sh_file = Tempfile.open("skip-headers")
 sh_file.write(skip_headers)
