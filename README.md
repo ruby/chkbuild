@@ -1,13 +1,16 @@
-= chkbuild
+chkbuild
+========
 
 chkbuild は、定期的にソフトウェアをビルドし、
 ビルドの記録を HTML ページとして生成します。
 
-== 作者
+作者
+--------
 
 田中 哲 <akr@fsij.org>
 
-== 特徴
+特徴
+--------
 
 * timeout を設定できます
 
@@ -31,8 +34,10 @@ chkbuild は、定期的にソフトウェアをビルドし、
 
 * ひとつのビルド中で失敗が起きたときに、その失敗に依存しない部分を続行することができます。
 
-== 短気なユーザのための設置および試しに ruby の最新版をビルドしてみる方法
+短気なユーザのための設置および試しに ruby の最新版をビルドしてみる方法
+--------
 
+```bash
   % cd $HOME
   % git clone git://github.com/akr/chkbuild.git
   % cd chkbuild
@@ -43,11 +48,13 @@ chkbuild は、定期的にソフトウェアをビルドし、
   % w3m tmp/public_html/ruby-1.8-pth/summary.html
 
   % rm -rf tmp
+```
 
   この方法はあくまでも試しに動かすものであって、
   これを cron で定期的に実行することはしないでください。
 
-== 設置
+設置
+--------
 
 以下の例では、あなたのユーザ名が foo で、
 /home/foo/chkbuild に chkbuild を設置することを仮定します。
@@ -56,9 +63,11 @@ chkbuild は、定期的にソフトウェアをビルドし、
 
 (1) chkbuild のダウンロード・展開
 
+```bash
       % export U=foo
       % cd /home/$U
       % git clone git://github.com/akr/chkbuild.git
+```
 
 (2) chkbuild の設定
 
@@ -66,9 +75,11 @@ chkbuild は、定期的にソフトウェアをビルドし、
     適当なものを編集します。
     また、start-build はサンプルを呼び出すスクリプトです。
 
+```bash
       % cd chkbuild
       % vi sample/build-ruby
       % vi start-build
+```
 
     設定内容について詳しくは次節で述べます。
 
@@ -84,7 +95,9 @@ chkbuild は、定期的にソフトウェアをビルドし、
     $U ユーザでビルドした場合、次の chkbuild ユーザでのビルドの邪魔になりますので、
     ビルド結果を削除しておきます。
 
+```bash
       % rm -rf tmp
+```
 
 (3) chkbuild ユーザの作成
 
@@ -94,10 +107,13 @@ chkbuild は、定期的にソフトウェアをビルドし、
     また、以下のようなオーナ・グループ・モードでディレクトリを作り、
     chkbuild ユーザ自身は build, public_html 以下にしか書き込めないようにします。
 
+```
       /home/chkbuild              user=$U group=chkbuild mode=2755
       /home/chkbuild/build        user=$U group=chkbuild mode=2775
       /home/chkbuild/public_html  user=$U group=chkbuild mode=2775
+```
 
+```bash
       % su
       # adduser --disabled-login --no-create-home chkbuild
       # usermod -G ...,chkbuild $U
@@ -110,10 +126,13 @@ chkbuild は、定期的にソフトウェアをビルドし、
       # chown $U:chkbuild chkbuild/build chkbuild/public_html
       # chmod 2775 chkbuild/build chkbuild/public_html
       # exit
+```
 
 (4) 生成ディレクトリの設定
 
+```bash
       % ln -s /home/chkbuild /home/$U/chkbuild/tmp
+```
 
     デフォルトの設定のまま /home/chkbuild 以下でビルドしたい場合にはこのように
     シンボリックリンクを作るのが簡単です。
@@ -125,12 +144,16 @@ chkbuild は、定期的にソフトウェアをビルドし、
 
     このためには、まず通信に使用する (パスフレーズのない) ssh 鍵対を生成します。
 
+```bash
       % ssh-keygen -N '' -t rsa -f chkbuild-upload -C chkbuild-upload
 
     アップロードしたファイルを格納するディレクトリを HTTP サーバで作ります
     ここでは /home/$U/public_html/chkbuild を使うことにします。
+```
 
+```bash
       % mkdir -p /home/$U/public_html/chkbuild
+```
 
     HTTP サーバでアップロードを受け取るための rsync daemon の設定を作ります。
     (daemon といっても常に動かしておくわけではありませんが。)
@@ -138,12 +161,14 @@ chkbuild は、定期的にソフトウェアをビルドし、
     この設定を使った rsync daemon は /home/$U/public_html/chkbuild 下への
     書き込み専用になります。
 
+```bash
       /home/$U/.ssh/chkbuild-rsyncd.conf :
       [upload]
       path = /home/$U/public_html/chkbuild
       use chroot = no
       read only = no
       write only = yes
+```
 
     HTTP サーバでアップロードを受け取るユーザの ~/.ssh/authorized_keys に
     以下を加えます。
@@ -154,22 +179,28 @@ chkbuild は、定期的にソフトウェアをビルドし、
     chkbuild を動作させるホストで、HTTP サーバの ssh fingerprint を記録します。
     HTTP サーバのホスト名を http-server とします。
 
+```bash
       % mkdir /home/chkbuild/.ssh
       % ssh-keyscan -t rsa http-server > /home/chkbuild/.ssh/known_hosts
+```
 
     上で生成した鍵対の秘密鍵を chkbuild を動作させるホストの
     /home/chkbuild/.ssh/ にコピーします
     そして秘密鍵を chkbild ユーザが読めるようなグループパーミッションを
     設定します。
 
+```bash
       % cp chkbuild-upload chkbuild-upload.pub /home/chkbuild/.ssh/
       % su
       # chgrp chkbuild /home/chkbuild/.ssh/chkbuild-upload
       # chmod g+r /home/chkbuild/.ssh/chkbuild-upload
+```
 
     そして、start-build 内で以下の行を有効にします。
 
+```ruby
       ChkBuild.rsync_ssh_upload_target("remoteuser@http-server::upload/dir", "/home/chkbuild/.ssh/chkbuild-upload")
+```
 
     これにより HTTP サーバの /home/$U/public_html/chkbuild/dir にコピーされる
     ようになります。
@@ -181,12 +212,16 @@ chkbuild は、定期的にソフトウェアをビルドし、
     これらのファイルをブラウザから閲覧するためには以下のようなヘッダが
     HTTP サーバからブラウザに送られなければなりません。
 
+```
       Content-Type: text/html
       Content-Encoding: gzip
+```
 
     また、rss というファイルでは RSS を提供するので、以下のヘッダをつけます。
 
+```
       Content-Type: application/rss+xml
+```
 
     これらを行う設定方法は HTTP サーバに依存しますが、
     Apache の場合は mod_mime モジュールでヘッダを制御できます。
@@ -196,6 +231,7 @@ chkbuild は、定期的にソフトウェアをビルドし、
     例えば以下のような設定を /home/$U/public_html/.htaccess に入れることで
     上記を実現できるかもしれません。
 
+```
       # サーバ全体の設定にある .gz に対する AddType を抑制し、
       # .gz なファイルで Content-Encoding: gzip とする
       # .html に対して Content-Type: text/html とするのはサーバ全体の設定で
@@ -207,15 +243,20 @@ chkbuild は、定期的にソフトウェアをビルドし、
       <Files rss>
       ForceType application/rss+xml
       </Files>
+```
 
 (7) 定期実行の設定
 
+```bash
       # vi /etc/crontab
+```
 
     たとえば、毎日午前 3時33分に実行するには root の crontab で以下のような
     設定を行います。
 
+```
       33 3 * * * root cd /home/$U/chkbuild; su chkbuild -c /home/$U/chkbuild/start-build
+```
 
     su chkbuild により、chkbuild ユーザで start-build を起動します。
 
@@ -225,13 +266,15 @@ chkbuild は、定期的にソフトウェアをビルドし、
 
     http://www.rubyist.net/~kazu/samidare/latest
 
-== 設定
+設定
+--------
 
 chkbuild の設定は、Ruby で記述されます。
 実際のところ、chkbuild の本体は chkbuild.rb という Ruby のライブラリであり、
 chkbuild.rb を利用するスクリプトを記述することが設定となります。
 
-== セキュリティ
+セキュリティ
+--------
 
 chkbuild により、git/svn/cvs サーバなどから入手できる最新版をコンパイルすることは、
 サーバに書き込める開発者と サーバに入っているコードを信用することになります。
@@ -254,11 +297,13 @@ chkbuild により、git/svn/cvs サーバなどから入手できる最新版�
 なお、さらに注意深くありたい場合には、
 xen, chroot, jail, user mode linux, VMware, ... などで環境を限定することも検討してください。
 
-== TODO
+TODO
+--------
 
 * index.html を生成する
 
-== LICENSE
+LICENSE
+--------
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
