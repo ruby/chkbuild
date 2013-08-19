@@ -32,7 +32,6 @@
 
 # build-crossruby requirements:
 # * toolchain
-# * (optional) baseruby
 #
 # toolchain:
 #   You need a toolchain for cross-compiling.
@@ -79,15 +78,6 @@
 #   The prefix, i686-w64-mingw32, is the target system.
 #   You should be sure the command (and other commands which have same prefix)
 #   is available in PATH.
-#
-# baseruby:
-#   Ruby is required to build Ruby, especially for cross-compiling.
-#   By default, build-crossruby builds ruby natively at first.
-#   You can specify another ruby using CROSSRUBY_BASERUBY.
-
-CROSSRUBY_BASERUBY = nil # default.  build each time.
-#CROSSRUBY_BASERUBY = 'ruby' # command name
-#CROSSRUBY_BASERUBY = '/usr/bin/ruby1.9.3' # command path
 
 require 'chkbuild'
 
@@ -240,7 +230,8 @@ ChkBuild.define_build_proc('nativeruby') {|b|
 
 ChkBuild.define_build_proc('crossruby') {|b|
   target_system = b.opts[:target]
-  baseruby = CROSSRUBY_BASERUBY || 'ruby'
+  nativeruby_build = b.depbuilds.find {|depbuild| depbuild.target.target_name == 'nativeruby' }
+  baseruby = "#{nativeruby_build.dir}/bin/ruby"
   b.catch_error { b.run(baseruby, "-v", :section=>"baseruby-version") }
   branch = b.opts[:branch] || 'trunk'
   b.svn("http://svn.ruby-lang.org/repos/ruby", branch, 'ruby')
@@ -250,7 +241,7 @@ ChkBuild.define_build_proc('crossruby') {|b|
     b.run('autoconf')
     if File.exist? 'tool/config.guess'
       build_system = `tool/config.guess`.chomp
-    elsif nativeruby_build = b.depbuilds.find {|depbuild| depbuild.target.target_name == 'nativeruby' }
+    else
       config_guess = "#{nativeruby_build.dir}/ruby/tool/config.guess"
       if File.exist? config_guess
         build_system = `#{config_guess}`.chomp
@@ -260,7 +251,7 @@ ChkBuild.define_build_proc('crossruby') {|b|
     configure_args << "--prefix=/usr"
     configure_args << "--build=#{build_system}" if build_system
     configure_args << "--host=#{target_system}"
-    configure_args << "--with-baseruby=#{baseruby}" if baseruby != 'ruby'
+    configure_args << "--with-baseruby=#{baseruby}"
     configure_args << "--disable-install-doc"
     b.run('./configure', *configure_args)
     show_verconf_h(b)
@@ -271,13 +262,9 @@ ChkBuild.define_build_proc('crossruby') {|b|
   }
 }
 
-if !CROSSRUBY_BASERUBY
-  baseruby = ChkBuild.def_target('nativeruby',
-    :timeout => '1h',
-    :output_interval_timeout => '5min')
-else
-  baseruby = nil
-end
+nativeruby = ChkBuild.def_target('nativeruby',
+  :timeout => '1h',
+  :output_interval_timeout => '5min')
 
 crossruby_args = []
 
@@ -312,7 +299,7 @@ crossruby_args << {
   :output_interval_timeout => '5min',
 }
 
-crossruby_args << baseruby if baseruby
+crossruby_args << nativeruby if nativeruby
 
 ChkBuild.def_target('crossruby', *crossruby_args)
 
