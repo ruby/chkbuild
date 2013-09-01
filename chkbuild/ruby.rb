@@ -66,19 +66,19 @@ End
 
   VERSION_LIST_SCRIPT = <<'End'
   [
-    ["dbm", lambda { DBM::VERSION }],
-    ["gdbm", lambda { GDBM::VERSION }],
-    ["readline", lambda { Readline::VERSION }],
-    ["openssl", lambda { OpenSSL::OPENSSL_VERSION }],
-    ["zlib", lambda { hv = Zlib::ZLIB_VERSION; lv = Zlib.zlib_version; lv == hv ? lv : "header:#{hv} library:#{lv}" }],
-    ["tcltklib", lambda { TclTkLib::COMPILE_INFO }],
-    ["curses", lambda { Curses::VERSION }],
-  ].each {|feature, versionproc|
+    ["gmp", lambda { Bignum::GMP_VERSION }],
+    ["dbm", lambda { require "dbm"; DBM::VERSION }],
+    ["gdbm", lambda { require "gdbm"; GDBM::VERSION }],
+    ["readline", lambda { require "readline"; Readline::VERSION }],
+    ["openssl", lambda { require "openssl"; OpenSSL::OPENSSL_VERSION }],
+    ["zlib", lambda { require "zlib"; hv = Zlib::ZLIB_VERSION; lv = Zlib.zlib_version; lv == hv ? lv : "header:#{hv} library:#{lv}" }],
+    ["tcltklib", lambda { require "tcltklib"; TclTkLib::COMPILE_INFO }],
+    ["curses", lambda { require "curses"; Curses::VERSION }],
+  ].each {|name, versionproc|
     begin
-      require feature
-      puts "#{feature}: #{versionproc.call}"
+      puts "#{name}: #{versionproc.call}"
     rescue Exception
-      puts "#{feature}: #{$!}"
+      puts "#{name}: #{$!}"
     end
   }
 End
