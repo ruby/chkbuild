@@ -940,7 +940,7 @@ ChkBuild.define_diff_preprocess_gsub('ruby', %r{\#<File:fd \d+>}o) {|match|
   '#<File:fd n>'
 }
 
-ChkBuild.define_diff_preprocess_gsub('ruby', /^Elapsed: [0-9.]+s/) {|match|
+ChkBuild.define_diff_preprocess_gsub('ruby', /^ *Elapsed: [0-9.]+s/) {|match|
   "Elapsed: <t>s"
 }
 
