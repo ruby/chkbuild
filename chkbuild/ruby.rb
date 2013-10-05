@@ -741,7 +741,7 @@ ChkBuild.define_title_hook('ruby', "abi-check") {|title, log|
   log.scan(/ Medium +([0-9])+ *$/) { medium += $1.to_i }
   #low = 0
   #log.scan(/ Low +([0-9])+ *$/) { low += $1.to_i }
-  if high != 0 || medium != 0 || low != 0
+  if high != 0 || medium != 0 # || low != 0
     str = "ABI:"
     str << "#{high}H" if high != 0
     str << "#{medium}M" if medium != 0
