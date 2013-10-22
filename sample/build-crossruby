@@ -53,6 +53,18 @@
 #   - Debian GNU/Linux (wheezy): gcc-mingw-w64
 #     aptitude install gcc-mingw-w64
 #
+#   - Emdebian http://www.emdebian.org/ (squeeze)
+#     aptitude install emdebian-archive-keyring
+#     vi /etc/apt/sources.list # add "deb http://www.emdebian.org/debian squeeze main"
+#     aptitude update
+#     aptitude install gcc-4.4-arm-linux-gnueabi zlib1g-dev-armel-cross libgmp3-dev-armel-cross # arm-linux-gnueabi
+#     aptitude install gcc-4.4-ia64-linux-gnu zlib1g-dev-ia64-cross libgmp3-dev-ia64-cross # ia64-linux-gnu
+#     aptitude install gcc-4.4-mips-linux-gnu zlib1g-dev-mips-cross libgmp3-dev-mips-cross # mips-linux-gnu
+#     aptitude install gcc-4.4-mipsel-linux-gnu zlib1g-dev-mipsel-cross libgmp3-dev-mipsel-cross # mipsel-linux-gnu
+#     aptitude install gcc-4.4-powerpc-linux-gnu zlib1g-dev-powerpc-cross libgmp3-dev-powerpc-cross # powerpc-linux-gnu
+#     aptitude install gcc-4.4-s390-linux-gnu zlib1g-dev-s390-cross libgmp3-dev-s390-cross # s390-linux-gnu
+#     aptitude install gcc-4.4-sparc-linux-gnu zlib1g-dev-sparc-cross libgmp3-dev-sparc-cross # sparc-linux-gnu
+#
 #   Platform vendor's toolchain:
 #
 #   - Android NDK http://developer.android.com/tools/sdk/ndk/index.html
@@ -277,6 +289,13 @@ crossruby_args << [
   { :suffix_? => 'mingw', :target => 'i586-mingw32msvc' }, # Debian (squeeze) gcc-mingw32
   { :suffix_? => 'mingw32', :target => 'i686-w64-mingw32' }, # Debian (wheezy) gcc-mingw-w64
   { :suffix_? => 'mingw64', :target => 'x86_64-w64-mingw32' }, # Debian (wheezy) gcc-mingw-w64
+  { :suffix_? => 'emdebian-arm', :target => 'arm-linux-gnueabi' }, # Emdebian (squeeze) gcc-4.4-arm-linux-gnueabi
+  { :suffix_? => 'emdebian-ia64', :target => 'ia64-linux-gnu' }, # Emdebian (squeeze) gcc-4.4-ia64-linux-gnu
+  { :suffix_? => 'emdebian-mips', :target => 'mips-linux-gnu' }, # Emdebian (squeeze) gcc-4.4-mips-linux-gnu
+  { :suffix_? => 'emdebian-mipsel', :target => 'mipsel-linux-gnu' }, # Emdebian (squeeze) gcc-4.4-mipsel-linux-gnu
+  { :suffix_? => 'emdebian-powerpc', :target => 'powerpc-linux-gnu' }, # Emdebian (squeeze) gcc-4.4-powerpc-linux-gnu
+  { :suffix_? => 'emdebian-s390', :target => 's390-linux-gnu' }, # Emdebian (squeeze) gcc-4.4-s390-linux-gnu
+  { :suffix_? => 'emdebian-sparc', :target => 'sparc-linux-gnu' }, # Emdebian (squeeze) gcc-4.4-sparc-linux-gnu
   { :suffix_? => 'aarch64', :target => 'aarch64-linux-gnu' }, # buildroot
   { :suffix_? => 'amd64', :target => 'x86_64-buildroot-linux-uclibc' }, # buildroot
   { :suffix_? => 'arm', :target => 'arm-buildroot-linux-uclibcgnueabi' }, # buildroot
