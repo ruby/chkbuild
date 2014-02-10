@@ -640,7 +640,7 @@ class ChkBuild::Build
       end
     end
     open(ChkBuild.public_top+@summary_txt_relpath, "a") {|f|
-      f.print "#{start_time} #{title}"
+      f.print "#{start_time}(#{@current_status}) #{title}"
       f.print " (#{diff_txt})" if diff_txt
       f.puts
     }
