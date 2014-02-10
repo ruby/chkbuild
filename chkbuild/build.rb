@@ -523,6 +523,7 @@ class ChkBuild::Build
   end
 
   def update_gziped_file(filename)
+    return if !File.file?(filename)
     atomic_make_compressed_file(filename) {|dst|
       Zlib::GzipReader.wrap(open(filename)) {|src|
 	yield src, dst
