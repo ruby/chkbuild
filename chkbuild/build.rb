@@ -1141,7 +1141,7 @@ End
         return :netfail
       end
       if failure
-        return :fail
+        return :failure
       end
       nil
     }
@@ -1517,7 +1517,7 @@ End
         _, secname, _ = ChkBuild::LogFile.parse_section_header(line)
         failure_start_pattern = ChkBuild.fetch_failure_start_pattern(@target.target_name, secname)
       else
-        if tag == :fail
+        if tag == :failure
           section_failed = true
         end
         section_lines << line
