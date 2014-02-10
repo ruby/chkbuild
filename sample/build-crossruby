@@ -45,6 +45,26 @@
 #     make
 #     ln -s $PWD/output/host/usr/bin/<Target-Triplets>-* $HOME/bin
 #
+#   - NetBSD's build.sh
+#     http://www.netbsd.org/docs/guide/en/chap-build.html
+#     arch=sun3         # Your favorite architecture.
+#     d=$HOME/netbsd
+#     cd $d
+#     wget ftp://ftp.netbsd.org/pub/NetBSD/NetBSD-6.1.2/source/sets/{gnusrc,sharesrc,src,syssrc}.tgz
+#     tar xf gnusrc.tgz
+#     tar xf sharesrc.tgz
+#     tar xf src.tgz
+#     tar xf syssrc.tgz
+#     cd usr/src
+#     ./build.sh -O $d/$arch -m $arch -U build > $d/build-$arch.log 2>&1
+#     cross_gcc=`echo $d/$arch/tooldir.*/*-gcc`
+#     triplet=`basename $cross_gcc -gcc`
+#     cat <<End > $HOME/bin/$triplet-gcc
+#     #!/bin/sh
+#     $cross_gcc --sysroot=$d/$arch/destdir.$arch "\$@"
+#     End
+#     chmod 755 $HOME/bin/$triplet-gcc
+#
 #   OS package:
 #
 #   - Debian GNU/Linux (squeeze): gcc-mingw32
@@ -307,6 +327,21 @@ crossruby_args << [
   { :suffix_? => 'sh', :target => 'sh4-buildroot-linux-uclibc' }, # buildroot
   { :suffix_? => 'sparc', :target => 'sparc-buildroot-linux-uclibc' }, # buildroot
   { :suffix_? => 'xtensa', :target => 'xtensa-buildroot-linux-uclibc' }, # buildroot
+  { :suffix_? => 'netbsd-alpha', :target => 'alpha--netbsd' }, # NetBSD
+  { :suffix_? => 'netbsd-arm', :target => 'arm--netbsdelf' }, # NetBSD
+  { :suffix_? => 'netbsd-hppa', :target => 'hppa--netbsd' }, # NetBSD
+  { :suffix_? => 'netbsd-i486', :target => 'i486--netbsdelf' }, # NetBSD
+  { :suffix_? => 'netbsd-m68010', :target => 'm68010--netbsdelf' }, # NetBSD
+  { :suffix_? => 'netbsd-m68k', :target => 'm68k--netbsdelf' }, # NetBSD
+  { :suffix_? => 'netbsd-mipseb', :target => 'mipseb--netbsd' }, # NetBSD
+  { :suffix_? => 'netbsd-mipsel', :target => 'mipsel--netbsd' }, # NetBSD
+  { :suffix_? => 'netbsd-powerpc', :target => 'powerpc--netbsd' }, # NetBSD
+  { :suffix_? => 'netbsd-sh', :target => 'sh--netbsdelf' }, # NetBSD
+  { :suffix_? => 'netbsd-shle', :target => 'shle--netbsdelf' }, # NetBSD
+  { :suffix_? => 'netbsd-sparc', :target => 'sparc--netbsdelf' }, # NetBSD
+  { :suffix_? => 'netbsd-sparc64', :target => 'sparc64--netbsd' }, # NetBSD
+  { :suffix_? => 'netbsd-vax', :target => 'vax--netbsdelf' }, # NetBSD
+  { :suffix_? => 'netbsd-x86_64', :target => 'x86_64--netbsd' }, # NetBSD
   { :suffix_? => 'android', :target => 'arm-linux-androideabi' }, # Android NDK
   { :suffix_? => 'x86android', :target => 'i686-linux-android' }, # Android NDK
   { :suffix_? => 'mipsandroid', :target => 'mipsel-linux-android' }, # Android NDK
