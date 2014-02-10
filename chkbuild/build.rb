@@ -476,7 +476,7 @@ class ChkBuild::Build
     make_logfail_text_gz(@log_filename, ChkBuild.public_top+@compressed_rawfail_relpath)
     failure = detect_failure(@t)
     @current_status = (failure || :success).to_s
-    @has_neterror = failure == :net
+    @has_neterror = failure == :netfail
     @older_time, older_time_failure = find_diff_target_time(@t)
     @older_status = @older_time ? (older_time_failure || :success).to_s : nil
     @compressed_older_loghtml_relpath = @older_time ? "#{@depsuffixed_name}/log/#{@older_time}.log.html.gz" : nil
@@ -494,7 +494,7 @@ class ChkBuild::Build
     make_failhtml(title)
     make_diffhtml(title, different_sections)
     make_rss(title, different_sections)
-    update_older_page if @older_time && failure != :net
+    update_older_page if @older_time && failure != :netfail
     ChkBuild.run_upload_hooks(self.suffixed_name)
   end
 
@@ -1120,7 +1120,7 @@ End
   end
 
   def has_neterror?(time)
-    detect_failure(time) == :net
+    detect_failure(time) == :netfail
   end
 
   def detect_failure(time)
@@ -1138,7 +1138,7 @@ End
         end
       }
       if net
-        return :net
+        return :netfail
       end
       if failure
         return :fail
@@ -1169,9 +1169,9 @@ End
          !h["#{time1}.diff.html.gz"]
         next
       end
-      if time2_failure != :net
+      if time2_failure != :netfail
         time1_failure = detect_failure(time1)
-        if time1_failure == :net
+        if time1_failure == :netfail
           next
         end
       end
