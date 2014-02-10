@@ -1111,3 +1111,8 @@ ChkBuild.define_file_changes_viewer('svn',
   ChkBuild::ViewVC.new('http://svn.ruby-lang.org/cgi-bin/viewvc.cgi?diff_format=u', false, mod)
 }
 
+ChkBuild.define_failure_start_pattern('ruby', nil, /\[BUG\]/)
+ChkBuild.define_failure_start_pattern('ruby', 'test-all', /\AFinished tests in /)
+ChkBuild.define_failure_start_pattern('ruby', %r{\Atest/}, /\AFinished tests in /)
+ChkBuild.define_failure_start_pattern('ruby', 'rubyspec', /\A1\)\n\z/)
+ChkBuild.define_failure_start_pattern('ruby', %r{\A(?!(btest\z|test-all\z|test/))}, /:\d+:in `/)

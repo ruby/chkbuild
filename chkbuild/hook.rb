@@ -279,5 +279,42 @@ module ChkBuild
     }
     nil
   end
+
+  @failure_start_patterns_hash = {}
+  @failure_start_patterns_hash_regexpkey = {}
+  def ChkBuild.define_failure_start_pattern(target_name, secname, pat)
+    target_name = // if target_name.nil?
+    secname = // if secname.nil?
+    if String === target_name && String === secname
+      @failure_start_patterns_hash[target_name] ||= {}
+      @failure_start_patterns_hash[target_name][secname] ||= []
+      @failure_start_patterns_hash[target_name][secname] << pat
+    else
+      target_name = Regexp.union(target_name) if String === target_name
+      secname = Regexp.union(secname) if String === secname
+      @failure_start_patterns_hash_regexpkey[target_name] ||= {}
+      @failure_start_patterns_hash_regexpkey[target_name][secname] ||= []
+      @failure_start_patterns_hash_regexpkey[target_name][secname] << pat
+    end
+  end
+
+  def ChkBuild.fetch_failure_start_pattern(target_name, secname)
+    pats1 = pats2 = []
+    if @failure_start_patterns_hash.has_key?(target_name) &&
+       @failure_start_patterns_hash[target_name].has_key?(secname)
+      pats1 = @failure_start_patterns_hash[target_name][secname]
+    end
+    @failure_start_patterns_hash_regexpkey.each {|target_name_pat, h|
+      next if target_name_pat !~ target_name
+      h.each {|secname_pat, pat|
+        next if secname_pat !~ secname
+        pats2.concat pat
+      }
+    }
+    Regexp.union(pats1 + pats2)
+  end
+
+  ChkBuild.define_failure_start_pattern(nil, nil, /timeout: output interval exceeds /)
+
 end
 
