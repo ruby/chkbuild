@@ -87,7 +87,7 @@ End
   DOMAINLABEL = /[A-Za-z0-9-]+/
   DOMAINPAT = /#{DOMAINLABEL}(\.#{DOMAINLABEL})*/
 
-  MaintainedBranches = %w[trunk 2.0.0 1.9.3]
+  MaintainedBranches = %w[trunk 2.1 2.0.0 1.9.3]
 
   module_function
 
@@ -152,6 +152,7 @@ def (ChkBuild::Ruby::CompleteOptions).call(target_opts)
     when "mvm" then hs << { :ruby_branch => 'branches/mvm' }
     when "half-baked-1.9" then hs << { :ruby_branch => 'branches/half-baked-1.9' }
     when "matzruby" then hs << { :ruby_branch => 'branches/matzruby' }
+    when "2.1" then hs << { :ruby_branch => 'branches/ruby_2_1' }
     when "2.0.0" then hs << { :ruby_branch => 'branches/ruby_2_0_0' }
     when "1.9.3" then hs << { :ruby_branch => 'branches/ruby_1_9_3' }
     when "1.9.2" then hs << { :ruby_branch => 'branches/ruby_1_9_2' }
@@ -1110,3 +1111,8 @@ ChkBuild.define_file_changes_viewer('svn',
   ChkBuild::ViewVC.new('http://svn.ruby-lang.org/cgi-bin/viewvc.cgi?diff_format=u', false, mod)
 }
 
+ChkBuild.define_failure_start_pattern('ruby', nil, /\[BUG\]/)
+ChkBuild.define_failure_start_pattern('ruby', 'test-all', /\AFinished tests in /)
+ChkBuild.define_failure_start_pattern('ruby', %r{\Atest/}, /\AFinished tests in /)
+ChkBuild.define_failure_start_pattern('ruby', 'rubyspec', /\A1\)\n\z/)
+ChkBuild.define_failure_start_pattern('ruby', %r{\A(?!(btest\z|test-all\z|test/))}, /:\d+:in `/)

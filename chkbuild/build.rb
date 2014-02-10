@@ -463,29 +463,38 @@ class ChkBuild::Build
     @recent_html_relpath = "#{@depsuffixed_name}/recent.html"
     @rss_relpath = "#{@depsuffixed_name}/rss"
     @compressed_rawlog_relpath = "#{@depsuffixed_name}/log/#{@t}.log.txt.gz"
+    @compressed_rawfail_relpath = "#{@depsuffixed_name}/log/#{@t}.fail.txt.gz"
     @compressed_rawdiff_relpath = "#{@depsuffixed_name}/log/#{@t}.diff.txt.gz"
     @compressed_loghtml_relpath = "#{@depsuffixed_name}/log/#{@t}.log.html.gz"
+    @compressed_failhtml_relpath = "#{@depsuffixed_name}/log/#{@t}.fail.html.gz"
     @compressed_diffhtml_relpath = "#{@depsuffixed_name}/log/#{@t}.diff.html.gz"
 
     title, title_version = gen_title
     send_title_to_parent(title_version)
     force_link @current_txt, ChkBuild.public_top+@last_txt_relpath if @current_txt.file?
     compress_file(@log_filename, ChkBuild.public_top+@compressed_rawlog_relpath)
-    @has_neterror = has_neterror?(@t)
-    @older_time = find_diff_target_time(@t)
+    make_logfail_text_gz(@log_filename, ChkBuild.public_top+@compressed_rawfail_relpath)
+    failure = detect_failure(@t)
+    @current_status = (failure || :success).to_s
+    @has_neterror = failure == :net
+    @older_time, older_time_failure = find_diff_target_time(@t)
+    @older_status = @older_time ? (older_time_failure || :success).to_s : nil
     @compressed_older_loghtml_relpath = @older_time ? "#{@depsuffixed_name}/log/#{@older_time}.log.html.gz" : nil
+    @compressed_older_failhtml_relpath = @older_time ? "#{@depsuffixed_name}/log/#{@older_time}.fail.html.gz" : nil
     @compressed_older_diffhtml_relpath = @older_time ? "#{@depsuffixed_name}/log/#{@older_time}.diff.html.gz" : nil
     different_sections = make_diff(@older_time, @t)
     @diff_reader = LineReader.new(ChkBuild.public_top+@compressed_rawdiff_relpath)
     @log_reader = LineReader.new(@log_filename)
+    @fail_reader = LineReader.new(ChkBuild.public_top+@compressed_rawfail_relpath)
     update_summary(title, different_sections)
     update_recent
     make_last_html(title, different_sections)
     compress_file(ChkBuild.public_top+@last_html_relpath, ChkBuild.public_top+@last_html_gz_relpath)
     make_loghtml(title, different_sections)
+    make_failhtml(title)
     make_diffhtml(title, different_sections)
     make_rss(title, different_sections)
-    update_older_page if @older_time && !@has_neterror
+    update_older_page if @older_time && failure != :net
     ChkBuild.run_upload_hooks(self.suffixed_name)
   end
 
@@ -496,7 +505,8 @@ class ChkBuild::Build
 	  "<a href=#{ha uri_from_top(@compressed_diffhtml_relpath) }>NewerDiff</a>"
 	}
         line = line.gsub(/<!--placeholder_start-->(?:nextlog|newerlog|NewerLog)<!--placeholder_end-->/) {
-	  "<a href=#{ha uri_from_top(@compressed_loghtml_relpath) }>#{@t}</a>"
+	  "<a href=#{ha uri_from_top(@compressed_loghtml_relpath) }>#{@t}</a>" +
+	  "(<a href=#{ha uri_from_top(@compressed_failhtml_relpath) }>#{h @current_status}</a>)"
 	}
 	dst.print line
       }
@@ -504,12 +514,16 @@ class ChkBuild::Build
     with_page_uri_from_top(@compressed_older_loghtml_relpath) {
       update_gziped_file(ChkBuild.public_top+@compressed_older_loghtml_relpath, &block)
     }
+    with_page_uri_from_top(@compressed_older_failhtml_relpath) {
+      update_gziped_file(ChkBuild.public_top+@compressed_older_failhtml_relpath, &block)
+    }
     with_page_uri_from_top(@compressed_older_diffhtml_relpath) {
       update_gziped_file(ChkBuild.public_top+@compressed_older_diffhtml_relpath, &block)
     }
   end
 
   def update_gziped_file(filename)
+    return if !File.file?(filename)
     atomic_make_compressed_file(filename) {|dst|
       Zlib::GzipReader.wrap(open(filename)) {|src|
 	yield src, dst
@@ -638,7 +652,9 @@ class ChkBuild::Build
 	  f.puts "<h1>#{h page_title}</h1>"
 	  f.puts "<p><a href=#{ha uri_from_top('.')}>chkbuild</a></p>"
 	end
-	f.print "<a href=#{ha uri_from_top(@compressed_loghtml_relpath)} name=#{ha start_time}>#{h start_time}</a> #{h title}"
+	f.print "<a href=#{ha uri_from_top(@compressed_loghtml_relpath)} name=#{ha start_time}>#{h start_time}</a>"
+	f.print "(<a href=#{ha uri_from_top(@compressed_failhtml_relpath)} name=#{ha start_time}>#{h @current_status}</a>)"
+	f.print " #{h title}"
 	if diff_txt
 	  f.print " (<a href=#{ha uri_from_top(@compressed_diffhtml_relpath)}>#{h diff_txt}</a>)"
 	else
@@ -760,7 +776,7 @@ End
     if /\A== (\S+)/ =~ line
       tag = $1
       rest = $'
-      result << "<a name=#{ha(u(tag))}>== #{h(tag)}</a>#{h(rest)}"
+      result << "<a name=#{ha(u(tag))} href=#{ha uri_from_top(@compressed_loghtml_relpath)+"##{u(tag)}"}>== #{h(tag)}#{h(rest)}</a>"
     else
       i = 0
       line.scan(/#{URI.regexp(['http'])}/o) {
@@ -770,14 +786,6 @@ End
       }
       result << h(line[i...line.length]) if i < line.length
     end
-    result
-  end
-
-  def markup_log(str)
-    result = ''
-    str.each_line {|line|
-      result << markup_log_line(line)
-    }
     result
   end
 
@@ -839,10 +847,12 @@ End
     <p>
 % if @older_time
       <a href=<%=ha uri_from_top(@compressed_older_diffhtml_relpath) %>>OlderDiff</a> &lt;
-      <a href=<%=ha uri_from_top(@compressed_older_loghtml_relpath) %>><%=h @older_time %></a> &lt;
+      <a href=<%=ha uri_from_top(@compressed_older_loghtml_relpath) %>><%=h @older_time %></a><%
+      %>(<a href=<%=ha uri_from_top(@compressed_older_failhtml_relpath) %>><%=h @older_status %></a>) &lt;
 % end
       <a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>ThisDiff</a> &gt;
-      <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>><%=h @t %></a>
+      <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>><%=h @t %></a><%
+      %>(<a href=<%=ha uri_from_top(@compressed_failhtml_relpath) %>><%=h @current_status %></a>)
     </p>
 % if has_diff
     <pre>
@@ -856,10 +866,12 @@ End
     <p>
 % if @older_time
       <a href=<%=ha uri_from_top(@compressed_older_diffhtml_relpath) %>>OlderDiff</a> &lt;
-      <a href=<%=ha uri_from_top(@compressed_older_loghtml_relpath) %>><%=h @older_time %></a> &lt;
+      <a href=<%=ha uri_from_top(@compressed_older_loghtml_relpath) %>><%=h @older_time %></a><%
+      %>(<a href=<%=ha uri_from_top(@compressed_older_failhtml_relpath) %>><%=h @older_status %></a>) &lt;
 % end
       <a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>ThisDiff</a> &gt;
-      <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>><%=h @t %></a>
+      <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>><%=h @t %></a><%
+      %>(<a href=<%=ha uri_from_top(@compressed_failhtml_relpath) %>><%=h @current_status %></a>)
     </p>
     <hr>
     <p>
@@ -899,10 +911,12 @@ End
     <p>
 % if @older_time
       <a href=<%=ha uri_from_top(@compressed_older_diffhtml_relpath) %>>OlderDiff</a> &lt;
-      <a href=<%=ha uri_from_top(@compressed_older_loghtml_relpath) %>><%=h @older_time %></a> &lt;
+      <a href=<%=ha uri_from_top(@compressed_older_loghtml_relpath) %>><%=h @older_time %></a><%
+      %>(<a href=<%=ha uri_from_top(@compressed_older_failhtml_relpath) %>><%=h @older_status %></a>) &lt;
 % end
       <a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>ThisDiff</a> &gt;
-      <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>><%=h @t %></a> &gt;
+      <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>><%=h @t %></a><%
+      %>(<a href=<%=ha uri_from_top(@compressed_failhtml_relpath) %>><%=h @current_status %></a>) &gt;
       <!--placeholder_start-->NewerDiff<!--placeholder_end-->
     </p>
 % if has_diff
@@ -917,10 +931,12 @@ End
     <p>
 % if @older_time
       <a href=<%=ha uri_from_top(@compressed_older_diffhtml_relpath) %>>OlderDiff</a> &lt;
-      <a href=<%=ha uri_from_top(@compressed_older_loghtml_relpath) %>><%=h @older_time %></a> &lt;
+      <a href=<%=ha uri_from_top(@compressed_older_loghtml_relpath) %>><%=h @older_time %></a><%
+      %>(<a href=<%=ha uri_from_top(@compressed_older_failhtml_relpath) %>><%=h @older_status %></a>) &lt;
 % end
       <a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>ThisDiff</a> &gt;
-      <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>><%=h @t %></a> &gt;
+      <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>><%=h @t %></a><%
+      %>(<a href=<%=ha uri_from_top(@compressed_failhtml_relpath) %>><%=h @current_status %></a>) &gt;
       <!--placeholder_start-->NewerDiff<!--placeholder_end-->
     </p>
     <hr>
@@ -960,10 +976,12 @@ End
     </p>
     <p>
 % if @older_time
-      <a href=<%=ha uri_from_top(@compressed_older_loghtml_relpath) %>><%=h @older_time %></a> &lt;
+      <a href=<%=ha uri_from_top(@compressed_older_loghtml_relpath) %>><%=h @older_time %></a><%
+      %>(<a href=<%=ha uri_from_top(@compressed_older_failhtml_relpath) %>><%=h @older_status %></a>) &lt;
 % end
       <a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>OlderDiff</a> &lt;
-      <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>><%=h @t %></a> &gt;
+      <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>><%=h @t %></a><%
+      %>(<a href=<%=ha uri_from_top(@compressed_failhtml_relpath) %>><%=h @current_status %></a>) &gt;
       <!--placeholder_start-->NewerDiff<!--placeholder_end--> &gt;
       <!--placeholder_start-->NewerLog<!--placeholder_end-->
     </p>
@@ -1009,10 +1027,12 @@ End
 <p>
 % if @older_time
   <a href=<%=ha uri_from_top(@compressed_older_diffhtml_relpath) %>>OlderDiff</a> &lt;
-  <a href=<%=ha uri_from_top(@compressed_older_loghtml_relpath) %>><%=h @older_time %></a> &lt;
+  <a href=<%=ha uri_from_top(@compressed_older_loghtml_relpath) %>><%=h @older_time %></a><%
+  %>(<a href=<%=ha uri_from_top(@compressed_older_failhtml_relpath) %>><%=h @older_status %></a>) &lt;
 % end
   <a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>ThisDiff</a> &gt;
-  <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>><%=h @t %></a>
+  <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>><%=h @t %></a><%
+  %>(<a href=<%=ha uri_from_top(@compressed_failhtml_relpath) %>><%=h @current_status %></a>)
 </p>
 % if has_diff
 <pre>
@@ -1100,15 +1120,31 @@ End
   end
 
   def has_neterror?(time)
+    detect_failure(time) == :net
+  end
+
+  def detect_failure(time)
     open_gziped_log(time) {|f|
-      f.each_line {|line|
-	line.force_encoding("ascii-8bit") if line.respond_to? :force_encoding
-	if /\A== neterror / =~ line
-	  return true
-	end
+      net = false
+      failure = false
+      ChkBuild::LogFile.each_log_line(f) {|tag, line|
+        if tag == :header
+          _, secname, _ = ChkBuild::LogFile.parse_section_header(line)
+          if secname == 'neterror'
+            net = true
+          end
+        elsif tag == :fail
+          failure = true
+        end
       }
+      if net
+        return :net
+      end
+      if failure
+        return :fail
+      end
+      nil
     }
-    false
   end
 
   def find_diff_target_time(time2)
@@ -1122,17 +1158,26 @@ End
       end
     }
     time2_has_neterror = has_neterror?(time2)
+    time2_failure = detect_failure(time2)
     time_seq = sort_times(time_seq)
     time_seq.delete time2
-    while !time_seq.empty? &&
-          (!h["#{time_seq.last}.log.txt.gz"] ||
-           !h["#{time_seq.last}.diff.txt.gz"] ||
-           !h["#{time_seq.last}.log.html.gz"] ||
-           !h["#{time_seq.last}.diff.html.gz"] ||
-           (!time2_has_neterror && has_neterror?(time_seq.last)))
-      time_seq.pop
-    end
-    time_seq.last
+    time1_failure = nil
+    time_seq.reverse_each {|time1|
+      if !h["#{time1}.log.txt.gz"] ||
+         !h["#{time1}.diff.txt.gz"] ||
+         !h["#{time1}.log.html.gz"] ||
+         !h["#{time1}.diff.html.gz"]
+        next
+      end
+      if time2_failure != :net
+        time1_failure = detect_failure(time1)
+        if time1_failure == :net
+          next
+        end
+      end
+      return [time1, time1_failure]
+    }
+    nil
   end
 
   def make_diff(time1, time2)
@@ -1171,6 +1216,7 @@ End
     open_gziped_log(t2) {|f|
       has_change_line = false
       f.each {|line|
+	line.force_encoding("ascii-8bit") if line.respond_to? :force_encoding
         if ChkBuild::CHANGE_LINE_PAT =~ line
           out.puts line
           has_change_line = true
@@ -1189,6 +1235,7 @@ End
     open_gziped_log(t) {|f|
       lines = nil
       f.each {|line|
+	line.force_encoding("ascii-8bit") if line.respond_to? :force_encoding
         # CHECKOUT svn http://svn.ruby-lang.org/repos/ruby trunk
 	# VIEWER ViewVC http://svn.ruby-lang.org/cgi-bin/viewvc.cgi?diff_format=u
 	# DIRECTORY .     28972
@@ -1319,6 +1366,7 @@ End
     state = {}
     open_gziped_log(time) {|z|
       z.each_line {|line|
+	line.force_encoding("ascii-8bit") if line.respond_to? :force_encoding
         line = line.gsub(pat) { timemap[$&] }
 	ChkBuild.fetch_diff_preprocess_hook(@target.target_name).each {|block|
           catch_error(block.to_s) { line = block.call(line, state) }
@@ -1363,6 +1411,137 @@ End
     }
 
     return newtmp1, newtmp2
+  end
+
+  FAIL_HTMLTemplate = <<'End'
+<html>
+  <head>
+    <title><%=h title %></title>
+    <meta name="author" content="chkbuild">
+    <meta name="generator" content="chkbuild">
+    <link rel="alternate" type="application/rss+xml" title="RSS" href=<%=ha uri_from_top(@rss_relpath, true) %>>
+  </head>
+  <body>
+    <h1><%=h title %></h1>
+    <p>
+      <a href=<%=ha uri_from_top(".") %>>chkbuild</a>
+      <a href=<%=ha uri_from_top(@summary_html_relpath) %>>summary</a>
+      <a href=<%=ha uri_from_top(@recent_html_relpath) %>>recent</a>
+      <a href=<%=ha uri_from_top(@last_html_gz_relpath) %>>last</a>
+    </p>
+    <p>
+% if @older_time
+      <a href=<%=ha uri_from_top(@compressed_older_loghtml_relpath) %>><%=h @older_time %></a><%
+      %>(<a href=<%=ha uri_from_top(@compressed_older_failhtml_relpath) %>><%=h @older_status %></a>) &lt;
+% end
+      <a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>OlderDiff</a> &lt;
+      <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>><%=h @t %></a>(<%
+      %><a href=<%=ha uri_from_top(@compressed_failhtml_relpath) %>><%=h @current_status %></a>) &gt;
+      <!--placeholder_start-->NewerDiff<!--placeholder_end--> &gt;
+      <!--placeholder_start-->NewerLog<!--placeholder_end-->
+    </p>
+    <ul>
+% list_tags(@fail_reader).each {|tag, success|
+      <li><a href=<%=ha("#"+u(tag)) %>><%=h tag %></a><%= success ? "" : " failed" %></li>
+% }
+    </ul>
+    <pre>
+% fail_log_numlines = 0
+% @fail_reader.each_line {|line|
+%   fail_log_numlines += 1
+<%= markup_log_line line.chomp %>
+% }
+% if fail_log_numlines == 0
+No failures.
+% end
+</pre>
+    <p>
+% if @older_time
+      <a href=<%=ha uri_from_top(@compressed_older_loghtml_relpath) %>><%=h @older_time %></a><%
+      %>(<a href=<%=ha uri_from_top(@compressed_older_failhtml_relpath) %>><%=h @older_status %></a>) &lt;
+% end
+      <a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>OlderDiff</a> &lt;
+      <a href=<%=ha uri_from_top(@compressed_loghtml_relpath) %>><%=h @t %></a>(<%
+      %><a href=<%=ha uri_from_top(@compressed_failhtml_relpath) %>><%=h @current_status %></a>) &gt;
+      <!--placeholder_start-->NewerDiff<!--placeholder_end--> &gt;
+      <!--placeholder_start-->NewerLog<!--placeholder_end-->
+    </p>
+    <hr>
+    <p>
+      <a href=<%=ha uri_from_top(".") %>>chkbuild</a>
+      <a href=<%=ha uri_from_top(@summary_html_relpath) %>>summary</a>
+      <a href=<%=ha uri_from_top(@recent_html_relpath) %>>recent</a>
+      <a href=<%=ha uri_from_top(@last_html_gz_relpath) %>>last</a>
+    </p>
+  </body>
+</html>
+End
+
+  def make_failhtml(title)
+    atomic_make_compressed_file(ChkBuild.public_top+@compressed_failhtml_relpath) {|_erbout|
+      with_page_uri_from_top(@compressed_failhtml_relpath) {
+	ERBIO.new(FAIL_HTMLTemplate, nil, '%').result(binding)
+      }
+    }
+  end
+
+  def make_logfail_text_gz(log_txt_filename, dst_gz_filename)
+    atomic_make_compressed_file(dst_gz_filename) {|z|
+      open(log_txt_filename) {|input|
+        extract_failures(input, z)
+      }
+    }
+  end
+
+  def output_fail(time, output)
+    open_gziped_log(time) {|log|
+      extract_failures(log, output)
+    }
+  end
+
+  def extract_failures(input, output)
+    section_header = ''
+    section_lines = []
+    section_failed = nil
+    section_numlines = 0
+    failure_start_pattern = nil
+    ChkBuild::LogFile.each_log_line(input) {|tag, line|
+      if tag == :header
+        if !section_lines.empty? && section_failed
+          failure_found(section_header, section_numlines, section_lines, output)
+        end
+        section_header = line
+        section_lines = []
+        section_failed = false
+        section_numlines = 0
+        _, secname, _ = ChkBuild::LogFile.parse_section_header(line)
+        failure_start_pattern = ChkBuild.fetch_failure_start_pattern(@target.target_name, secname)
+      else
+        if tag == :fail
+          section_failed = true
+        end
+        section_lines << line
+        if failure_start_pattern
+          if failure_start_pattern =~ line
+            failure_start_pattern = nil
+          elsif 10 < section_lines.length
+            section_lines.shift
+          end
+        end
+        section_numlines += 1
+      end
+    }
+    if !section_lines.empty? && section_failed
+      failure_found(section_header, section_numlines, section_lines, output)
+    end
+  end
+
+  def failure_found(section_header, section_numlines, section_lines, output)
+    output << section_header
+    if section_numlines != section_lines.length
+      output << "...(snip #{section_numlines - section_lines.length} lines)...\n"
+    end
+    section_lines.each {|l| output << l }
   end
 
   def open_gziped_log(time, &block)

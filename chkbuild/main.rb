@@ -177,6 +177,23 @@ End
     }
   end
 
+  def ChkBuild.main_logfail
+    depsuffixed_name, arg_t = ARGV
+    each_target_build {|t, build|
+      next if depsuffixed_name && build.depsuffixed_name != depsuffixed_name
+      ts = build.log_time_sequence
+      raise "no log: #{build.depsuffixed_name}/#{arg_t}" if arg_t and !ts.include?(arg_t)
+      if ts.empty?
+	puts "#{build.depsuffixed_name}: no logs"
+	next
+      end
+      t = arg_t || ts[-1]
+      puts "#{build.depsuffixed_name}: #{t}"
+      build.output_fail(t, STDOUT)
+      puts
+    }
+  end
+
   def ChkBuild.main
     ARGV.unshift 'build' if ARGV.empty?
     subcommand = ARGV.shift
@@ -188,6 +205,7 @@ End
     when 'options' then ChkBuild.main_options
     when 'title' then ChkBuild.main_title
     when 'logdiff' then ChkBuild.main_logdiff
+    when 'logfail' then ChkBuild.main_logfail
     else
       puts "unexpected subcommand: #{subcommand}"
       exit 1

@@ -198,6 +198,10 @@ class ChkBuild::LogFile
   end
   private :read_separator
 
+  def self.parse_section_header(line)
+    line.split(/\s+/, 3)
+  end
+
   def detect_sections
     ret = {}
     @io.rewind
@@ -206,7 +210,7 @@ class ChkBuild::LogFile
       if pat =~ line
         epos = @io.pos
         spos = epos - line.length
-        secname = $'.chomp.sub(/#.*/, '').strip
+        _, secname, rest = self.class.parse_section_header(line)
         ret[secname] = spos
       end
     }
@@ -290,6 +294,30 @@ class ChkBuild::LogFile
   def each_line(&block)
     @io.rewind
     @io.each_line(&block)
+  end
+
+  def self.each_log_line(io)
+    firstline = io.gets
+    firstline.force_encoding("ascii-8bit") if firstline.respond_to? :force_encoding
+    return if !firstline
+    yield :header, firstline
+    mark = firstline[/\A\S+/]
+    pat = /\A#{Regexp.quote mark} /
+    io.each {|line|
+      line.force_encoding("ascii-8bit") if line.respond_to? :force_encoding
+      if pat =~ line
+        yield :header, line
+      elsif /\Afailed\(.*\)\z/ =~ line.chomp
+        yield :fail, line
+      else
+        yield :log, line
+      end
+    }
+  end
+
+  def each_log_line(&block)
+    @io.rewind
+    self.class.each_log_line(@io, &block)
   end
 
   def modify_section(secname, data)
