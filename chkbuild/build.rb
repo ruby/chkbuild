@@ -1440,11 +1440,14 @@ End
       <!--placeholder_start-->NewerDiff<!--placeholder_end--> &gt;
       <!--placeholder_start-->NewerLog<!--placeholder_end-->
     </p>
+% tags = list_tags(@fail_reader)
+% if !tags.empty?
     <ul>
-% list_tags(@fail_reader).each {|tag, success|
+%    tags.each {|tag, success|
       <li><a href=<%=ha("#"+u(tag)) %>><%=h tag %></a><%= success ? "" : " failed" %></li>
-% }
+%    }
     </ul>
+% end
     <pre>
 % fail_log_numlines = 0
 % @fail_reader.each_line {|line|
@@ -1517,7 +1520,7 @@ End
         _, secname, _ = ChkBuild::LogFile.parse_section_header(line)
         failure_start_pattern = ChkBuild.fetch_failure_start_pattern(@target.target_name, secname)
       else
-        if tag == :failure
+        if tag == :fail
           section_failed = true
         end
         section_lines << line
