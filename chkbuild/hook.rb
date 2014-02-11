@@ -59,9 +59,6 @@ module ChkBuild
   end
 
   def ChkBuild.init_default_title_hooks(target_name)
-    define_title_hook(target_name, 'success') {|title, log|
-      title.update_title(:status) {|val| 'success' if !val }
-    }
     define_title_hook(target_name, 'failure') {|title, log|
       title.update_title(:status) {|val|
         if !val
