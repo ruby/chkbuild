@@ -789,6 +789,26 @@ End
     result
   end
 
+  def markup_fail_line(line)
+    line = encode_invalid(line)
+    result = ''
+    if /\A== (\S+)/ =~ line
+      tag = $1
+      rest = $'
+      result << "<a name=#{ha(u(tag))} href=#{ha uri_from_top(@compressed_failhtml_relpath)+"##{u(tag)}"}>== #{h(tag)}#{h(rest)}</a>"
+      result << " (<a href=#{ha uri_from_top(@compressed_loghtml_relpath)+"##{u(tag)}"}>full</a>)"
+    else
+      i = 0
+      line.scan(/#{URI.regexp(['http'])}/o) {
+        result << h(line[i...$~.begin(0)]) if i < $~.begin(0)
+        result << "<a href=#{ha $&}>#{h $&}</a>"
+        i = $~.end(0)
+      }
+      result << h(line[i...line.length]) if i < line.length
+    end
+    result
+  end
+
   def markup_diff_line(line)
     line = encode_invalid(line)
     if %r{\A((?:OLDREV|NEWREV|CHG|ADD|DEL|COMMIT) .*)\s(https?://\S*)\s*\z} =~ line
@@ -1452,7 +1472,7 @@ End
 % fail_log_numlines = 0
 % @fail_reader.each_line {|line|
 %   fail_log_numlines += 1
-<%= markup_log_line line.chomp %>
+<%= markup_fail_line line.chomp %>
 % }
 % if fail_log_numlines == 0
 No failures.
