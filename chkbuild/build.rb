@@ -1530,6 +1530,10 @@ End
     failure_start_pattern = nil
     ChkBuild::LogFile.each_log_line(input) {|tag, line|
       if tag == :header
+        _, secname, _ = ChkBuild::LogFile.parse_section_header(line)
+        if secname == 'neterror'
+          section_failed = true
+        end
         if !section_lines.empty? && section_failed
           failure_found(section_header, section_numlines, section_lines, output)
         end
@@ -1537,7 +1541,6 @@ End
         section_lines = []
         section_failed = false
         section_numlines = 0
-        _, secname, _ = ChkBuild::LogFile.parse_section_header(line)
         failure_start_pattern = ChkBuild.fetch_failure_start_pattern(@target.target_name, secname)
       else
         if tag == :fail
