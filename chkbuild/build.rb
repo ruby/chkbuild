@@ -673,7 +673,7 @@ class ChkBuild::Build
         assoc << ["host", ChkBuild.nickname]
         assoc << ["depsuffixed_name", @depsuffixed_name]
         assoc << ["start_time", start_time]
-        assoc << ["status", @current_status]
+        assoc << ["result", @current_status]
         assoc << ["title", title]
         assoc << ["compressed_loghtml_relpath", uri_from_top(@compressed_loghtml_relpath)]
         assoc << ["compressed_failhtml_relpath", uri_from_top(@compressed_failhtml_relpath)]
