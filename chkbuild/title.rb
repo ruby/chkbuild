@@ -137,4 +137,8 @@ class ChkBuild::Title
   def [](key)
     @title[key]
   end
+
+  def keys
+    @title_order
+  end
 end

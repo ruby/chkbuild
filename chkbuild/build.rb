@@ -460,7 +460,9 @@ class ChkBuild::Build
     @last_html_gz_relpath = "#{@depsuffixed_name}/last.html.gz"
     @summary_html_relpath = "#{@depsuffixed_name}/summary.html"
     @summary_txt_relpath = "#{@depsuffixed_name}/summary.txt"
+    @summary_ltsv_relpath = "#{@depsuffixed_name}/summary.ltsv"
     @recent_html_relpath = "#{@depsuffixed_name}/recent.html"
+    @recent_ltsv_relpath = "#{@depsuffixed_name}/recent.ltsv"
     @rss_relpath = "#{@depsuffixed_name}/rss"
     @compressed_rawlog_relpath = "#{@depsuffixed_name}/log/#{@t}.log.txt.gz"
     @compressed_rawfail_relpath = "#{@depsuffixed_name}/log/#{@t}.fail.txt.gz"
@@ -469,7 +471,7 @@ class ChkBuild::Build
     @compressed_failhtml_relpath = "#{@depsuffixed_name}/log/#{@t}.fail.html.gz"
     @compressed_diffhtml_relpath = "#{@depsuffixed_name}/log/#{@t}.diff.html.gz"
 
-    title, title_version = gen_title
+    title, title_version, title_assoc = gen_title
     send_title_to_parent(title_version)
     force_link @current_txt, ChkBuild.public_top+@last_txt_relpath if @current_txt.file?
     compress_file(@log_filename, ChkBuild.public_top+@compressed_rawlog_relpath)
@@ -486,7 +488,7 @@ class ChkBuild::Build
     @diff_reader = LineReader.new(ChkBuild.public_top+@compressed_rawdiff_relpath)
     @log_reader = LineReader.new(@log_filename)
     @fail_reader = LineReader.new(ChkBuild.public_top+@compressed_rawfail_relpath)
-    update_summary(title, different_sections)
+    update_summary(title, different_sections, title_assoc)
     update_recent
     make_last_html(title, different_sections)
     compress_file(ChkBuild.public_top+@last_html_relpath, ChkBuild.public_top+@last_html_gz_relpath)
@@ -537,7 +539,11 @@ class ChkBuild::Build
     title = titlegen.make_title
     title << " (titlegen.run_hooks error)" if !title_succ
     title_version = titlegen.version.strip
-    return title, title_version
+    title_assoc = []
+    titlegen.keys.each {|k|
+      title_assoc << [k, titlegen[k]]
+    }
+    return title, title_version, title_assoc
   end
 
   def send_title_to_parent(title_version)
@@ -629,7 +635,7 @@ class ChkBuild::Build
     }
   end
 
-  def update_summary(title, different_sections)
+  def update_summary(title, different_sections, title_assoc)
     start_time = prebuilt_start_time
     if different_sections
       if different_sections.empty?
@@ -661,6 +667,22 @@ class ChkBuild::Build
 	  f.print " (<a href=#{ha uri_from_top(@compressed_diffhtml_relpath)}>no diff</a>)"
 	end
 	f.puts "<br>"
+      }
+      open(ChkBuild.public_top+@summary_ltsv_relpath, "a") {|f|
+        assoc = []
+        assoc << ["host", ChkBuild.nickname]
+        assoc << ["depsuffixed_name", @depsuffixed_name]
+        assoc << ["start_time", start_time]
+        assoc << ["status", @current_status]
+        assoc << ["title", title]
+        assoc << ["compressed_loghtml_relpath", uri_from_top(@compressed_loghtml_relpath)]
+        assoc << ["compressed_failhtml_relpath", uri_from_top(@compressed_failhtml_relpath)]
+        assoc << ["compressed_diffhtml_relpath", uri_from_top(@compressed_diffhtml_relpath)]
+        assoc << ["different_sections", different_sections.join(',')] if different_sections
+        title_assoc.each {|k, v|
+          assoc << [k.to_s, v.to_s]
+        }
+        f.print Escape.ltsv_line(assoc)
       }
     }
   end
@@ -694,6 +716,11 @@ class ChkBuild::Build
 End
 
   def update_recent
+    update_recent_html
+    update_recent_ltsv
+  end
+
+  def update_recent_html
     start_time = prebuilt_start_time
     summary_path = ChkBuild.public_top+@summary_html_relpath
     lines = []
@@ -714,6 +741,21 @@ End
     }
 
     recent_path = ChkBuild.public_top+@recent_html_relpath
+    atomic_make_file(recent_path) {|f| f << content }
+  end
+
+  def update_recent_ltsv
+    summary_path = ChkBuild.public_top+@summary_ltsv_relpath
+    lines = []
+    summary_path.open {|f|
+      while l = f.gets
+        lines << l
+        lines.shift if 100 < lines.length
+      end
+    }
+
+    content = lines.reverse.join('')
+    recent_path = ChkBuild.public_top+@recent_ltsv_relpath
     atomic_make_file(recent_path) {|f| f << content }
   end
 
