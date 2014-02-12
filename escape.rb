@@ -560,12 +560,12 @@ module Escape
   end
 
   def _ltsv_word(str)
-    if /\A[ !#-9;-\[\]-~]*\z/ =~ str
-      # zero or more printable ASCII characters (including space) without '"', ':' and '\\'.
+    if /[\0-\x1f":\\\x7f]/ !~ str
+      # ASCII control characters, '"', ':' and '\\' not found
       str
     else
       '"' +
-      str.gsub(/[^ !#-9;-\[\]-~]/) {
+      str.gsub(/[\0-\x1f":\\\x7f]/) {
         ch = $&
         case ch
         when "\0"; '\0'
@@ -578,8 +578,7 @@ module Escape
         when "\v"; '\v'
         when "\e"; '\e'
         else
-          ch = ch.dup.force_encoding("ASCII-8BIT") if ch.respond_to?(:force_encoding)
-          ch.gsub(/./m) {|byte| "\\x%02X" % byte.ord }
+          "\\x%02X" % ch.ord
         end
       } +
       '"'
