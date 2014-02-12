@@ -659,6 +659,13 @@ ChkBuild.define_title_hook('ruby', %w[svn-info/ruby version.h verconf.h]) {|titl
   end
 }
 
+ChkBuild.define_title_hook('ruby', 'svn-info/ruby') {|title, log|
+  lastrev = /^Last Changed Rev: (\d+)$/.match(log)
+  if lastrev
+    title.update_hidden_title(:ruby_rev, "r#{lastrev[1]}")
+  end
+}
+
 #ChkBuild.define_title_hook('ruby', "configure") {|title, log|
 #  if /^checking target system type\.\.\. (\S+)$/ =~ log
 #    title.update_title(:version, "#{title.suffixed_name} [#{$1}]")

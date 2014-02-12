@@ -541,7 +541,10 @@ class ChkBuild::Build
     title_version = titlegen.version.strip
     title_assoc = []
     titlegen.keys.each {|k|
-      title_assoc << [k, titlegen[k]]
+      title_assoc << [k.to_s, titlegen[k].to_s]
+    }
+    titlegen.hidden_keys.each {|k|
+      title_assoc << [k.to_s, titlegen[k].to_s]
     }
     return title, title_version, title_assoc
   end

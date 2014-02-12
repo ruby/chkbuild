@@ -107,6 +107,15 @@ class ChkBuild::Title
     end
   end
 
+  def update_hidden_title(key, val=nil)
+    @title_order.delete key
+    if val == nil && block_given?
+      val = yield @title[key]
+      return if !val
+    end
+    @title[key] = val
+  end
+
   def make_title
     title_hash = @title
     a = []
@@ -140,5 +149,9 @@ class ChkBuild::Title
 
   def keys
     @title_order
+  end
+
+  def hidden_keys
+    @title.keys - @title_order
   end
 end
