@@ -1,6 +1,6 @@
 # escape.rb - escape/unescape library for several formats
 #
-# Copyright (C) 2006-2010 Tanaka Akira  <akr@fsij.org>
+# Copyright (C) 2006-2014 Tanaka Akira  <akr@fsij.org>
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
