@@ -578,7 +578,7 @@ module Escape
         when "\v"; '\v'
         when "\e"; '\e'
         else
-          "\\x%02X" % ch.ord
+          "\\x%02X" % ch.unpack("C")[0]
         end
       } +
       '"'
