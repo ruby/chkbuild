@@ -539,7 +539,7 @@ ChkBuild.define_build_proc('ruby') {|b|
     b.catch_error {
       parallel_option = ''
       parallel_option = "j#{parallel}" if parallel
-      b.make("test-all", "TESTS=-v#{parallel_option}", "RUBYOPT=-w", make_options.merge(:section=>"test-all"))
+      b.make("test-all", "TESTS=--hide-skip -v#{parallel_option}", "RUBYOPT=-w", make_options.merge(:section=>"test-all"))
     }
     b.catch_error {
       if /^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors/ !~ b.logfile.get_section('test-all')
@@ -554,7 +554,7 @@ ChkBuild.define_build_proc('ruby') {|b|
               else
                 testpath = t # "TESTS=-v test/foo" doesn't work on Ruby 1.8
               end
-              b.make("test-all", "TESTS=-v #{testpath}", "RUBYOPT=-w", make_options.merge(:section=>"test/#{t}"))
+              b.make("test-all", "TESTS=--hide-skip -v #{testpath}", "RUBYOPT=-w", make_options.merge(:section=>"test/#{t}"))
             }
           end
         }
