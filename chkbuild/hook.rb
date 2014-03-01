@@ -308,7 +308,7 @@ module ChkBuild
         pats2.concat pat
       }
     }
-    Regexp.union(pats1 + pats2)
+    Regexp.union(*(pats1 + pats2))
   end
 
   ChkBuild.define_failure_start_pattern(nil, nil, /timeout: output interval exceeds /)
