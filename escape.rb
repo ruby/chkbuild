@@ -560,12 +560,11 @@ module Escape
   end
 
   def _ltsv_word(str)
-    if /[\0-\x1f":\\\x7f]/ !~ str
-      # ASCII control characters, '"', ':' and '\\' not found
+    if /[\0-\x1f\x7f]/ !~ str
+      # ASCII control characters not found
       str
     else
-      '"' +
-      str.gsub(/[\0-\x1f":\\\x7f]/) {
+      str.gsub(/[\0-\x1f\x7f]/) {
         ch = $&
         case ch
         when "\0"; '\0'
@@ -580,8 +579,7 @@ module Escape
         else
           "\\x%02X" % ch.unpack("C")[0]
         end
-      } +
-      '"'
+      }
     end
   end
 end
