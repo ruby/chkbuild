@@ -550,16 +550,16 @@ module Escape
   def ltsv_line(assoc)
     result = ''
     assoc.each {|k, v|
-      result << _ltsv_word(k)
+      result << _ltsv_key(k)
       result << ':'
-      result << _ltsv_word(v)
+      result << _ltsv_val(v)
       result << "\t"
     }
     result.sub!(/\t\z/, "\n")
     LTSVEscaped.new_no_dup(result)
   end
 
-  def _ltsv_word(str)
+  def _ltsv_key(str)
     if /[\0-\x1f":\\\x7f]/ !~ str
       # ASCII control characters, '"', ':' and '\\' not found
       str
@@ -584,4 +584,31 @@ module Escape
       '"'
     end
   end
+
+  def _ltsv_val(str)
+    if /[\0-\x1f"\\\x7f]/ !~ str
+      # ASCII control characters, '"', and '\\' not found
+      str
+    else
+      '"' +
+      str.gsub(/[\0-\x1f"\\\x7f]/) {
+        ch = $&
+        case ch
+        when "\0"; '\0'
+        when "\a"; '\a'
+        when "\b"; '\b'
+        when "\f"; '\f'
+        when "\n"; '\n'
+        when "\r"; '\r'
+        when "\t"; '\t'
+        when "\v"; '\v'
+        when "\e"; '\e'
+        else
+          "\\x%02X" % ch.unpack("C")[0]
+        end
+      } +
+      '"'
+    end
+  end
+
 end
