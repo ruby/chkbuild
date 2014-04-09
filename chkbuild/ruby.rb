@@ -70,7 +70,16 @@ End
     ["dbm", lambda { require "dbm"; DBM::VERSION }],
     ["gdbm", lambda { require "gdbm"; GDBM::VERSION }],
     ["readline", lambda { require "readline"; Readline::VERSION }],
-    ["openssl", lambda { require "openssl"; OpenSSL::OPENSSL_VERSION }],
+    ["openssl", lambda {
+      require "openssl"
+      hv = OpenSSL::OPENSSL_VERSION
+      lv = OpenSSL::OPENSSL_LIBRARY_VERSION rescue nil
+      if hv == lv || lv == nil
+        hv
+      else
+        "header:#{hv.dump} library:#{lv.dump}"
+      end
+    }],
     ["zlib", lambda { require "zlib"; hv = Zlib::ZLIB_VERSION; lv = Zlib.zlib_version; lv == hv ? lv : "header:#{hv} library:#{lv}" }],
     ["tcltklib", lambda { require "tcltklib"; TclTkLib::COMPILE_INFO }],
     ["curses", lambda { require "curses"; Curses::VERSION }],
