@@ -36,6 +36,7 @@ class ChkBuild::Build
   def svn(svnroot, rep_dir, working_dir, opts={})
     network_access {
       svn_internal(svnroot, rep_dir, working_dir, opts)
+      svn_info(working_dir, opts)
     }
   end
 
@@ -94,7 +95,7 @@ class ChkBuild::Build
   def svn_info(working_dir, opts={})
     opts = opts.dup
     opts["ENV:LC_ALL"] = "C"
-    opts[:section] ||= "svn-info/#{working_dir}"
+    opts[:section] = nil
     Dir.chdir(working_dir) {
       self.run "svn", "info", opts
     }
@@ -282,3 +283,12 @@ ChkBuild.define_file_changes_viewer('svn',
   mod = nil if mod && mod.empty?
   ChkBuild::ViewVC.new('http://svn.apache.org/viewvc/?diff_format=u', false, mod)
 }
+
+ChkBuild.define_title_hook(nil, %r{\Asvn/}) {|title, logs|
+  logs.each {|log|
+    next unless url = /^URL: (\S+)$/.match(log)
+    next unless lastrev = /^Last Changed Rev: (\d+)$/.match(log)
+    title.update_hidden_title(url[1], lastrev[1])
+  }
+}
+

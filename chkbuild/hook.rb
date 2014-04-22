@@ -43,7 +43,6 @@ module ChkBuild
   def ChkBuild.lazy_init_title_hook(target_name)
     if !@title_hook_hash.include?(target_name)
       @title_hook_hash[target_name] = []
-      init_default_title_hooks(target_name)
     end
   end
   def ChkBuild.define_title_hook(target_names, secname, &block)
@@ -55,36 +54,34 @@ module ChkBuild
   end
   def ChkBuild.fetch_title_hook(target_name)
     lazy_init_title_hook(target_name)
-    @title_hook_hash.fetch(target_name)
+    @title_hook_hash.fetch(nil) + @title_hook_hash.fetch(target_name)
   end
 
-  def ChkBuild.init_default_title_hooks(target_name)
-    define_title_hook(target_name, 'failure') {|title, log|
-      title.update_title(:status) {|val|
-        if !val
-          line = /\n/ =~ log ? $` : log
-          line = line.strip
-          line if !line.empty?
-        end
+  ChkBuild.define_title_hook(nil, 'failure') {|title, log|
+    title.update_title(:status) {|val|
+      if !val
+        line = /\n/ =~ log ? $` : log
+        line = line.strip
+        line if !line.empty?
+      end
+    }
+  }
+  ChkBuild.define_title_hook(nil, nil) {|title, logfile|
+    num_warns = 0
+    logfile.each_line {|line|
+      line.scan(/warn/i) {
+        num_warns += 1
       }
     }
-    define_title_hook(target_name, nil) {|title, logfile|
-      num_warns = 0
-      logfile.each_line {|line|
-        line.scan(/warn/i) {
-          num_warns += 1
-        }
-      }
-      title.update_title(:warn) {|val| "#{num_warns}W" } if 0 < num_warns
+    title.update_title(:warn) {|val| "#{num_warns}W" } if 0 < num_warns
+  }
+  ChkBuild.define_title_hook(nil, 'dependencies') {|title, log|
+    dep_versions = []
+    title.logfile.dependencies.each {|suffixed_name, time, ver|
+      dep_versions << "(#{ver})"
     }
-    define_title_hook(target_name, 'dependencies') {|title, log|
-      dep_versions = []
-      title.logfile.dependencies.each {|suffixed_name, time, ver|
-        dep_versions << "(#{ver})"
-      }
-      title.update_title(:dep_versions, dep_versions)
-    }
-  end
+    title.update_title(:dep_versions, dep_versions)
+  }
 
   @failure_hook_hash = {}
   def ChkBuild.lazy_init_failure_hook(target_name)

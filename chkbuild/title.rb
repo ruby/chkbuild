@@ -78,6 +78,13 @@ class ChkBuild::Title
           log << @logfile.get_section(sn)
         }
         block.call self, log
+      elsif Regexp === secname
+        log = []
+        @logfile.secnames.each {|sn|
+          next if secname !~ sn
+          log << @logfile.get_section(sn)
+        }
+        block.call self, log
       elsif log = @logfile.get_section(secname)
         block.call self, log
       end

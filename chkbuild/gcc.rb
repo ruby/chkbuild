@@ -142,7 +142,6 @@ ChkBuild.define_build_proc('gcc') {|b|
     ChkBuild::GCC.remove_symlink("gcc/mpc")
     b.svn("svn://gcc.gnu.org/svn/gcc", gcc_branch, 'gcc',
       :output_interval_timeout => '30min')
-    b.svn_info('gcc')
     ChkBuild::GCC.download_lib(b, ChkBuild::GCC::URL_GMP, "gcc/gmp") if opts[:build_gmp]
     ChkBuild::GCC.download_lib(b, ChkBuild::GCC::URL_MPFR, "gcc/mpfr") if opts[:build_mpfr]
     ChkBuild::GCC.download_lib(b, ChkBuild::GCC::URL_MPC, "gcc/mpc") if opts[:build_mpc]

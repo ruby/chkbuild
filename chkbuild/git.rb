@@ -70,7 +70,7 @@ class ChkBuild::Build
   def git_internal(cloneurl, working_dir, opts={})
     viewer = nil
     opts = opts.dup
-    opts[:section] ||= 'git'
+    opts[:section] ||= "git/#{working_dir}"
     if opts[:github]
       viewer = ['GitHub', opts[:github]]
     elsif opts[:gitweb]
@@ -332,3 +332,12 @@ ChkBuild.define_file_changes_viewer('git',
   # project_basename = CGI.escape(CGI.unescape($1)) # segment to query component
   # ChkBuild::Build::GitWeb.new("http://git.savannah.gnu.org/gitweb/?p=#{project_basename}.git")
 }
+
+ChkBuild.define_title_hook(nil, %r{\Agit/}) {|title, logs|
+  logs.each {|log|
+    next unless url = /^CHECKOUT git (\S+)/.match(log)
+    next unless lastcommit = /^LASTCOMMIT ([0-9a-f]+)$/.match(log)
+    title.update_hidden_title(url[1], lastcommit[1])
+  }
+}
+

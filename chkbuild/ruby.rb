@@ -319,8 +319,7 @@ ChkBuild.define_build_proc('ruby') {|b|
 
   Dir.chdir(checkout_dir)
   b.svn("http://svn.ruby-lang.org/repos/ruby", ruby_branch, 'ruby')
-  b.svn_info('ruby')
-  svn_info_section = b.logfile.get_section('svn-info/ruby')
+  svn_info_section = b.logfile.get_section('svn/ruby')
   ruby_svn_rev = svn_info_section[/Last Changed Rev: (\d+)/, 1].to_i
 
   Dir.chdir("ruby")
@@ -373,14 +372,10 @@ ChkBuild.define_build_proc('ruby') {|b|
   Dir.chdir(ruby_build_dir)
 
   use_rubyspec &&= b.catch_error {
-    opts2 = bopts.dup
-    opts2[:section] = "git-mspec"
-    b.git('git://github.com/nurse/mspec.git', 'mspec', opts2)
+    b.git('git://github.com/nurse/mspec.git', 'mspec', bopts)
   }
   use_rubyspec &&= b.catch_error {
-    opts2 = bopts.dup
-    opts2[:section] = "git-rubyspec"
-    b.git('git://github.com/nurse/rubyspec.git', 'rubyspec', opts2)
+    b.git('git://github.com/nurse/rubyspec.git', 'rubyspec', bopts)
   }
 
   b.mkcd("ruby")
@@ -639,7 +634,7 @@ ChkBuild.define_build_proc('ruby') {|b|
   }
 }
 
-ChkBuild.define_title_hook('ruby', %w[svn-info/ruby version.h verconf.h]) {|title, logs|
+ChkBuild.define_title_hook('ruby', %w[svn/ruby version.h verconf.h]) {|title, logs|
   log = logs.join('')
   lastrev = /^Last Changed Rev: (\d+)$/.match(log)
   version = /^#\s*define RUBY_VERSION "(\S+)"/.match(log)
@@ -668,7 +663,7 @@ ChkBuild.define_title_hook('ruby', %w[svn-info/ruby version.h verconf.h]) {|titl
   end
 }
 
-ChkBuild.define_title_hook('ruby', 'svn-info/ruby') {|title, log|
+ChkBuild.define_title_hook('ruby', 'svn/ruby') {|title, log|
   lastrev = /^Last Changed Rev: (\d+)$/.match(log)
   if lastrev
     title.update_hidden_title(:ruby_rev, "r#{lastrev[1]}")
