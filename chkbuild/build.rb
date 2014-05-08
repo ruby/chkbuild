@@ -1717,9 +1717,10 @@ End
     }
 
     if Process.respond_to? :setrlimit
-      limit = ChkBuild.get_limit
+      limit_given = ChkBuild.get_limit
+      limit = {}
       opts.each {|k, v|
-        limit[$'.intern] = v if /\Ar?limit_/ =~ k.to_s
+        limit[$'.intern] = v if /\Ar?limit_/ =~ k.to_s && v
       }
       ruby_script << <<-"End"
         def resource_unlimit(resource)

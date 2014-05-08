@@ -35,11 +35,11 @@ require 'chkbuild'
 #ENV['LC_ALL'] = 'C'
 
 # resource limits
-word_bytes = [nil].pack("p").length
-ChkBuild.limit(:cpu => 3600*4) # seconds
-ChkBuild.limit(:stack => 1024*1024*10*word_bytes) # bytes
-ChkBuild.limit(:data => 1024*1024*500*word_bytes) # bytes
-ChkBuild.limit(:as => 1024*1024*500*word_bytes) # bytes
+#word_bytes = [nil].pack("p").length
+#ChkBuild.limit(:cpu => 3600*4) # seconds
+#ChkBuild.limit(:stack => 1024*1024*10*word_bytes) # bytes
+#ChkBuild.limit(:data => 1024*1024*500*word_bytes) # bytes
+#ChkBuild.limit(:as => 1024*1024*500*word_bytes) # bytes
 
 bison_choices = [
   {

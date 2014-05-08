@@ -31,10 +31,10 @@
 module ChkBuild
   @default_options = {
     :num_oldbuilds => 1,
-    :limit_cpu => 3600 * 4,
-    :limit_stack => 1024 * 1024 * 40,
-    :limit_data => 1024 * 1024 * 100,
-    :limit_as => 1024 * 1024 * 150,
+    :limit_cpu => nil,
+    :limit_stack => nil,
+    :limit_data => nil,
+    :limit_as => nil,
     :output_line_max => 1024 * 10 # Test periodically.  Not rigorous.
   }
 
@@ -52,7 +52,7 @@ module ChkBuild
   def self.limit(hash)
     hash.each {|k, v|
       s = "limit_#{k}".intern
-      raise "unexpected resource name: #{k}" if !@default_options[s]
+      raise "unexpected resource name: #{k}" if !@default_options.has_key?(s)
       @default_options[s] = v
     }
   end
@@ -61,6 +61,7 @@ module ChkBuild
     ret = {}
     @default_options.each {|k, v|
       next if /\Alimit_/ !~ k.to_s
+      next if !v
       s = $'.intern
       ret[s] = v
     }

@@ -42,11 +42,11 @@ require 'chkbuild'
 #   ENV['LIBRARY_PATH'] = '/usr/lib/i386-linux-gnu'
 
 # resource limits
-word_bytes = [nil].pack("p").length
-ChkBuild.limit(:cpu => 3600*4) # seconds
-ChkBuild.limit(:stack => 1024*1024*10*word_bytes) # bytes
-ChkBuild.limit(:data => 1024*1024*500*word_bytes) # bytes
-ChkBuild.limit(:as => 1024*1024*500*word_bytes) # bytes
+#word_bytes = [nil].pack("p").length
+#ChkBuild.limit(:cpu => 3600*4) # seconds
+#ChkBuild.limit(:stack => 1024*1024*10*word_bytes) # bytes
+#ChkBuild.limit(:data => 1024*1024*500*word_bytes) # bytes
+#ChkBuild.limit(:as => 1024*1024*500*word_bytes) # bytes
 
 gcc = ChkBuild::GCC.def_target(
   #%w[trunk],

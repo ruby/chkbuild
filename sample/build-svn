@@ -34,7 +34,7 @@ require 'chkbuild'
 
 #ENV['LC_ALL'] = 'C'
 
-ChkBuild.limit(:data=>1024*1024*800, :as=>1024*1024*800)
+#ChkBuild.limit(:data=>1024*1024*800, :as=>1024*1024*800)
 
 ChkBuild.def_target("svn") {|b|
   dir = b.build_dir

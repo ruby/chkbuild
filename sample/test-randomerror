@@ -2,7 +2,7 @@
 
 require 'chkbuild'
 
-ChkBuild.limit(:data=>1024*1024*2000, :as=>1024*1024*2000)
+#ChkBuild.limit(:data=>1024*1024*2000, :as=>1024*1024*2000)
 
 ChkBuild.def_target("randomerror") {|b|
   b.network_access {
