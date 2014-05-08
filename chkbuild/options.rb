@@ -67,4 +67,8 @@ module ChkBuild
     }
     ret
   end
+
+  def self.nice=(n)
+    @default_options[:nice] = n
+  end
 end

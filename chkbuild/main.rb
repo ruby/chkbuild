@@ -75,10 +75,6 @@ End
       use_procmemsize = true
     }
     o.parse!
-    begin
-      Process.setpriority(Process::PRIO_PROCESS, 0, 10)
-    rescue Errno::EACCES # already niced to 11 or more
-    end
     File.umask(002)
     STDIN.reopen("/dev/null", "r")
     STDOUT.sync = true
@@ -98,10 +94,6 @@ End
     start_time = ARGV.shift
     target_params_name = ARGV.shift
     target_output_name = ARGV.shift
-    begin
-      Process.setpriority(Process::PRIO_PROCESS, 0, 10)
-    rescue Errno::EACCES # already niced to 11 or more
-    end
     File.umask(002)
     STDIN.reopen("/dev/null", "r")
     STDOUT.sync = true

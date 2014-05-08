@@ -292,6 +292,12 @@ class ChkBuild::Build
   end
 
   def child_build_target(target_output_name)
+    if @opts[:nice]
+      begin
+        Process.setpriority(Process::PRIO_PROCESS, 0, @opts[:nice])
+      rescue Errno::EACCES # already niced.
+      end
+    end
     setup_build(target_output_name)
     @logfile.start_section 'start'
     show_options
