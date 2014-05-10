@@ -211,6 +211,11 @@ module ChkBuild
       "#{match[1]}#{match[2]}: <nnn>"
     }
 
+    # + ps -o 'ruser user vsz nice tty comm' -p 14087
+    ChkBuild.define_diff_preprocess_gsub(target_name, /^(\+ ps -o .* -p )(\d+)/) {|match|
+      "#{match[1]}<pid>"
+    }
+
     # delete trailing spaces.
     ChkBuild.define_diff_preprocess_gsub(target_name, /[ \t]+$/) {|match|
       ""
