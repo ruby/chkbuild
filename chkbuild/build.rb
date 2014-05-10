@@ -380,7 +380,7 @@ class ChkBuild::Build
       self.run('ps', '-o', 'ruid ruser euid euser suid suser fuid fuser', '-p', $$.to_s, :section => nil)
       self.run('ps', '-o', 'rgid rgroup egid egroup sgid sgroup fgid fgroup', '-p', $$.to_s, :section => nil)
       self.run('ps', '-o', 'blocked caught ignored pending', '-p', $$.to_s, :section => nil)
-      self.run('ps', '-o', 'cls sched rtprio f stat wchan nwchan label', '-p', $$.to_s, :section => nil)
+      self.run('ps', '-o', 'cls sched rtprio f label', '-p', $$.to_s, :section => nil)
     end
   end
 
