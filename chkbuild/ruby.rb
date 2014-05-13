@@ -808,7 +808,12 @@ ChkBuild.define_diff_preprocess_gsub('ruby', /ruby [0-9.a-z]+ \(.*\) \[.*\]$/) {
 # tcltklib: tcltklib 2010-08-25 :: Ruby2.0.0 (2012-02-20) with pthread :: Tcl8.5.10(without stub)/Tk8.5.10(without stub) with tcl_threads
 ChkBuild.define_diff_preprocess_gsub('ruby', /^tcltklib: (.*)Ruby[\d.]+ \([\d-]+\)/) {|match|
   "tcltklib: #{match[1]}Ruby<version> (<release-date>)"
-  "ruby <version>"
+}
+
+# + file miniruby
+# miniruby: ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked (uses shared libs), for GNU/Linux 2.6.26, BuildID[sha1]=0xd5a7c589cce09467a49e1792bc822ae48f75b5ee, not stripped
+ChkBuild.define_diff_preprocess_gsub('ruby', /BuildID\[sha1\]=0x[0-9a-f]+,/) {|match|
+  "BuildID[sha1]=0x<hex>"
 }
 
 # file.c:884: warning: comparison between signed and unsigned
