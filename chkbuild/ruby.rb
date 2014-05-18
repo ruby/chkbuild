@@ -66,6 +66,7 @@ End
 
   VERSION_LIST_SCRIPT = <<'End'
   [
+    ["libc", lambda { require "etc"; Etc.confstr(Etc::CS_GNU_LIBC_VERSION) }],
     ["gmp", lambda { Bignum::GMP_VERSION }],
     ["dbm", lambda { require "dbm"; DBM::VERSION }],
     ["gdbm", lambda { require "gdbm"; GDBM::VERSION }],
@@ -80,7 +81,12 @@ End
         "header:#{hv.dump} library:#{lv.dump}"
       end
     }],
-    ["zlib", lambda { require "zlib"; hv = Zlib::ZLIB_VERSION; lv = Zlib.zlib_version; lv == hv ? lv : "header:#{hv} library:#{lv}" }],
+    ["zlib", lambda {
+      require "zlib"
+      hv = Zlib::ZLIB_VERSION
+      lv = Zlib.zlib_version
+      lv == hv ? lv : "header:#{hv} library:#{lv}"
+    }],
     ["tcltklib", lambda { require "tcltklib"; TclTkLib::COMPILE_INFO }],
     ["curses", lambda { require "curses"; Curses::VERSION }],
   ].each {|name, versionproc|
