@@ -65,8 +65,12 @@ puts "#{nummodule} modules, #{nummethod} methods"
 End
 
   VERSION_LIST_SCRIPT = <<'End'
-  [
-    ["libc", lambda { require "etc"; Etc.confstr(Etc::CS_GNU_LIBC_VERSION) }],
+  require "etc"
+  ary = []
+  if defined? Etc::CS_GNU_LIBC_VERSION
+    ary << ["libc", lambda { Etc.confstr(Etc::CS_GNU_LIBC_VERSION) }]
+  end
+  ary.concat [
     ["gmp", lambda { Bignum::GMP_VERSION }],
     ["dbm", lambda { require "dbm"; DBM::VERSION }],
     ["gdbm", lambda { require "gdbm"; GDBM::VERSION }],
@@ -89,7 +93,8 @@ End
     }],
     ["tcltklib", lambda { require "tcltklib"; TclTkLib::COMPILE_INFO }],
     ["curses", lambda { require "curses"; Curses::VERSION }],
-  ].each {|name, versionproc|
+  ]
+  ary.each {|name, versionproc|
     begin
       puts "#{name}: #{versionproc.call}"
     rescue Exception
