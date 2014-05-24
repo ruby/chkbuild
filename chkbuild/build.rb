@@ -300,13 +300,16 @@ class ChkBuild::Build
     end
     setup_build(target_output_name)
     @logfile.start_section 'start'
+    puts "start-time: #{prebuilt_start_time}"
     show_options
     show_cpu_info
     show_process_status
     ret = self.do_build
+    title, title_version, title_assoc = gen_title
+    show_title_info(title, title_version, title_assoc)
     @logfile.start_section 'end'
     puts "elapsed #{format_elapsed_time(Time.now - prebuilt_start_time_obj)}"
-    update_result
+    update_result(title, title_version, title_assoc)
     @logfile.start_section 'end2'
     ret
   end
@@ -382,6 +385,15 @@ class ChkBuild::Build
       self.run('ps', '-o', 'blocked caught ignored pending', '-p', $$.to_s, :section => nil)
       self.run('ps', '-o', 'cls sched rtprio f label', '-p', $$.to_s, :section => nil)
     end
+  end
+
+  def show_title_info(title, title_version, title_assoc)
+    @logfile.start_section 'title-info'
+    puts "title:#{Escape._ltsv_val(title)}"
+    puts "title_version:#{Escape._ltsv_val(title_version)}"
+    title_assoc.each {|k, v|
+      puts "#{Escape._ltsv_key k}:#{Escape._ltsv_val v}"
+    }
   end
 
   def do_build
@@ -472,7 +484,7 @@ class ChkBuild::Build
     end
   end
 
-  def update_result
+  def update_result(title, title_version, title_assoc)
     @t = prebuilt_start_time
     @last_txt_relpath = "#{@depsuffixed_name}/last.txt"
     @last_html_relpath = "#{@depsuffixed_name}/last.html"
@@ -490,7 +502,6 @@ class ChkBuild::Build
     @compressed_failhtml_relpath = "#{@depsuffixed_name}/log/#{@t}.fail.html.gz"
     @compressed_diffhtml_relpath = "#{@depsuffixed_name}/log/#{@t}.diff.html.gz"
 
-    title, title_version, title_assoc = gen_title
     send_title_to_parent(title_version)
     force_link @current_txt, ChkBuild.public_top+@last_txt_relpath if @current_txt.file?
     compress_file(@log_filename, ChkBuild.public_top+@compressed_rawlog_relpath)
