@@ -402,6 +402,26 @@ ChkBuild.define_build_proc('ruby') {|b|
   args.concat configure_args
   b.run("#{srcdir}/configure", *args)
 
+  b.logfile.start_section 'config-files'
+  %w[
+    tool/config.guess
+    tool/config.sub
+    config.guess
+    config.sub
+  ].each {|fn|
+    begin
+      contents = File.read(fn)
+    rescue SystemCallError
+      next
+    end
+    if /^timestamp=(\S*)/ =~ contents
+      timestamp = $1
+      timestamp.sub!(/\A'/, '')
+      timestamp.sub!(/'\z/, '')
+      puts "#{fn}: #{timestamp}"
+    end
+  }
+
   verconf_list = [
     'verconf.h',
     'config.h',
