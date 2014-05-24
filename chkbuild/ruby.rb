@@ -1120,6 +1120,23 @@ ChkBuild.define_diff_preprocess_gsub('ruby', %r{^( *(MD5|SHA256|SHA512):\s+)[0-9
   "#{match[1]}<digest>"
 }
 
+# == title-info # 2014-05-24T10:37:17+09:00
+# title:r46065 ruby 2.2.0dev (2014-05-24) [x86_64-linux] (dew) 332W
+# title_version:r46065 ruby 2.2.0dev (2014-05-24) [x86_64-linux]
+# version:r46065 ruby 2.2.0dev (2014-05-24) [x86_64-linux]
+# dep_versions:[]
+# hostname:(dew)
+# warn:332W
+# mark:
+# status:
+# "http\x3A//svn.ruby-lang.org/repos/ruby/trunk":46065
+# "git\x3A//github.com/nurse/mspec.git":88ffc944daaa9f1894521f8abaddc88d9a087342
+# "git\x3A//github.com/nurse/rubyspec.git":aa2cfacb6896028adc8cb84f1d80fd556791ae9
+# ruby_rev:r46065
+ChkBuild.define_diff_preprocess_gsub('ruby', %r{^(title|title_version|version|dep_versions|hostname|warn|mark|status|"http\\x3A[^"]*"|"git\\x3A[^"]*"|ruby_rev):.*}) {|match|
+  "#{match[1]}:<val>"
+}
+
 # segment       = *pchar
 # pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
 # unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
