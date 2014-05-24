@@ -415,6 +415,7 @@ ChkBuild.define_build_proc('ruby') {|b|
       next
     end
     if /^timestamp=(\S*)/ =~ contents
+      fn = File.basename(fn)
       timestamp = $1
       timestamp.sub!(/\A'/, '')
       timestamp.sub!(/'\z/, '')
