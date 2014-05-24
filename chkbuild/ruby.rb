@@ -1133,8 +1133,8 @@ ChkBuild.define_diff_preprocess_gsub('ruby', %r{^( *(MD5|SHA256|SHA512):\s+)[0-9
 # "git\x3A//github.com/nurse/mspec.git":88ffc944daaa9f1894521f8abaddc88d9a087342
 # "git\x3A//github.com/nurse/rubyspec.git":aa2cfacb6896028adc8cb84f1d80fd556791ae9
 # ruby_rev:r46065
-ChkBuild.define_diff_preprocess_gsub('ruby', %r{^(title|title_version|version|dep_versions|hostname|warn|mark|status|"http\\x3A[^"]*"|"git\\x3A[^"]*"|ruby_rev):.*}) {|match|
-  "#{match[1]}:<val>"
+ChkBuild.define_diff_preprocess_gsub('ruby', %r{^title-info .*:.*}) {|match|
+  "title-info <key>:<val>"
 }
 
 # segment       = *pchar

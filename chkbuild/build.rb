@@ -389,10 +389,10 @@ class ChkBuild::Build
 
   def show_title_info(title, title_version, title_assoc)
     @logfile.start_section 'title-info'
-    puts "title:#{Escape._ltsv_val(title)}"
-    puts "title_version:#{Escape._ltsv_val(title_version)}"
+    puts "title-info title:#{Escape._ltsv_val(title)}"
+    puts "title-info title_version:#{Escape._ltsv_val(title_version)}"
     title_assoc.each {|k, v|
-      puts "#{Escape._ltsv_key k}:#{Escape._ltsv_val v}"
+      puts "title-info #{Escape._ltsv_key k}:#{Escape._ltsv_val v}"
     }
   end
 
