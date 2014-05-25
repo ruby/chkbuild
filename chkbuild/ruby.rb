@@ -1158,6 +1158,11 @@ ChkBuild.define_diff_preprocess_gsub('ruby', %r{^title-info .*:.*}) {|match|
   "title-info <key>:<val>"
 }
 
+# +Leaked tempfiles: TestJSON#test_load: #<Tempfile:/home/akr/chkbuild/tmp/build/<buildtime>/tmp/json20140525-10635-1art0vr>
+ChkBuild.define_diff_preprocess_gsub('ruby', %r{/tmp/([0-9A-Za-z_.-]+)[0-9]{8}-[0-9]+-[0-9a-z]+}) {|match|
+  "/tmp/#{match[1]}<temp>"
+}
+
 # segment       = *pchar
 # pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
 # unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
