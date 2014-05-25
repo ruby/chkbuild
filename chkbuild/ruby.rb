@@ -39,7 +39,8 @@ ObjectSpace.each_object(Module) {|m| mods << m if m.name }
 mods = mods.sort_by {|m| m.name }
 mods.each {|mod|
   nummodule += 1
-  puts "#{mod.name} #{(mod.ancestors - [mod]).inspect}"
+  mc = mod.kind_of?(Class) ? "class" : "module"
+  puts "#{mc} #{mod.name} #{(mod.ancestors - [mod]).inspect}"
   mod.singleton_methods(false).sort.each {|methname|
     nummethod += 1
     meth = mod.method(methname)
