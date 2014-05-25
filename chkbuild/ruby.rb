@@ -944,6 +944,16 @@ ChkBuild.define_diff_preprocess_gsub('ruby', %r{\[\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\
   "[YYYY-MM-DDThh:mm:ss" + match[1].gsub(/\d/, 's') + " #<pid>]"
 }
 
+# Leaked threads: IMAPTest#test_imaps_post_connection_check: #<Thread:0x00000009e198e0 sleep>
+ChkBuild.define_diff_preprocess_gsub('ruby', %r{\ALeaked threads: (\S*): .*\n\z}o) {|match|
+  "Leaked threads: #{match[1]}: <threads>\n"
+}
+
+# Finished threads: JaxenTester#test_much_ado: #<Thread:0x00000009e198e0 dead>
+ChkBuild.define_diff_preprocess_gsub('ruby', %r{\AFinished threads: \S*: .*\n\z}o) {|match|
+  "Finished threads: <class-method>: <threads>\n"
+}
+
 # #<String:0x4455ae94
 ChkBuild.define_diff_preprocess_gsub('ruby', %r{\#<[A-Z][A-Za-z0-9_]*(?:::[A-Z][A-Za-z0-9_]*)*:0x[0-9a-f]+}o) {|match|
   match[0].sub(/[0-9a-f]+\z/) { '<address>' }
