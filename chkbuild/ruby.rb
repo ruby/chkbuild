@@ -945,14 +945,16 @@ ChkBuild.define_diff_preprocess_gsub('ruby', %r{\[\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\
   "[YYYY-MM-DDThh:mm:ss" + match[1].gsub(/\d/, 's') + " #<pid>]"
 }
 
+# Leaked thread: Rinda::TestRingServer#test_ring_server_ipv4_multicast: #<Thread:0x<address> sleep>
 # Leaked threads: IMAPTest#test_imaps_post_connection_check: #<Thread:0x00000009e198e0 sleep>
-ChkBuild.define_diff_preprocess_gsub('ruby', %r{\ALeaked threads: (\S*): .*\n\z}o) {|match|
-  "Leaked threads: #{match[1]}: <threads>\n"
+ChkBuild.define_diff_preprocess_gsub('ruby', %r{\ALeaked threads?: (\S*): .*\n\z}o) {|match|
+  "Leaked thread: #{match[1]}: <thread>\n"
 }
 
+# Finished thread: JaxenTester#test_much_ado: #<Thread:0x00000009fdf418 dead>
 # Finished threads: JaxenTester#test_much_ado: #<Thread:0x00000009e198e0 dead>
-ChkBuild.define_diff_preprocess_gsub('ruby', %r{\AFinished threads: \S*: .*\n\z}o) {|match|
-  "Finished threads: <class-method>: <threads>\n"
+ChkBuild.define_diff_preprocess_gsub('ruby', %r{\AFinished threads?: \S*: .*\n\z}o) {|match|
+  "Finished thread: <test-method>: <thread>\n"
 }
 
 # #<String:0x4455ae94
@@ -1169,7 +1171,8 @@ ChkBuild.define_diff_preprocess_gsub('ruby', %r{^title-info .*:.*}) {|match|
   "title-info <key>:<val>"
 }
 
-# +Leaked tempfiles: TestJSON#test_load: #<Tempfile:/home/akr/chkbuild/tmp/build/<buildtime>/tmp/json20140525-10635-1art0vr>
+# Leaked tempfile: TestRDocEncoding: #<Tempfile:/home/akr/chkbuild/tmp/build/20140525T170448Z/tmp/test_rdoc_encoding20140526-21979-130fn25>
+# Leaked tempfiles: TestJSON#test_load: #<Tempfile:/home/akr/chkbuild/tmp/build/<buildtime>/tmp/json20140525-10635-1art0vr>
 ChkBuild.define_diff_preprocess_gsub('ruby', %r{/tmp/([0-9A-Za-z_.-]+)[0-9]{8}-[0-9]+-[0-9a-z]+}) {|match|
   "/tmp/#{match[1]}<temp>"
 }
