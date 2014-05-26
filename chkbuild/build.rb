@@ -1849,12 +1849,34 @@ End
     opts = @opts.dup
     opts.update opts2 if opts2
 
-    opts[:section] = 'cc-version' if !opts.has_key?(:section)
+    secname = opts.has_key?(:section) ? opts[:section] : 'cc-version'
 
-    if /gcc/ =~ cc
-      catch_error {
-        run(cc, '--version', opts)
-      }
+    # gcc (Debian 4.4.5-8) 4.4.5
+    if %r{(\A|/)gcc\z} =~ cc
+      cmd = "#{cc} --version"
+      message = `#{cmd} 2>&1`
+      status = $?
+      if status.success?
+	@logfile.start_section(secname) if secname
+        puts "+ #{cmd}"
+        puts message
+        return
+      end
+    end
+
+    # FreeBSD clang version 3.3 (tags/RELEASE_33/final 183502) 20130610
+    # Target: x86_64-unknown-freebsd10.0
+    # Thread model: posix
+    if %r{(\A|/)cc\z} =~ cc
+      cmd = "#{cc} --version"
+      message = `#{cmd} 2>&1`
+      status = $?
+      if status.success? && /^FreeBSD clang version/ =~ message
+	@logfile.start_section(secname) if secname
+        puts "+ #{cmd}"
+        puts message
+        return
+      end
     end
   end
 
