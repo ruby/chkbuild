@@ -1864,14 +1864,40 @@ End
       end
     end
 
-    # FreeBSD clang version 3.3 (tags/RELEASE_33/final 183502) 20130610
-    # Target: x86_64-unknown-freebsd10.0
-    # Thread model: posix
+    # IBM XL C/C++ for AIX, V12.1 (5765-J02, 5725-C72)
+    # Version: 12.01.0000.0000
+    if %r{(\A|/)xlc\z} =~ cc
+      cmd = "#{cc} -qversion"
+      message = `#{cmd} 2>&1`
+      status = $?
+      if status.success?
+	@logfile.start_section(secname) if secname
+        puts "+ #{cmd}"
+        puts message
+        return
+      end
+    end
+
     if %r{(\A|/)cc\z} =~ cc
+      # FreeBSD clang version 3.3 (tags/RELEASE_33/final 183502) 20130610
+      # Target: x86_64-unknown-freebsd10.0
+      # Thread model: posix
       cmd = "#{cc} --version"
       message = `#{cmd} 2>&1`
       status = $?
       if status.success? && /^FreeBSD clang version/ =~ message
+	@logfile.start_section(secname) if secname
+        puts "+ #{cmd}"
+        puts message
+        return
+      end
+
+      # cc: Sun C 5.10 SunOS_i386 2009/06/03
+      # usage: cc [ options] files.  Use 'cc -flags' for details
+      cmd = "#{cc} -V"
+      message = `#{cmd} 2>&1`
+      status = $?
+      if status.success? && /^cc: Sun C/ =~ message
 	@logfile.start_section(secname) if secname
         puts "+ #{cmd}"
         puts message
