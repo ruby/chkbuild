@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+
+require 'chkbuild'
+
+ChkBuild.def_target("cc") {|b|
+  b.cc_version("gcc")
+}
+
+ChkBuild.main
