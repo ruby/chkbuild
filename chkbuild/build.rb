@@ -1845,6 +1845,19 @@ End
     end
   end
 
+  def cc_version(cc, opts2=nil)
+    opts = @opts.dup
+    opts.update opts2 if opts2
+
+    opts[:section] = 'cc-version' if !opts.has_key?(:section)
+
+    if /gcc/ =~ cc
+      catch_error {
+        run(cc, '--version', opts)
+      }
+    end
+  end
+
   def install_rsync_wrapper(bindir="#{@build_dir}/bin")
     real_rsync = Util.search_command 'rsync'
     return false if !real_rsync
