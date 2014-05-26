@@ -845,6 +845,22 @@ End
     end
   end
 
+  def markup_uri(line, result)
+    i = 0
+    line.scan(/#{URI.regexp(['http', 'https'])}/o) {
+      match = $~
+      if /\A[a-z]+:\z/ =~ match[0]
+        result << h(line[i...match.end(0)]) if i < match.end(0)
+      else
+        result << h(line[i...match.begin(0)]) if i < match.begin(0)
+        result << "<a href=#{ha match[0]}>#{h match[0]}</a>"
+      end
+      i = match.end(0)
+    }
+    result << h(line[i...line.length]) if i < line.length
+    result
+  end
+
   def markup_log_line(line)
     line = encode_invalid(line)
     result = ''
@@ -853,18 +869,7 @@ End
       rest = $'
       result << "<a name=#{ha(u(tag))} href=#{ha uri_from_top(@compressed_loghtml_relpath)+"##{u(tag)}"}>== #{h(tag)}#{h(rest)}</a>"
     else
-      i = 0
-      line.scan(/#{URI.regexp(['http', 'https'])}/o) {
-        match = $~
-        if /\A[a-z]+:\z/ =~ match[0]
-          result << h(line[i...match.end(0)]) if i < match.end(0)
-        else
-          result << h(line[i...match.begin(0)]) if i < match.begin(0)
-          result << "<a href=#{ha match[0]}>#{h match[0]}</a>"
-        end
-        i = match.end(0)
-      }
-      result << h(line[i...line.length]) if i < line.length
+      markup_uri(line, result)
     end
     result
   end
@@ -878,13 +883,7 @@ End
       result << "<a name=#{ha(u(tag))} href=#{ha uri_from_top(@compressed_failhtml_relpath)+"##{u(tag)}"}>== #{h(tag)}#{h(rest)}</a>"
       result << " (<a href=#{ha uri_from_top(@compressed_loghtml_relpath)+"##{u(tag)}"}>full</a>)"
     else
-      i = 0
-      line.scan(/#{URI.regexp(['http'])}/o) {
-        result << h(line[i...$~.begin(0)]) if i < $~.begin(0)
-        result << "<a href=#{ha $&}>#{h $&}</a>"
-        i = $~.end(0)
-      }
-      result << h(line[i...line.length]) if i < line.length
+      markup_uri(line, result)
     end
     result
   end
@@ -897,13 +896,7 @@ End
       "<a href=#{ha url}>#{h content.strip}</a>"
     else
       result = ''
-      i = 0
-      line.scan(/#{URI.regexp(['http'])}/o) {
-	result << h(line[i...$~.begin(0)]) if i < $~.begin(0)
-	result << "<a href=#{ha $&}>#{h $&}</a>"
-	i = $~.end(0)
-      }
-      result << h(line[i...line.length]) if i < line.length
+      markup_uri(line, result)
       result
     end
   end
