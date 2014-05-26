@@ -948,7 +948,7 @@ ChkBuild.define_diff_preprocess_gsub('ruby', %r{\ALeaked threads?: (\S*): (.*)\n
   test_method = match[1]
   threads = match[2].gsub(%r{<Thread:0x[0-9a-f]+(?:@.*?/<buildtime>/ruby/(.*?):(\d+))? [a-z]+>}) {
     if $1
-      "<Thread:<address>@#{$1}:#{$2} <status>>"
+      "<Thread:<address>@<build-dir>/ruby/#{$1}:#{$2} <status>>"
     else
       "<Thread:<address> <status>>"
     end
