@@ -295,6 +295,10 @@ module ChkBuild
       Hugepagesize
       DirectMap4k
       DirectMap2M
+      HighTotal
+      HighFree
+      LowTotal
+      LowFree
     ]
     ChkBuild.define_diff_preprocess_gsub(target_name, /^(#{Regexp.union(*keys)}): *\d+/) {|match|
       "#{match[1]}: <nnn>"
