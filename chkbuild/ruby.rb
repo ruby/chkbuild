@@ -962,6 +962,11 @@ ChkBuild.define_diff_preprocess_gsub('ruby', %r{\AFinished threads?: \S*: .*\n\z
   "Finished thread: <test-method>: <thread>\n"
 }
 
+# Closed file descriptor: DL::TestBase#test_empty: 18
+ChkBuild.define_diff_preprocess_gsub('ruby', %r{\AClosed file descriptor: \S*: \d+\n\z}o) {|match|
+  "Closed file descriptor: <test-method>: <fd>\n"
+}
+
 # #<String:0x4455ae94
 ChkBuild.define_diff_preprocess_gsub('ruby', %r{\#<[A-Z][A-Za-z0-9_]*(?:::[A-Z][A-Za-z0-9_]*)*:0x[0-9a-f]+}o) {|match|
   match[0].sub(/[0-9a-f]+\z/) { '<address>' }
