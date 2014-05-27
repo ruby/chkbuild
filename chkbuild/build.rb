@@ -304,6 +304,7 @@ class ChkBuild::Build
     puts "build-dir: #{@build_dir}"
     show_options
     show_cpu_info
+    show_memory_info
     show_process_status
     ret = self.do_build
     title, title_version, title_assoc = gen_title
@@ -349,17 +350,38 @@ class ChkBuild::Build
   end
 
   def show_cpu_info
-    if File.exist? '/proc/cpuinfo' # GNU/Linux
+    if File.exist? '/proc/cpuinfo' # GNU/Linux, NetBSD
       self.run('cat', '/proc/cpuinfo', :section => 'cpu-info')
     end
     if /freebsd/ =~ RUBY_PLATFORM
-      self.run('sysctl', 'hw.model', 'hw.ncpu', 'hw.clockrate', :section => 'cpu-info')
+      self.run('sysctl', 'hw.model', 'hw.ncpu', 'hw.byteorder', 'hw.clockrate', 'hw.machine', 'hw.machine_arch', :section => 'cpu-info')
+    end
+    if /dragonfly/ =~ RUBY_PLATFORM
+      self.run('sysctl', 'hw.model', 'hw.ncpu', 'hw.byteorder', 'hw.clockrate', 'hw.machine', 'hw.machine_arch', :section => 'cpu-info')
     end
     if /netbsd/ =~ RUBY_PLATFORM
-      self.run('sysctl', 'hw.model', 'hw.ncpu', :section => 'cpu-info')
+      self.run('sysctl', 'hw.model', 'hw.ncpu', 'hw.byteorder', 'hw.machine', 'hw.machine_arch', :section => 'cpu-info')
     end
     if /openbsd/ =~ RUBY_PLATFORM
-      self.run('sysctl', 'hw.model', 'hw.ncpu', 'hw.cpuspeed', :section => 'cpu-info')
+      self.run('sysctl', 'hw.model', 'hw.ncpu', 'hw.byteorder', 'hw.cpuspeed', 'hw.machine', :section => 'cpu-info')
+    end
+  end
+
+  def show_memory_info
+    if File.exist? '/proc/meminfo' # GNU/Linux, NetBSD
+      self.run('cat', '/proc/meminfo', :section => 'memory-info')
+    end
+    if /freebsd/ =~ RUBY_PLATFORM
+      self.run('sysctl', 'hw.realmem', 'hw.physmem', 'hw.usermem', :section => 'memory-info')
+    end
+    if /dragonfly/ =~ RUBY_PLATFORM
+      self.run('sysctl', 'hw.physmem', 'hw.usermem', :section => 'memory-info')
+    end
+    if /netbsd/ =~ RUBY_PLATFORM
+      self.run('sysctl', 'hw.physmem', 'hw.usermem', 'hw.physmem64', 'hw.usermem64', :section => 'memory-info')
+    end
+    if /openbsd/ =~ RUBY_PLATFORM
+      self.run('sysctl', 'hw.physmem', 'hw.usermem', :section => 'memory-info')
     end
   end
 

@@ -211,6 +211,95 @@ module ChkBuild
       "#{match[1]}#{match[2]}: <nnn>"
     }
 
+    # MemFree:         2138228 kB
+    # Buffers:         1386392 kB
+    # Cached:          1491392 kB
+    # SwapCached:         1688 kB
+    # Active:          2918416 kB
+    # Inactive:        1689768 kB
+    # Active(anon):    1285824 kB
+    # Inactive(anon):   634112 kB
+    # Active(file):    1632592 kB
+    # Inactive(file):  1055656 kB
+    # Unevictable:           4 kB
+    # Mlocked:               4 kB
+    # SwapTotal:      15842300 kB
+    # SwapFree:       15808176 kB
+    # Dirty:             29144 kB
+    # Writeback:           988 kB
+    # AnonPages:       1728256 kB
+    # Mapped:            57216 kB
+    # Shmem:            189880 kB
+    # Slab:            1263440 kB
+    # SReclaimable:    1188756 kB
+    # SUnreclaim:        74684 kB
+    # KernelStack:        2568 kB
+    # PageTables:        30400 kB
+    # NFS_Unstable:          0 kB
+    # Bounce:                0 kB
+    # WritebackTmp:          0 kB
+    # CommitLimit:    19898624 kB
+    # Committed_AS:    3141284 kB
+    # VmallocTotal:   34359738367 kB
+    # VmallocUsed:      377904 kB
+    # VmallocChunk:   34359339436 kB
+    # HardwareCorrupted:     0 kB
+    # AnonHugePages:         0 kB
+    # HugePages_Total:       0
+    # HugePages_Free:        0
+    # HugePages_Rsvd:        0
+    # HugePages_Surp:        0
+    # Hugepagesize:       2048 kB
+    # DirectMap4k:       94208 kB
+    # DirectMap2M:     8210432 kB
+
+    keys = %w[
+      MemFree
+      Buffers
+      Cached
+      SwapCached
+      Active
+      Inactive
+      Active(anon)
+      Inactive(anon)
+      Active(file)
+      Inactive(file)
+      Unevictable
+      Mlocked
+      SwapTotal
+      SwapFree
+      Dirty
+      Writeback
+      AnonPages
+      Mapped
+      Shmem
+      Slab
+      SReclaimable
+      SUnreclaim
+      KernelStack
+      PageTables
+      NFS_Unstable
+      Bounce
+      WritebackTmp
+      CommitLimit
+      Committed_AS
+      VmallocTotal
+      VmallocUsed
+      VmallocChunk
+      HardwareCorrupted
+      AnonHugePages
+      HugePages_Total
+      HugePages_Free
+      HugePages_Rsvd
+      HugePages_Surp
+      Hugepagesize
+      DirectMap4k
+      DirectMap2M
+    ]
+    ChkBuild.define_diff_preprocess_gsub(target_name, /^(#{Regexp.union(*keys)}): *\d+/) {|match|
+      "#{match[1]}: <nnn>"
+    }
+
     # + ps -o 'ruser user vsz nice tty comm' -p 14087
     ChkBuild.define_diff_preprocess_gsub(target_name, /^(\+ ps -o .* -p )(\d+)/) {|match|
       "#{match[1]}<pid>"
