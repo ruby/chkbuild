@@ -301,6 +301,7 @@ class ChkBuild::Build
     setup_build(target_output_name)
     @logfile.start_section 'start'
     puts "start-time: #{prebuilt_start_time}"
+    puts "build-dir: #{@build_dir}"
     show_options
     show_cpu_info
     show_process_status
@@ -1443,7 +1444,8 @@ End
   end
 
   def make_diff_content(time)
-    timemap = { time => "<buildtime>" }
+    build_dir = ChkBuild.build_top
+    timemap = { time => "<buildtime>", "#{build_dir}/#{time}" => "<build-dir>" }
     uncompressed = Tempfile.open("#{time}.u.")
     open_gziped_log(time) {|z|
       FileUtils.copy_stream(z, uncompressed)
@@ -1453,6 +1455,7 @@ End
     logfile.dependencies.each {|dep_suffixed_name, dep_time, dep_version|
       target_name = dep_suffixed_name.sub(/[-_].*\z/, '')
       timemap[dep_time] = "<#{target_name}-buildtime>"
+      timemap["#{build_dir}/#{dep_time}"] = "<#{target_name}-build-dir>"
     }
     pat = Regexp.union(*timemap.keys)
     tmp = Tempfile.open("#{time}.d.")
