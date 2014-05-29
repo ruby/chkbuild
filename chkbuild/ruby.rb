@@ -962,6 +962,13 @@ ChkBuild.define_diff_preprocess_gsub('ruby', %r{\AFinished threads?: \S*: .*\n\z
   "Finished thread: <test-method>: <thread>\n"
 }
 
+# Leaked file descriptor: TestIO_Console#test_sync: 17 : #<File:/dev/pts/12>
+# Leaked file descriptor: TestIO_Console#test_sync: 18
+# Leaked file descriptor: TestXMLRPC::TestCookie#test_cookie: 18 : #<TCPSocket:fd 18>
+ChkBuild.define_diff_preprocess_gsub('ruby', %r{\ALeaked file descriptor: (\S*): \d+}o) {|match|
+  "Leaked file descriptor: #{match[1]}: <fd>"
+}
+
 # Closed file descriptor: DL::TestBase#test_empty: 18
 ChkBuild.define_diff_preprocess_gsub('ruby', %r{\AClosed file descriptor: \S*: \d+\n\z}o) {|match|
   "Closed file descriptor: <test-method>: <fd>\n"
@@ -1185,6 +1192,13 @@ ChkBuild.define_diff_preprocess_gsub('ruby', %r{^title-info .*:.*}) {|match|
 # Leaked tempfiles: TestJSON#test_load: #<Tempfile:/home/akr/chkbuild/tmp/build/<buildtime>/tmp/json20140525-10635-1art0vr>
 ChkBuild.define_diff_preprocess_gsub('ruby', %r{/tmp/([0-9A-Za-z_.-]+)[0-9]{8}-[0-9]+-[0-9a-z]+}) {|match|
   "/tmp/#{match[1]}<temp>"
+}
+
+# Leaked file descriptor: Rinda::TestRingFinger#test_make_socket_ipv6_multicast: 19 : #<Socket:fd 19>
+# Leaked file descriptor: TestXMLRPC::TestCookie#test_cookie: 18 : #<TCPSocket:fd 18>
+# Leaked file descriptor: TestParallel::TestParallelWorker#test_accept_run_command_multiple_times: 17 : #<IO:fd 17>
+ChkBuild.define_diff_preprocess_gsub('ruby', %r{\#<(IO|File|TCPSocket|TCPServer|SOCKSSocket|UDPSocket|UNIXSocket|UNIXServer|Socket):fd \d+>}o) {|match|
+  "\#<#{match[1]}:fd <fd>>"
 }
 
 # segment       = *pchar
