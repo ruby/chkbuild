@@ -1088,9 +1088,30 @@ ChkBuild.define_diff_preprocess_gsub('ruby', /^(Version of .* : )\d+$/) {|match|
 }
 
 # test-all:
+# == test-all # <time>
+# == test/-ext- # <time>
+ChkBuild.define_diff_preprocess_gsub('ruby', %r{^== test(-all|/\S+) }) {|match|
+  '== test-all '
+}
+
+# test-all:
+# + gmake TESTS=-v RUBYOPT=-w test-all
+# + gmake 'TESTS=-v test/-ext-' RUBYOPT=-w test-all
+ChkBuild.define_diff_preprocess_gsub('ruby', %r{^\+ (g?make) (.*) test-all$}) {|match|
+  "+ #{match[1]} <options> test-all"
+}
+
+# test-all:
+# ./miniruby -I./lib -I. -I.ext/common  ./tool/runruby.rb --extout=.ext  -- --disable-gems "./test/runner.rb" --ruby="./miniruby -I./lib -I. -I.ext/common  ./tool/runruby.rb --extout=.ext  -- --disable-gems"  -v
+# ./miniruby -I./lib -I. -I.ext/common  ./tool/runruby.rb --extout=.ext  -- --disable-gems "./test/runner.rb" --ruby="./miniruby -I./lib -I. -I.ext/common  ./tool/runruby.rb --extout=.ext  -- --disable-gems"  -v test_open3.rb
+ChkBuild.define_diff_preprocess_gsub('ruby', %r{^\./miniruby .* "./test/runner.rb" .*$}) {|match|
+  './miniruby <options> "./test/runner.rb" <arguments>'
+}
+
+# test-all:
 # 6937 tests, 2165250 assertions, 6 failures, 0 errors, 0 skips
-ChkBuild.define_diff_preprocess_gsub('ruby', /^(\d+ tests, )\d+( assertions, \d+ failures, \d+ errors, \d+ skips)$/) {|match|
-  match[1] + "<num>" + match[2]
+ChkBuild.define_diff_preprocess_gsub('ruby', /^\d+ tests, \d+ assertions, \d+ failures, \d+ errors, \d+ skips$/) {|match|
+  "<num> tests, <num> assertions, <num> failures, <num> errors, <num> skips"
 }
 
 # Test run options: --seed 27850 --verbose
@@ -1114,7 +1135,7 @@ ChkBuild.define_diff_preprocess_gsub('ruby', /^\d+ files?, \d+ examples?, \d+ ex
 # == rubyspec # <time>
 # == rubyspec/command_line/dash_a_spec.rb # <time>
 ChkBuild.define_diff_preprocess_gsub('ruby', %r{^== rubyspec(/\S+)? }) {|match|
-  '== rubyspec/<testfile> '
+  '== rubyspec '
 }
 
 # rubyspec:
