@@ -1014,7 +1014,6 @@ End
     <title><%=h title %></title>
     <meta name="author" content="chkbuild">
     <meta name="generator" content="chkbuild">
-    <link rel="alternate" type="application/rss+xml" title="RSS" href=<%=ha uri_from_top(@rss_relpath, true) %>>
   </head>
   <body>
     <h1><%=h title %></h1>
@@ -1080,7 +1079,6 @@ End
     <title><%=h title %></title>
     <meta name="author" content="chkbuild">
     <meta name="generator" content="chkbuild">
-    <link rel="alternate" type="application/rss+xml" title="RSS" href=<%=ha uri_from_top(@rss_relpath, true) %>>
   </head>
   <body>
     <h1><%=h title %></h1>
@@ -1537,7 +1535,6 @@ End
     <title><%=h title %></title>
     <meta name="author" content="chkbuild">
     <meta name="generator" content="chkbuild">
-    <link rel="alternate" type="application/rss+xml" title="RSS" href=<%=ha uri_from_top(@rss_relpath, true) %>>
   </head>
   <body>
     <h1><%=h title %></h1>
