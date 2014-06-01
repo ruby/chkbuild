@@ -1106,8 +1106,22 @@ ChkBuild.define_diff_preprocess_gsub('ruby', %r{/dev/pts/\d+}) {|match|
 # rubyspec:
 # 2932 files, 13911 examples, 182945 expectations, 34 failures, 24 errors
 # 1 file, 36 examples, 52766 expectations, 0 failures, 0 errors
-ChkBuild.define_diff_preprocess_gsub('ruby', /^(\d+ files?, \d+ examples?, )\d+( expectations?, \d+ failures?, \d+ errors?)$/) {|match|
-  match[1] + "<num>" + match[2]
+ChkBuild.define_diff_preprocess_gsub('ruby', /^\d+ files?, \d+ examples?, \d+ expectations?, \d+ failures?, \d+ errors?$/) {|match|
+  '<num> files, <num> examples, <num> expectations, <num> failures, <num> errors'
+}
+
+# rubyspec:
+# == rubyspec # <time>
+# == rubyspec/command_line/dash_a_spec.rb # <time>
+ChkBuild.define_diff_preprocess_gsub('ruby', %r{^== rubyspec(/\S+)? }) {|match|
+  '== rubyspec/<testfile> '
+}
+
+# rubyspec:
+# + bin/ruby mspec/bin/mspec -V -f s -B <build-dir>/rubyspec/ruby.1.9.mspec -t <build-dir>/bin/ruby rubyspec/command_line rubyspec/core rubyspec/language rubyspec/library rubyspec/optional/capi
+# + bin/ruby mspec/bin/mspec -V -f s -B <build-dir>/rubyspec/ruby.1.9.mspec -t <build-dir>/bin/ruby rubyspec/command_line/dash_a_spec.rb
+ChkBuild.define_diff_preprocess_gsub('ruby', %r{^\+ bin/ruby mspec/bin/mspec (.*)/bin/ruby rubyspec/.+$}) {|match|
+  "+ bin/ruby mspec/bin/mspec #{match[1]}/bin/ruby rubyspec/<testfile>"
 }
 
 # MinitestSpec#test_needs_to_verify_nil: <elapsed> s: .
