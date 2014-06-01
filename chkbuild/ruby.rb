@@ -975,8 +975,8 @@ ChkBuild.define_diff_preprocess_gsub('ruby', %r{\AClosed file descriptor: \S*: \
 }
 
 # #<String:0x4455ae94
-ChkBuild.define_diff_preprocess_gsub('ruby', %r{\#<[A-Z][A-Za-z0-9_]*(?:::[A-Z][A-Za-z0-9_]*)*:0x[0-9a-f]+}o) {|match|
-  match[0].sub(/[0-9a-f]+\z/) { '<address>' }
+ChkBuild.define_diff_preprocess_gsub('ruby', %r{(\#<[A-Z][A-Za-z0-9_]*(?:::[A-Z][A-Za-z0-9_]*)*:)0x[0-9a-f]+}o) {|match|
+  "#{match[1]}<address>"
 }
 
 # #<#<Class:0xXXXXXXX>:0x0e87dd00
