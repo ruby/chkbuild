@@ -53,6 +53,8 @@ usage:
   #{command} options [depsuffixed_name...]
   #{command} title [depsuffixed_name...]
   #{command} logdiff [depsuffixed_name [date1 [date2]]]
+  #{command} logsubst [depsuffixed_name [date]]
+  #{command} logfail [depsuffixed_name [date]]
 End
     exit status
   end
@@ -169,6 +171,20 @@ End
     }
   end
 
+  def ChkBuild.main_logsubst
+    depsuffixed_name, arg_t = ARGV
+    each_target_build {|t, build|
+      next if depsuffixed_name && build.depsuffixed_name != depsuffixed_name
+      ts = build.log_time_sequence
+      raise "no log: #{build.depsuffixed_name}/#{arg_t}" if arg_t and !ts.include?(arg_t)
+      t = arg_t || ts[-1]
+      puts "#{build.depsuffixed_name}: #{t}"
+      tmp = build.make_diff_content(t)
+      tmp.rewind
+      IO.copy_stream(tmp, STDOUT)
+    }
+  end
+
   def ChkBuild.main_logfail
     depsuffixed_name, arg_t = ARGV
     each_target_build {|t, build|
@@ -197,6 +213,7 @@ End
     when 'options' then ChkBuild.main_options
     when 'title' then ChkBuild.main_title
     when 'logdiff' then ChkBuild.main_logdiff
+    when 'logsubst' then ChkBuild.main_logsubst
     when 'logfail' then ChkBuild.main_logfail
     else
       puts "unexpected subcommand: #{subcommand}"
