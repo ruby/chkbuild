@@ -305,7 +305,8 @@ class ChkBuild::Build
     show_options
     show_cpu_info
     show_memory_info
-    show_process_status
+    show_process_limits
+    show_process_ps
     ret = self.do_build
     title, title_version, title_assoc = gen_title
     show_title_info(title, title_version, title_assoc)
@@ -385,7 +386,7 @@ class ChkBuild::Build
     end
   end
 
-  def show_process_status
+  def show_process_limits
     if File.exist?('/bin/pflags') # Solaris
       self.run('pflags', $$.to_s)
     elsif File.exist? '/proc/self/status' # GNU/Linux
@@ -395,6 +396,10 @@ class ChkBuild::Build
     if File.exist? '/proc/self/limits' # GNU/Linux
       self.run('cat', '/proc/self/limits', :section => 'process-limits')
     end
+  end
+
+  def show_process_ps
+    @logfile.start_section 'process-ps'
     # POSIX
     %w[ruser user nice tty comm].each {|field| show_ps_result($$, field) }
     if /dragonfly/ !~ RUBY_PLATFORM
