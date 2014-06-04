@@ -99,7 +99,7 @@ End
     begin
       puts "#{name}: #{versionproc.call}"
     rescue Exception
-      puts "#{name}: #{$!}"
+      puts "#{name}: ERROR #{$!}"
     end
   }
 End
