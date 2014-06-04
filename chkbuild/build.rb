@@ -396,18 +396,28 @@ class ChkBuild::Build
       self.run('cat', '/proc/self/limits', :section => 'process-limits')
     end
     # POSIX
-    self.run('ps', '-o', 'ruser user nice tty comm', '-p', $$.to_s, :section => 'process-ps')
+    %w[ruser user nice tty comm].each {|field| show_ps_result($$, field) }
     if /dragonfly/ !~ RUBY_PLATFORM
       # POSIX has rgroup, group and args but
       # DragonFly BSD's ps don't have them.
-      self.run('ps', '-o', 'rgroup group args', '-p', $$.to_s, :section => nil)
+      %w[rgroup group args].each {|field| show_ps_result($$, field) }
     end
     if /linux/ =~ RUBY_PLATFORM
-      self.run('ps', '-o', 'ruid ruser euid euser suid suser fuid fuser', '-p', $$.to_s, :section => nil)
-      self.run('ps', '-o', 'rgid rgroup egid egroup sgid sgroup fgid fgroup', '-p', $$.to_s, :section => nil)
-      self.run('ps', '-o', 'blocked caught ignored pending', '-p', $$.to_s, :section => nil)
-      self.run('ps', '-o', 'cls sched rtprio f label', '-p', $$.to_s, :section => nil)
+      %w[
+        ruid ruser euid euser suid suser fuid fuser
+        rgid rgroup egid egroup sgid sgroup fgid fgroup
+        blocked caught ignored pending
+        cls sched rtprio f label
+      ].each {|field| show_ps_result($$, field) }
     end
+  end
+
+  def show_ps_result(pid, field)
+    result = `ps -o #{field} -p #{pid} 2>&1`
+    return unless $?.success?
+    result.sub!(/\A.*\n/, '') # strip the header line
+    result.strip!
+    puts "ps -o #{field} : #{result}"
   end
 
   def show_title_info(title, title_version, title_assoc)
