@@ -159,8 +159,6 @@ module TimeoutCommand
     end
     msgout.puts msg
     msgout.puts msgbuf
-  ensure
-    p $!
   end
 
   def timeout_command(ruby_script, output_filename, command_timeout, msgout=STDERR, opts={})
