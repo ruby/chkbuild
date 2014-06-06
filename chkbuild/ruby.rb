@@ -817,8 +817,11 @@ ChkBuild.define_title_hook('ruby', nil) {|title, logfile|
 
 # ps -o blocked : 0000000000000000
 # ps -o blocked : fffffffe7dfbfaff
-ChkBuild.define_diff_preprocess_gsub('ruby', /^ps -o blocked : [0-9a-f]+/) {|match|
-  "ps -o blocked : <hex>"
+# ps -o caught : 0000000182006e47
+# ps -o ignored : 0000000000000000
+# ps -o pending : 0000000000000000
+ChkBuild.define_diff_preprocess_gsub('ruby', /^ps -o (blocked|caught|ignored|pending) : [0-9a-f]+/) {|match|
+  "ps -o #{match[1]} : <hex>"
 }
 
 # #define RUBY_RELEASE_DATE "2013-04-06"
