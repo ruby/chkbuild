@@ -32,11 +32,12 @@ require 'tempfile'
 require 'escape'
 
 module Lchg
-  def Lchg.each_context(enum, pred, context=3)
+  def Lchg.each_context(enum, scanner, pred, context=3)
     buf = []
     after_match = false
     i = 0
     enum.each {|elt|
+      scanner.call(elt) if scanner
       not_exist = pred.call(elt)
       if not_exist
         b = i - buf.length
@@ -189,12 +190,19 @@ module Lchg
     tf
   end
 
-  def Lchg.output_changes(header, tf, out)
+  def Lchg.output_changes(header, tf, out, scanner=nil)
     out.puts '==================================================================='
     out.puts header
     tf.rewind
     last = -1
-    each_context(tf, lambda {|line| / 20/ !~ line }) {|i, t, line|
+    if scanner
+      scanner2 = lambda {|line|
+        linenumz, line = decode_pair(line)
+        /\A./ =~ line
+        scanner.call(linenumz+1, $&, $')
+      }
+    end
+    each_context(tf, scanner2, lambda {|line| / 20/ !~ line }) {|i, t, line|
       num, str = decode_pair(line)
       out.puts "@@ #{i} @@" if last + 1 != num
       out.puts str
@@ -202,7 +210,7 @@ module Lchg
     }
   end
 
-  def Lchg.diff(path1, path2, out, header1="--- #{path1}\n", header2="+++ #{path2}\n")
+  def Lchg.diff(path1, path2, out, header1="--- #{path1}\n", header2="+++ #{path2}\n", scanner=nil)
     tf1a = encode_lines(path1)
     #puts tf1a.path; print File.read(tf1a.path)
     tf1b = sort_by_content(tf1a.path)
@@ -223,11 +231,13 @@ module Lchg
     tf2d = sort_by_linenum(tf2c.path)
     tf2c.close(true)
     if numadd != 0
-      Lchg.output_changes(header2, tf2d, out)
+      new_scanner = lambda {|linenum, mark, line| scanner.call(:new, linenum, mark, line) } if scanner
+      Lchg.output_changes(header2, tf2d, out, new_scanner)
     end
     out.puts if numdel != 0 && numadd != 0
     if numdel != 0
-      Lchg.output_changes(header1, tf1d, out)
+      old_scanner = lambda {|linenum, mark, line| scanner.call(:old, linenum, mark, line) } if scanner
+      Lchg.output_changes(header1, tf1d, out, old_scanner)
     end
     numadd != 0 || numdel != 0
   end

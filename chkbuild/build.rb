@@ -1332,11 +1332,22 @@ End
     tmp2 = make_diff_content(t2)
     header1 = "--- #{t1}\n"
     header2 = "+++ #{t2}\n"
-    has_diff = has_change_line | Lchg.diff(tmp1.path, tmp2.path, out, header1, header2)
+    diffsecs = { :old => {}, :new => {} }
+    current_section = {}
+    scanner = lambda {|mode, linenum, mark, line|
+      current_section[mode] = $1 if /\A== (\S+)/ =~ line
+      if mark != ' '
+        diffsecs[mode][current_section[mode]] ||= linenum
+      end
+      #open("/dev/tty", "w") {|f| f.puts [mode, linenum, mark, line].inspect }
+    }
+    has_diff = has_change_line | Lchg.diff(tmp1.path, tmp2.path, out, header1, header2, scanner)
     return nil if !has_diff
     ret = []
     ret << 'src' if has_change_line
-    ret.concat different_sections(tmp1, tmp2)
+    different_sections = diffsecs[:new].keys.sort_by {|k| diffsecs[:new][k] }
+    different_sections |= diffsecs[:old].keys.sort_by {|k| diffsecs[:old][k] }
+    ret.concat different_sections
     ret
   end
 
@@ -1458,24 +1469,6 @@ End
     }
     out.puts if has_change_line
     has_change_line
-  end
-
-  def different_sections(tmp1, tmp2)
-    logfile1 = ChkBuild::LogFile.read_open(tmp1.path)
-    logfile2 = ChkBuild::LogFile.read_open(tmp2.path)
-    secnames1 = logfile1.secnames
-    secnames2 = logfile2.secnames
-    different_sections = secnames1 - secnames2
-    secnames2.each {|secname|
-      if !secnames1.include?(secname)
-        different_sections << secname
-      elsif logfile1.section_size(secname) != logfile2.section_size(secname)
-        different_sections << secname
-      elsif logfile1.get_section(secname) != logfile2.get_section(secname)
-        different_sections << secname
-      end
-    }
-    different_sections
   end
 
   def make_diff_content(time)

@@ -1,0 +1,12 @@
+#!/usr/bin/env ruby
+
+require 'chkbuild'
+
+ChkBuild.def_target("diffsec") {|b|
+  b.logfile.start_section 'same-lines'
+  (1+rand(10)).times {
+    puts "foo"
+  }
+}
+
+ChkBuild.main
