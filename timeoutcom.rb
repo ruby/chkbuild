@@ -108,8 +108,9 @@ module TimeoutCommand
     end
   end
 
-  def show_process_group(pgid, msgout)
+  def show_process_group(msg, pgid, msgout)
     return if !msgout
+    msgbuf = ''
     # ps -A and -o option is defined by POSIX.
     # However MirOS BSD (MirBSD 10 GENERIC#1382 i386) don't have -A and -ax can be used instead.
     #
@@ -127,36 +128,39 @@ module TimeoutCommand
     when /\blinux\b/
       ps_additional_options << ' -L' # show threads
     end
-    IO.popen("COLUMNS=10240 ps #{ps_all_process_option}#{ps_additional_options} -o 'pgid pid etime pcpu vsz comm args'") {|psio|
-      psresult = psio.to_a
-      pat = /\A\s*#{pgid}\b/
-      first = true
-      pids = []
-      psresult.each {|line|
-	if first
-	  msgout.puts "PSOUT #{line}"
-	elsif pat =~ line
-	  msgout.puts "PSOUT #{line}"
-	  if /\A\s*\d+\s+(\d+)/ =~ line
-	    pids << $1
-	  end
-	end
-	first = false
-      }
-      if !pids.empty?
-        lsof_command = "lsof -p #{pids.join(',')}"
-	begin
-	  lsofresult = `#{lsof_command}`
-	rescue Errno::ENOENT
-	  lsofresult = nil
-	end
-	if lsofresult
-	  lsofresult.each_line {|line|
-	    msgout.puts "LSOFOUT #{line}"
-	  }
-	end
+    psresult = IO.popen("COLUMNS=10240 ps #{ps_all_process_option}#{ps_additional_options} -o 'pgid pid etime pcpu vsz comm args'") {|psio|
+      psio.to_a
+    }
+    ps_header, *processes = psresult
+    return if !ps_header
+    pat = /\A\s*#{pgid}\b/
+    processes = processes.grep(pat)
+    return if processes.empty?
+    msgbuf << "PSOUT #{ps_header}"
+    pids = []
+    processes.each {|line|
+      msgbuf << "PSOUT #{line}"
+      if /\A\s*\d+\s+(\d+)/ =~ line
+        pids << $1
       end
     }
+    if !pids.empty?
+      lsof_command = "lsof -p #{pids.join(',')}"
+      begin
+        lsofresult = `#{lsof_command}`
+      rescue Errno::ENOENT
+        lsofresult = nil
+      end
+      if lsofresult
+        lsofresult.each_line {|line|
+          msgbuf << "LSOFOUT #{line}"
+        }
+      end
+    end
+    msgout.puts msg
+    msgout.puts msgbuf
+  ensure
+    p $!
   end
 
   def timeout_command(ruby_script, output_filename, command_timeout, msgout=STDERR, opts={})
@@ -228,8 +232,7 @@ module TimeoutCommand
           msgout.puts "timeout: #{timeout_reason}" if msgout
           begin
             Process.kill(0, -pid)
-            msgout.puts "timeout: the process group #{pid} is alive." if msgout
-	    show_process_group(pid, msgout)
+            show_process_group("timeout: the process group #{pid} is alive.", pid, msgout)
             kill_processgroup(pid, msgout)
           rescue Errno::ESRCH # no process
           end
@@ -243,10 +246,7 @@ module TimeoutCommand
         raise
       ensure
         if processgroup_alive?(pid)
-	  if msgout
-	    msgout.puts "some descendant process in process group #{pid} remain."
-	    show_process_group(pid, msgout)
-	  end
+          show_process_group("some descendant process in process group #{pid} remain.", pid, msgout)
 	  if process_remain_timeout
 	    timelimit = Time.now + process_remain_timeout
 	    timeout_reason = opts[:process_remain_timeout]
