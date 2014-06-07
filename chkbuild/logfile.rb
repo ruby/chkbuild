@@ -105,19 +105,27 @@ class ChkBuild::LogFile
         puts "#{basename}: #{contents}"
       end
     }
+
     debian_arch = capture_stdout('dpkg --print-architecture')
     puts "Debian Architecture: #{debian_arch}" if debian_arch
-    if system("sw_vers") # MacOS X
-      puts "sw_vers: exist"
-    end
+
     if system("lsb_release -idrc") # recent GNU/Linux
       puts "lsb_release: exist"
     else
       os_ver = self.os_version
       puts os_ver if os_ver
     end
+
+    eselect_profile = capture_stdout('eselect --brief profile show') # Gentoo
+    puts "eselect_profile: #{eselect_profile.strip}" if eselect_profile
+
+    if system("sw_vers") # MacOS X
+      puts "sw_vers: exist"
+    end
+
     oslevel = capture_stdout('oslevel'); puts "oslevel: #{oslevel}" if oslevel # AIX
     oslevel_s = capture_stdout('oslevel -s'); puts "oslevel_s: #{oslevel_s}" if oslevel_s # AIX
+
     if /SunOS/ =~ uname_s
       begin
         etc_release = File.read("/etc/release")
