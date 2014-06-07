@@ -77,16 +77,22 @@ class ChkBuild::LogFile
     nil
   end
 
+  def self.capture_stdout(command)
+    out = `exec 2>/dev/null; #{command}` rescue nil
+    return out if $?.success?
+    nil
+  end
+
   def self.show_os_version
     puts "Nickname: #{ChkBuild.nickname}"
-    uname = `uname -srvm 2>/dev/null` rescue nil; puts "uname_srvm: #{uname}" if $?.success?
-    uname_s = `uname -s 2>/dev/null` rescue nil; puts "uname_s: #{uname_s}" if $?.success? # POSIX
-    uname_r = `uname -r 2>/dev/null` rescue nil; puts "uname_r: #{uname_r}" if $?.success? # POSIX
-    uname_v = `uname -v 2>/dev/null` rescue nil; puts "uname_v: #{uname_v}" if $?.success? # POSIX
-    uname_m = `uname -m 2>/dev/null` rescue nil; puts "uname_m: #{uname_m}" if $?.success? # POSIX
-    uname_p = `uname -p 2>/dev/null` rescue nil; puts "uname_p: #{uname_p}" if $?.success? # GNU/Linux, FreeBSD, NetBSD, OpenBSD, SunOS
-    uname_i = `uname -i 2>/dev/null` rescue nil; puts "uname_i: #{uname_i}" if $?.success? # GNU/Linux, FreeBSD, SunOS
-    uname_o = `uname -o 2>/dev/null` rescue nil; puts "uname_o: #{uname_o}" if $?.success? # GNU/Linux, FreeBSD, SunOS
+    uname =   capture_stdout('uname -srvm'); puts "uname_srvm: #{uname}" if uname
+    uname_s = capture_stdout('uname -s'); puts "uname_s: #{uname_s}" if uname_s # POSIX
+    uname_r = capture_stdout('uname -r'); puts "uname_r: #{uname_r}" if uname_r # POSIX
+    uname_v = capture_stdout('uname -v'); puts "uname_v: #{uname_v}" if uname_v # POSIX
+    uname_m = capture_stdout('uname -m'); puts "uname_m: #{uname_m}" if uname_m # POSIX
+    uname_p = capture_stdout('uname -p'); puts "uname_p: #{uname_p}" if uname_p # GNU/Linux, FreeBSD, NetBSD, OpenBSD, SunOS
+    uname_i = capture_stdout('uname -i'); puts "uname_i: #{uname_i}" if uname_i # GNU/Linux, FreeBSD, SunOS
+    uname_o = capture_stdout('uname -o'); puts "uname_o: #{uname_o}" if uname_o # GNU/Linux, FreeBSD, SunOS
     [
       "/etc/debian_version",
       "/etc/redhat-release",
@@ -99,8 +105,8 @@ class ChkBuild::LogFile
         puts "#{basename}: #{contents}"
       end
     }
-    debian_arch = `dpkg --print-architecture 2>/dev/null` rescue nil
-    puts "Debian Architecture: #{debian_arch}" if $?.success?
+    debian_arch = capture_stdout('dpkg --print-architecture')
+    puts "Debian Architecture: #{debian_arch}" if debian_arch
     if system("sw_vers") # MacOS X
       puts "sw_vers: exist"
     end
@@ -110,8 +116,8 @@ class ChkBuild::LogFile
       os_ver = self.os_version
       puts os_ver if os_ver
     end
-    oslevel = `oslevel 2>/dev/null` rescue nil; puts "oslevel: #{oslevel}" if $?.success? # AIX
-    oslevel_s = `oslevel -s 2>/dev/null` rescue nil; puts "oslevel_s: #{oslevel_s}" if $?.success? # AIX
+    oslevel = capture_stdout('oslevel'); puts "oslevel: #{oslevel}" if oslevel # AIX
+    oslevel_s = capture_stdout('oslevel -s'); puts "oslevel_s: #{oslevel_s}" if oslevel_s # AIX
     if /SunOS/ =~ uname_s
       begin
         etc_release = File.read("/etc/release")
