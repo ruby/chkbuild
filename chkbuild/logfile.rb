@@ -108,6 +108,14 @@ class ChkBuild::LogFile
     end
     oslevel = `oslevel 2>/dev/null` rescue nil; puts "oslevel: #{oslevel}" if $?.success? # AIX
     oslevel_s = `oslevel -s 2>/dev/null` rescue nil; puts "oslevel_s: #{oslevel_s}" if $?.success? # AIX
+    if /SunOS/ =~ uname_s
+      begin
+        etc_release = File.read("/etc/release")
+        first_line = etc_release[/\A.*/].strip
+        puts "release: #{first_line}" if !first_line.empty?
+      rescue
+      end
+    end
   end
 
   def self.write_open(filename, build)
