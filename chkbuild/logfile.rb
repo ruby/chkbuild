@@ -101,8 +101,12 @@ class ChkBuild::LogFile
     }
     debian_arch = `dpkg --print-architecture 2>/dev/null` rescue nil
     puts "Debian Architecture: #{debian_arch}" if $?.success?
-    system("sw_vers") # MacOS X
-    if !system("lsb_release -idrc") # recent GNU/Linux
+    if system("sw_vers") # MacOS X
+      puts "sw_vers: exist"
+    end
+    if system("lsb_release -idrc") # recent GNU/Linux
+      puts "lsb_release: exist"
+    else
       os_ver = self.os_version
       puts os_ver if os_ver
     end
