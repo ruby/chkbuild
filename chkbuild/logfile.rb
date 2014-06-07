@@ -87,10 +87,11 @@ class ChkBuild::LogFile
     uname_p = `uname -p 2>/dev/null` rescue nil; puts "uname_p: #{uname_p}" if $?.success? # GNU/Linux, FreeBSD, NetBSD, OpenBSD, SunOS
     uname_i = `uname -i 2>/dev/null` rescue nil; puts "uname_i: #{uname_i}" if $?.success? # GNU/Linux, FreeBSD, SunOS
     uname_o = `uname -o 2>/dev/null` rescue nil; puts "uname_o: #{uname_o}" if $?.success? # GNU/Linux, FreeBSD, SunOS
-    %w[
-      /etc/debian_version
-      /etc/redhat-release
-      /etc/gentoo-release
+    [
+      "/etc/debian_version",
+      "/etc/redhat-release",
+      "/etc/gentoo-release",
+      "/etc/system-release", # Amazon Linux
     ].each {|filename|
       if File.file? filename
         contents = File.read filename
