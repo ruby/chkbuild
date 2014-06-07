@@ -177,11 +177,11 @@ chkbuild は、定期的にソフトウェアをビルドし、
       command="/usr/bin/rsync --server --daemon --config=/home/$U/.ssh/chkbuild-rsyncd.conf .",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty 上記で生成した公開鍵 chkbuild-upload.pub の内容
 
     chkbuild を動作させるホストで、HTTP サーバの ssh fingerprint を記録します。
-    HTTP サーバのホスト名を http-server とします。
+    HTTP サーバのホスト名を http.server.host.domain とします。
 
 ```bash
       % mkdir /home/chkbuild/.ssh
-      % ssh-keyscan -t rsa http-server > /home/chkbuild/.ssh/known_hosts
+      % ssh-keyscan -t rsa http.server.host.domain >> /home/chkbuild/.ssh/known_hosts
 ```
 
     上で生成した鍵対の秘密鍵を chkbuild を動作させるホストの
@@ -199,7 +199,7 @@ chkbuild は、定期的にソフトウェアをビルドし、
     そして、start-build 内で以下の行を有効にします。
 
 ```ruby
-      ChkBuild.rsync_ssh_upload_target("remoteuser@http-server::upload/dir", "/home/chkbuild/.ssh/chkbuild-upload")
+      ChkBuild.rsync_ssh_upload_target("remoteuser@http.server.host.domain::upload/dir", "/home/chkbuild/.ssh/chkbuild-upload")
 ```
 
     これにより HTTP サーバの /home/$U/public_html/chkbuild/dir にコピーされる
