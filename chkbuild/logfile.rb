@@ -106,6 +106,8 @@ class ChkBuild::LogFile
       os_ver = self.os_version
       puts os_ver if os_ver
     end
+    oslevel = `oslevel 2>/dev/null` rescue nil; puts "oslevel: #{oslevel}" if $?.success? # AIX
+    oslevel_s = `oslevel -s 2>/dev/null` rescue nil; puts "oslevel_s: #{oslevel_s}" if $?.success? # AIX
   end
 
   def self.write_open(filename, build)
