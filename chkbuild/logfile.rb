@@ -87,10 +87,11 @@ class ChkBuild::LogFile
     uname_p = `uname -p 2>/dev/null` rescue nil; puts "uname_p: #{uname_p}" if $?.success? # GNU/Linux, FreeBSD, NetBSD, OpenBSD, SunOS
     uname_i = `uname -i 2>/dev/null` rescue nil; puts "uname_i: #{uname_i}" if $?.success? # GNU/Linux, FreeBSD, SunOS
     uname_o = `uname -o 2>/dev/null` rescue nil; puts "uname_o: #{uname_o}" if $?.success? # GNU/Linux, FreeBSD, SunOS
-    %w[
-      /etc/debian_version
-      /etc/redhat-release
-      /etc/gentoo-release
+    [
+      "/etc/debian_version",
+      "/etc/redhat-release",
+      "/etc/gentoo-release",
+      "/etc/system-release", # Amazon Linux
     ].each {|filename|
       if File.file? filename
         contents = File.read filename
@@ -104,6 +105,16 @@ class ChkBuild::LogFile
     if !system("lsb_release -idrc") # recent GNU/Linux
       os_ver = self.os_version
       puts os_ver if os_ver
+    end
+    oslevel = `oslevel 2>/dev/null` rescue nil; puts "oslevel: #{oslevel}" if $?.success? # AIX
+    oslevel_s = `oslevel -s 2>/dev/null` rescue nil; puts "oslevel_s: #{oslevel_s}" if $?.success? # AIX
+    if /SunOS/ =~ uname_s
+      begin
+        etc_release = File.read("/etc/release")
+        first_line = etc_release[/\A.*/].strip
+        puts "release: #{first_line}" if !first_line.empty?
+      rescue
+      end
     end
   end
 
