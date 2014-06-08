@@ -660,7 +660,9 @@ class ChkBuild::Build
     return true unless err
     @errors << err
     @logfile.start_section("#{name} error") if name
-    show_backtrace err unless CommandError === err
+    unless CommandError === err || CommandTimeout === err
+      show_backtrace err
+    end
     GDB.check_core(@build_dir)
     if CommandError === err
       puts "failed(#{err.reason})"
