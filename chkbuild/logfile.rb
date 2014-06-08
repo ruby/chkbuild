@@ -107,24 +107,48 @@ class ChkBuild::LogFile
     }
 
     debian_arch = capture_stdout('dpkg --print-architecture')
-    puts "Debian Architecture: #{debian_arch}" if debian_arch
+    if debian_arch
+      puts "Debian Architecture: #{debian_arch}"
+      puts "dpkg: exist"
+    else
+      puts "dpkg: not exist"
+    end
 
     if system("lsb_release -idrc") # recent GNU/Linux
       puts "lsb_release: exist"
     else
       os_ver = self.os_version
-      puts os_ver if os_ver
+      if os_ver
+        puts "lsb_release: emulated"
+        puts os_ver
+      else
+        puts "lsb_release: not exist"
+      end
     end
 
     eselect_profile = capture_stdout('eselect --brief profile show') # Gentoo
-    puts "eselect_profile: #{eselect_profile.strip}" if eselect_profile
+    if eselect_profile
+      puts "eselect_profile: #{eselect_profile.strip}"
+      puts "eselect: exist"
+    else
+      puts "eselect: not exist"
+    end
 
     if system("sw_vers") # MacOS X
       puts "sw_vers: exist"
+    else
+      puts "sw_vers: not exist"
     end
 
-    oslevel = capture_stdout('oslevel'); puts "oslevel: #{oslevel}" if oslevel # AIX
-    oslevel_s = capture_stdout('oslevel -s'); puts "oslevel_s: #{oslevel_s}" if oslevel_s # AIX
+    oslevel = capture_stdout('oslevel') # AIX
+    if oslevel
+      puts "oslevel: #{oslevel}"
+      oslevel_s = capture_stdout('oslevel -s')
+      puts "oslevel_s: #{oslevel_s}" if oslevel_s
+      puts "oslevel: exist"
+    else
+      puts "oslevel: not exist"
+    end
 
     if /SunOS/ =~ uname_s
       begin
