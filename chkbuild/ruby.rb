@@ -919,7 +919,21 @@ ChkBuild.define_diff_preprocess_gsub('ruby', /Generated on .* for libruby by ABI
   "Generated on <date> for libruby by ABI Compliance Checker"
 }
 
-# test_exception.rb #1 test_exception.rb:1
+# btest since 2014-06-08
+#   test_attr.rb 
+#   #1 test_attr.rb:1:in `<top (required)>' F 0.006
+#   stderr output is not empty
+#      bootstraptest.tmp.rb:2:in `<main>': undefined local variable or method `x' for main:Object (NameError)
+#   #2 test_attr.rb:28:in `<top (required)>' . 0.006
+
+ChkBuild.define_diff_preprocess_gsub('ruby', /\#\d+ (test_.* [F.]) [0-9]+\.[0-9]+/) {|match|
+  "#<n> #{match[1]} <elapsed>"
+}
+
+# test_exception.rb #2 test_exception.rb:1
+# .#3 test_exception.rb:8
+# .#4 test_exception.rb:20
+# .#5 test_exception.rb:37
 ChkBuild.define_diff_preprocess_gsub('ruby', /\#\d+ test_/) {|match|
   "#<n> test_"
 }
