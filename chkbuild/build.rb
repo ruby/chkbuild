@@ -947,8 +947,8 @@ End
     result
   end
 
-  def no_differences_message(title)
-    if /success/ =~ title
+  def no_differences_message
+    if @current_status == 'success'
       "<p>Success</p>"
     elsif @older_time
       "<p>Failed as the <a href=#{ha uri_from_top(@compressed_older_loghtml_relpath)}>previous build</a>.\n" +
@@ -992,7 +992,7 @@ End
 %     }
 </pre>
 % else
-    <%= no_differences_message(title) %>
+    <%= no_differences_message %>
 % end
     <p>
 % if @older_time
@@ -1056,7 +1056,7 @@ End
 %     }
 </pre>
 % else
-    <%= no_differences_message(title) %>
+    <%= no_differences_message %>
 % end
     <p>
 % if @older_time
@@ -1179,7 +1179,7 @@ End
 <p><a href=<%=ha uri_from_top(@compressed_diffhtml_relpath) %>>read more differences</a></p>
 %   end
 % else
-<%= no_differences_message(title) %>
+<%= no_differences_message %>
 % end
 <p>
 % if @older_time
@@ -1191,7 +1191,7 @@ End
 </p>
 End
 
-  def make_rss_html_content(title, has_diff)
+  def make_rss_html_content(has_diff)
     max_diff_lines = 500
     ERB.new(RSS_CONTENT_HTMLTemplate, nil, '%').result(binding)
   end
@@ -1228,7 +1228,7 @@ End
 	  item.link = latest_url
 	  item.title = title
 	  item.date = t
-	  item.content_encoded = make_rss_html_content(title, has_diff)
+	  item.content_encoded = make_rss_html_content(has_diff)
 	}
       }
       atomic_make_file(ChkBuild.public_top+@rss_relpath) {|f| f.puts rss.to_s }
