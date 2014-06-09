@@ -277,7 +277,7 @@ def (ChkBuild::Ruby::CompleteOptions).merge_dependencies(opts, dep_dirs)
   opts
 end
 
-ChkBuild.define_build_proc('ruby') {|b|
+def (ChkBuild::Ruby).build_proc(b)
   bopts = b.opts
   ruby_branch = bopts[:ruby_branch]
   configure_args = Util.opts2aryparam(bopts, :configure_args)
@@ -667,6 +667,10 @@ ChkBuild.define_build_proc('ruby') {|b|
       b.make("dist", "RELNAME=#{relname}", "AUTOCONF=#{autoconf_command}")
     end
   }
+end
+
+ChkBuild.define_build_proc('ruby') {|b|
+  ChkBuild::Ruby.build_proc(b)
 }
 
 ChkBuild.define_title_hook('ruby', %w[svn/ruby version.h verconf.h]) {|title, logs|
