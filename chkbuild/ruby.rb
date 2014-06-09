@@ -569,10 +569,16 @@ ChkBuild.define_build_proc('ruby') {|b|
     if File.file? "#{srcdir}/KNOWNBUGS.rb"
       b.catch_error { b.make("test-knownbug", "OPTS=-v -q", make_options) }
     end
+    hide_skip_option = '--hide-skip '
+    if %r{branches/ruby_(\d+)_(\d+)_(\d+)} =~ ruby_branch &&
+       ([$1.to_i, $2.to_i, $3.to_i] <=> [1,9,2]) <= 0
+      hide_skip_option = ''
+    end
     b.catch_error {
       parallel_option = ''
       parallel_option = "j#{parallel}" if parallel
-      b.make("test-all", "TESTS=--hide-skip -v#{parallel_option}", "RUBYOPT=-w", make_options.merge(:section=>"test-all"))
+
+      b.make("test-all", "TESTS=#{hide_skip_option}-v#{parallel_option}", "RUBYOPT=-w", make_options.merge(:section=>"test-all"))
     }
     b.catch_error {
       if /^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors/ !~ b.logfile.get_section('test-all')
@@ -587,7 +593,7 @@ ChkBuild.define_build_proc('ruby') {|b|
               else
                 testpath = t # "TESTS=-v test/foo" doesn't work on Ruby 1.8
               end
-              b.make("test-all", "TESTS=--hide-skip -v #{testpath}", "RUBYOPT=-w", make_options.merge(:section=>"test/#{t}"))
+              b.make("test-all", "TESTS=#{hide_skip_option}-v #{testpath}", "RUBYOPT=-w", make_options.merge(:section=>"test/#{t}"))
             }
           end
         }
