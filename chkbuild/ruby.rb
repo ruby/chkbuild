@@ -277,6 +277,26 @@ def (ChkBuild::Ruby::CompleteOptions).merge_dependencies(opts, dep_dirs)
   opts
 end
 
+class ChkBuild::Ruby::RubyVersion
+  def initialize(version_info)
+    @ary = []
+    if version_info.has_key?('RUBY_VERSION')
+      @ary.concat version_info['RUBY_VERSION'].scan(/\d+/).map {|s| s.to_i }
+      if version_info.has_key?('RUBY_PATCHLEVEL')
+        @ary << version_info['RUBY_PATCHLEVEL'].to_i
+      end
+    end
+  end
+
+  def since(major,minor=0,teeny=0,patchlevel=-1)
+    ([major, minor, teeny, patchlevel] <=> @ary) <= 0
+  end
+
+  def before(major,minor=0,teeny=0,patchlevel=-1)
+    ([major, minor, teeny, patchlevel] <=> @ary) > 0
+  end
+end
+
 def (ChkBuild::Ruby).build_proc(b)
   bopts = b.opts
   ruby_branch = bopts[:ruby_branch]
@@ -305,19 +325,6 @@ def (ChkBuild::Ruby).build_proc(b)
   if validate_dependencies
     cflags ||= []
     cflags += %w[-save-temps=obj]
-  end
-
-  large_cflags = nil
-  if %r{branches/ruby_1_8_} =~ ruby_branch && $' < "8"
-    large_cflags = []
-    large_cflags.concat cppflags
-    large_cflags.concat optflags if optflags
-    large_cflags.concat debugflags if debugflags
-    large_cflags.concat warnflags if warnflags
-    cppflags = nil
-    optflags = nil
-    debugflags = nil
-    warnflags = nil
   end
 
   ruby_build_dir = b.build_dir
@@ -352,6 +359,7 @@ def (ChkBuild::Ruby).build_proc(b)
       RUBY_VERSION_TEENY
     ],
   }
+  version_info = {}
   if version_data.keys.any? {|fn| File.exist? fn }
     b.logfile.start_section 'version.h'
     version_data.each {|fn, version_macros|
@@ -360,11 +368,13 @@ def (ChkBuild::Ruby).build_proc(b)
           if /\A\#\s*define\s+([A-Z_]+)\s+(\S.*)\n\z/ =~ line &&
              version_macros.include?($1)
             puts line
+            version_info[$1] = $2
           end
         }
       end
     }
   end
+  ruby_version = ChkBuild::Ruby::RubyVersion.new(version_info)
 
   if force_gperf
     b.run('gperf', '--version', :section=>'gperf-version')
@@ -389,6 +399,19 @@ def (ChkBuild::Ruby).build_proc(b)
   use_rubyspec &&= b.catch_error {
     b.git('git://github.com/nurse/rubyspec.git', 'rubyspec', bopts)
   }
+
+  large_cflags = nil
+  if ruby_version.before(1,8,8)
+    large_cflags = []
+    large_cflags.concat cppflags
+    large_cflags.concat optflags if optflags
+    large_cflags.concat debugflags if debugflags
+    large_cflags.concat warnflags if warnflags
+    cppflags = nil
+    optflags = nil
+    debugflags = nil
+    warnflags = nil
+  end
 
   b.mkcd("ruby")
   args = []
@@ -569,10 +592,9 @@ def (ChkBuild::Ruby).build_proc(b)
     if File.file? "#{srcdir}/KNOWNBUGS.rb"
       b.catch_error { b.make("test-knownbug", "OPTS=-v -q", make_options) }
     end
-    hide_skip_option = '--hide-skip '
-    if %r{branches/ruby_(\d+)_(\d+)_(\d+)} =~ ruby_branch &&
-       ([$1.to_i, $2.to_i, $3.to_i] <=> [1,9,2]) <= 0
-      hide_skip_option = ''
+    hide_skip_option = ''
+    if ruby_version.since(1,9,3)
+      hide_skip_option = '--hide-skip '
     end
     b.catch_error {
       parallel_option = ''
@@ -606,7 +628,7 @@ def (ChkBuild::Ruby).build_proc(b)
       excludes = ["rubyspec/optional/ffi"]
       b.catch_error {
         FileUtils.rmtree "rubyspec_temp"
-        if %r{branches/ruby_1_8} =~ ruby_branch
+        if ruby_version.before(1,9)
           config = Dir.pwd + "/rubyspec/ruby.1.8.mspec"
         else
           config = Dir.pwd + "/rubyspec/ruby.1.9.mspec"
@@ -629,7 +651,7 @@ def (ChkBuild::Ruby).build_proc(b)
             next if !s.file?
             b.catch_error {
               FileUtils.rmtree "rubyspec_temp"
-              if %r{branches/ruby_1_8} =~ ruby_branch
+              if ruby_version.before(1,9)
                 config = ruby_build_dir + "rubyspec/ruby.1.8.mspec"
               else
                 config = ruby_build_dir + "rubyspec/ruby.1.9.mspec"
@@ -650,13 +672,7 @@ def (ChkBuild::Ruby).build_proc(b)
   Dir.chdir(ruby_build_dir)
   Dir.chdir('ruby') {
     relname = nil
-    case ruby_branch
-    when 'branches/ruby_1_9_2',
-         'branches/ruby_1_9_1',
-         'branches/ruby_1_8',
-         'branches/ruby_1_8_7',
-         'branches/ruby_1_8_6',
-         'branches/ruby_1_8_5'
+    if ruby_version.before(1,9,3)
       # "make dist" doesn't support BRANCH@rev.
       relname = nil
     else
