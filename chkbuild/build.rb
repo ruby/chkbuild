@@ -714,7 +714,9 @@ class ChkBuild::Build
       if different_sections.empty?
         diff_txt = "diff"
       else
-	different_sections = different_sections.map {|secname| secname.sub(%r{/.*\z}, "/") }.uniq
+	different_sections = different_sections.map {|secname|
+          secname.sub(%r{(.)/.*\z}) { "#$1/" }
+        }.uniq
         diff_txt = "diff:#{different_sections.join(',')}"
       end
     end
