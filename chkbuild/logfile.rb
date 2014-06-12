@@ -83,8 +83,9 @@ class ChkBuild::LogFile
     nil
   end
 
-  def self.show_os_version
+  def self.show_os_version(logfile)
     puts "Nickname: #{ChkBuild.nickname}"
+    logfile.start_section 'uname'
     uname =   capture_stdout('uname -srvm'); puts "uname_srvm: #{uname}" if uname
     uname_s = capture_stdout('uname -s'); puts "uname_s: #{uname_s}" if uname_s # POSIX
     uname_r = capture_stdout('uname -r'); puts "uname_r: #{uname_r}" if uname_r # POSIX
@@ -93,6 +94,7 @@ class ChkBuild::LogFile
     uname_p = capture_stdout('uname -p'); puts "uname_p: #{uname_p}" if uname_p # GNU/Linux, FreeBSD, NetBSD, OpenBSD, SunOS
     uname_i = capture_stdout('uname -i'); puts "uname_i: #{uname_i}" if uname_i # GNU/Linux, FreeBSD, SunOS
     uname_o = capture_stdout('uname -o'); puts "uname_o: #{uname_o}" if uname_o # GNU/Linux, FreeBSD, SunOS
+
     [
       "/etc/debian_version",
       "/etc/redhat-release",
@@ -100,62 +102,60 @@ class ChkBuild::LogFile
       "/etc/system-release", # Amazon Linux
     ].each {|filename|
       if File.file? filename
+        logfile.start_section filename
         contents = File.read filename
         basename = File.basename(filename)
-        puts "#{basename}: #{contents}"
+        puts contents
       end
     }
 
     debian_arch = capture_stdout('dpkg --print-architecture')
     if debian_arch
-      puts "Debian Architecture: #{debian_arch}"
-      puts "dpkg: exist"
-    else
-      puts "dpkg: not exist"
+      logfile.start_section 'dpkg'
+      puts "architecture: #{debian_arch}"
     end
 
-    if system("lsb_release -idrc") # recent GNU/Linux
-      puts "lsb_release: exist"
+    lsb_release = capture_stdout("lsb_release -idrc") # recent GNU/Linux
+    if lsb_release
+      logfile.start_section 'lsb_release'
+      puts lsb_release
     else
       os_ver = self.os_version
       if os_ver
-        puts "lsb_release: emulated"
+        logfile.start_section 'lsb_release(emu)'
         puts os_ver
-      else
-        puts "lsb_release: not exist"
       end
     end
 
     eselect_profile = capture_stdout('eselect --brief profile show') # Gentoo
     if eselect_profile
-      puts "eselect_profile: #{eselect_profile.strip}"
-      puts "eselect: exist"
-    else
-      puts "eselect: not exist"
+      logfile.start_section 'eselect_profile'
+      puts eselect_profile.strip
     end
 
-    if system("sw_vers") # MacOS X
-      puts "sw_vers: exist"
-    else
-      puts "sw_vers: not exist"
+    sw_vers = capture_stdout('sw_vers') # Mac OS X
+    if sw_vers
+      logfile.start_section 'sw_vers'
+      puts sw_vers
     end
 
     oslevel = capture_stdout('oslevel') # AIX
     if oslevel
+      logfile.start_section 'oslevel'
       puts "oslevel: #{oslevel}"
       oslevel_s = capture_stdout('oslevel -s')
       puts "oslevel_s: #{oslevel_s}" if oslevel_s
-      puts "oslevel: exist"
-    else
-      puts "oslevel: not exist"
     end
 
     if /SunOS/ =~ uname_s
       begin
         etc_release = File.read("/etc/release")
         first_line = etc_release[/\A.*/].strip
-        puts "release: #{first_line}" if !first_line.empty?
       rescue
+      end
+      if first_line && !first_line.empty?
+        logfile.start_section '/etc/release'
+        puts first_line
       end
     end
   end
@@ -164,7 +164,7 @@ class ChkBuild::LogFile
     logfile = self.new(filename, true)
     logfile.start_section build.depsuffixed_name
     logfile.with_default_output {
-      self.show_os_version
+      self.show_os_version(logfile)
       section_started = false
       build.traverse_depbuild {|depbuild|
         next if build == depbuild
