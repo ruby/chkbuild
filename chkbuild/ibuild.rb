@@ -123,14 +123,6 @@ class ChkBuild::IBuild # internal build
 
   BuiltHash = ChkBuild::Build::BuiltHash
 
-  def set_prebuilt_info(start_time_obj, start_time)
-    BuiltHash[depsuffixed_name] = [start_time_obj, start_time]
-  end
-
-  def set_built_info(start_time_obj, start_time, status, dir, version)
-    BuiltHash[depsuffixed_name] = [start_time_obj, start_time, status, dir, version]
-  end
-
   def has_prebuilt_info?
     BuiltHash[depsuffixed_name] && 2 <= BuiltHash[depsuffixed_name].length
   end
