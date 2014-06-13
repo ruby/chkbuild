@@ -302,7 +302,6 @@ class ChkBuild::IFormat # internal format
     @recent_html_relpath = "#{@depsuffixed_name}/recent.html"
     @recent_ltsv_relpath = "#{@depsuffixed_name}/recent.ltsv"
     @rss_relpath = "#{@depsuffixed_name}/rss"
-    @compressed_rawlog_relpath = "#{@depsuffixed_name}/log/#{@t}.log.txt.gz"
     @compressed_rawfail_relpath = "#{@depsuffixed_name}/log/#{@t}.fail.txt.gz"
     @compressed_rawdiff_relpath = "#{@depsuffixed_name}/log/#{@t}.diff.txt.gz"
     @compressed_loghtml_relpath = "#{@depsuffixed_name}/log/#{@t}.log.html.gz"
@@ -311,7 +310,6 @@ class ChkBuild::IFormat # internal format
 
     send_title_to_parent(title_version)
     force_link @current_txt, ChkBuild.public_top+@last_txt_relpath if @current_txt.file?
-    Util.compress_file(@log_filename, ChkBuild.public_top+@compressed_rawlog_relpath)
     make_logfail_text_gz(@log_filename, ChkBuild.public_top+@compressed_rawfail_relpath)
     failure = detect_failure(@t)
     @current_status = (failure || :success).to_s

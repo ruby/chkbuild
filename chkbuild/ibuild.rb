@@ -214,6 +214,7 @@ class ChkBuild::IBuild # internal build
     ret = self.do_build
     @logfile.start_section 'end'
     puts "elapsed #{format_elapsed_time(Time.now - prebuilt_start_time_obj)}"
+    make_compressed_rawlog
     ret
   end
 
@@ -241,6 +242,11 @@ class ChkBuild::IBuild # internal build
       end
       ENV['PKG_CONFIG_PATH'] = pkg_config_path.join(':')
     end
+  end
+
+  def make_compressed_rawlog
+    compressed_rawlog_relpath = "#{@depsuffixed_name}/log/#{@t}.log.txt.gz"
+    Util.compress_file(@log_filename, ChkBuild.public_top+compressed_rawlog_relpath)
   end
 
   def show_options
