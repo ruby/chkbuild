@@ -162,11 +162,6 @@ class ChkBuild::IBuild # internal build
     end
   end
 
-  def start_time
-    return prebuilt_start_time if has_prebuilt_info?
-    raise "#{self.suffixed_name}: no start_time yet"
-  end
-
   def success?
     if has_built_info?
       if built_status.to_i == 0
@@ -209,7 +204,7 @@ class ChkBuild::IBuild # internal build
     end
     setup_build
     @logfile.start_section 'start'
-    puts "start-time: #{prebuilt_start_time}"
+    puts "start-time: #{@t}"
     puts "build-dir: #{@build_dir}"
     show_options
     show_cpu_info
@@ -223,17 +218,18 @@ class ChkBuild::IBuild # internal build
   end
 
   def setup_build
-    @build_dir = ChkBuild.build_top + prebuilt_start_time
+    @t = prebuilt_start_time
+    @build_dir = ChkBuild.build_top + @t
     @log_filename = @build_dir + 'log'
     mkcd @target_dir
-    Dir.chdir prebuilt_start_time
+    Dir.chdir @t
     @logfile = ChkBuild::LogFile.write_open(@log_filename, self)
     @logfile.change_default_output
     (ChkBuild.public_top+@depsuffixed_name).mkpath
     @public_log.mkpath
     force_link "log", @current_txt
     make_local_tmpdir
-    remove_old_build(prebuilt_start_time, @opts.fetch(:old, ChkBuild.num_oldbuilds))
+    remove_old_build(@t, @opts.fetch(:old, ChkBuild.num_oldbuilds))
     path = ["#{@build_dir}/bin"]
     path.concat @opts[:additional_path] if @opts[:additional_path]
     path.concat ENV['PATH'].split(/:/)
