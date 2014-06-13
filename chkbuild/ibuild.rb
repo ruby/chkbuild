@@ -162,6 +162,11 @@ class ChkBuild::IBuild # internal build
     end
   end
 
+  def start_time
+    return prebuilt_start_time if has_prebuilt_info?
+    raise "#{self.suffixed_name}: no start_time yet"
+  end
+
   def success?
     if has_built_info?
       if built_status.to_i == 0
