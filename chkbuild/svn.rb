@@ -32,7 +32,7 @@ require 'fileutils'
 
 module ChkBuild; end # for testing
 
-class ChkBuild::Build
+class ChkBuild::IBuild
   def svn(svnroot, rep_dir, working_dir, opts={})
     network_access {
       svn_internal(svnroot, rep_dir, working_dir, opts)

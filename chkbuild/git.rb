@@ -36,7 +36,7 @@ require 'pp'
 
 module ChkBuild; end # for testing
 
-class ChkBuild::Build
+class ChkBuild::IBuild
   def git_logfile(opts)
     with_templog(self.build_dir, "git.out.") {|outfile, outio|
       with_templog(self.build_dir, "git.err.") {|errfile, errio|
@@ -316,7 +316,7 @@ ChkBuild.define_file_changes_viewer('git',
   |match, reptype, pat, checkout_line|
   user = match[1]
   project = match[2]
-  ChkBuild::Build::GitHub.new("https://github.com/#{user}/#{project}")
+  ChkBuild::IBuild::GitHub.new("https://github.com/#{user}/#{project}")
 }
 
 ChkBuild.define_file_changes_viewer('git',
@@ -325,12 +325,12 @@ ChkBuild.define_file_changes_viewer('git',
   # git://git.savannah.gnu.org/autoconf.git
   # http://git.savannah.gnu.org/cgit/autoconf.git
   project_basename = match[1]
-  ChkBuild::Build::Cgit.new("http://git.savannah.gnu.org/cgit/#{project_basename}.git")
+  ChkBuild::IBuild::Cgit.new("http://git.savannah.gnu.org/cgit/#{project_basename}.git")
 
   # # GitWeb:
   # # http://git.savannah.gnu.org/gitweb/?p=autoconf.git
   # project_basename = CGI.escape(CGI.unescape($1)) # segment to query component
-  # ChkBuild::Build::GitWeb.new("http://git.savannah.gnu.org/gitweb/?p=#{project_basename}.git")
+  # ChkBuild::IBuild::GitWeb.new("http://git.savannah.gnu.org/gitweb/?p=#{project_basename}.git")
 }
 
 ChkBuild.define_title_hook(nil, %r{\Agit/}) {|title, logs|

@@ -41,6 +41,7 @@ require 'chkbuild/viewvc'
 require "util"
 require 'chkbuild/target'
 require 'chkbuild/build'
+require 'chkbuild/ibuild'
 
 require 'chkbuild/ruby'
 require 'chkbuild/gcc'

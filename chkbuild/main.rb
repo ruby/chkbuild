@@ -100,9 +100,9 @@ End
     STDIN.reopen("/dev/null", "r")
     STDOUT.sync = true
     ChkBuild.build_top.mkpath
-    build, builthash = File.open(target_params_name) {|f| Marshal.load(f) }
+    buildi, builthash = File.open(target_params_name) {|f| Marshal.load(f) }
     ChkBuild::Build::BuiltHash.update builthash
-    build.internal_build start_time, target_output_name
+    buildi.internal_build start_time, target_output_name
     exit 1
   end
 

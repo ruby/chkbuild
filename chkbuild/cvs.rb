@@ -30,7 +30,7 @@
 
 require "uri"
 
-class ChkBuild::Build
+class ChkBuild::IBuild
   def cvs(cvsroot, mod, branch, opts={})
     network_access {
       cvs_internal(cvsroot, mod, branch, opts)
