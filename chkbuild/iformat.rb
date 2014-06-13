@@ -155,11 +155,6 @@ class ChkBuild::IFormat # internal format
     end
   end
 
-  def start_time
-    return prebuilt_start_time if has_prebuilt_info?
-    raise "#{self.suffixed_name}: no start_time yet"
-  end
-
   def child_format_wrapper(target_output_name, parent_pipe)
     @errors = []
     child_format_target(target_output_name)
@@ -186,11 +181,12 @@ class ChkBuild::IFormat # internal format
   end
 
   def setup_format(target_output_name)
-    @build_dir = ChkBuild.build_top + prebuilt_start_time
+    @t = prebuilt_start_time
+    @build_dir = ChkBuild.build_top + @t
     @log_filename = @build_dir + 'log'
     mkcd @target_dir
     @parent_pipe = File.open(target_output_name, "wb")
-    Dir.chdir prebuilt_start_time
+    Dir.chdir @t
     @logfile = ChkBuild::LogFile.append_open(@log_filename)
     @logfile.change_default_output
     #(ChkBuild.public_top+@depsuffixed_name).mkpath
@@ -297,7 +293,6 @@ class ChkBuild::IFormat # internal format
   end
 
   def update_result(title, title_version, title_assoc)
-    @t = prebuilt_start_time
     @last_txt_relpath = "#{@depsuffixed_name}/last.txt"
     @last_html_relpath = "#{@depsuffixed_name}/last.html"
     @last_html_gz_relpath = "#{@depsuffixed_name}/last.html.gz"
@@ -392,7 +387,7 @@ class ChkBuild::IFormat # internal format
   end
 
   def send_title_to_parent(title_version)
-    (ChkBuild.build_top+@depsuffixed_name+start_time+"VERSION").open("w") {|f|
+    (ChkBuild.build_top+@depsuffixed_name+@t+"VERSION").open("w") {|f|
       f.puts title_version
     }
     if @parent_pipe
@@ -429,7 +424,6 @@ class ChkBuild::IFormat # internal format
   def build_dir() @build_dir end
 
   def update_summary(title, different_sections, title_assoc)
-    start_time = prebuilt_start_time
     if different_sections
       if different_sections.empty?
         diff_txt = "diff"
@@ -441,7 +435,7 @@ class ChkBuild::IFormat # internal format
       end
     end
     open(ChkBuild.public_top+@summary_txt_relpath, "a") {|f|
-      f.print "#{start_time}(#{@current_status}) #{title}"
+      f.print "#{@t}(#{@current_status}) #{title}"
       f.print " (#{diff_txt})" if diff_txt
       f.puts
     }
@@ -453,8 +447,8 @@ class ChkBuild::IFormat # internal format
 	  f.puts "<h1>#{h page_title}</h1>"
 	  f.puts "<p><a href=#{ha uri_from_top('.')}>chkbuild</a></p>"
 	end
-	f.print "<a href=#{ha uri_from_top(@compressed_loghtml_relpath)} name=#{ha start_time}>#{h start_time}</a>"
-	f.print "(<a href=#{ha uri_from_top(@compressed_failhtml_relpath)} name=#{ha start_time}>#{h @current_status}</a>)"
+	f.print "<a href=#{ha uri_from_top(@compressed_loghtml_relpath)} name=#{ha @t}>#{h @t}</a>"
+	f.print "(<a href=#{ha uri_from_top(@compressed_failhtml_relpath)} name=#{ha @t}>#{h @current_status}</a>)"
 	f.print " #{h title}"
 	if diff_txt
 	  f.print " (<a href=#{ha uri_from_top(@compressed_diffhtml_relpath)}>#{h diff_txt}</a>)"
@@ -467,7 +461,7 @@ class ChkBuild::IFormat # internal format
         assoc = []
         assoc << ["host", ChkBuild.nickname]
         assoc << ["depsuffixed_name", @depsuffixed_name]
-        assoc << ["start_time", start_time]
+        assoc << ["start_time", @t]
         assoc << ["result", @current_status]
         assoc << ["title", title]
         assoc << ["compressed_loghtml_relpath", uri_from_top(@compressed_loghtml_relpath)]
@@ -516,7 +510,6 @@ End
   end
 
   def update_recent_html
-    start_time = prebuilt_start_time
     summary_path = ChkBuild.public_top+@summary_html_relpath
     lines = []
     summary_path.open {|f|
