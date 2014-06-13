@@ -290,6 +290,14 @@ module Util
     }
   end
 
+  def compress_file(src, dst)
+    Zlib::GzipWriter.wrap(open(dst, "w")) {|z|
+      open(src) {|f|
+        FileUtils.copy_stream(f, z)
+      }
+    }
+  end
+
   def with_tempfile(content) # :yield: tempfile
     t = Tempfile.new("chkbuild")
     t << content

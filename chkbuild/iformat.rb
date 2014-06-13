@@ -324,7 +324,7 @@ class ChkBuild::IFormat # internal format
 
     send_title_to_parent(title_version)
     force_link @current_txt, ChkBuild.public_top+@last_txt_relpath if @current_txt.file?
-    compress_file(@log_filename, ChkBuild.public_top+@compressed_rawlog_relpath)
+    Util.compress_file(@log_filename, ChkBuild.public_top+@compressed_rawlog_relpath)
     make_logfail_text_gz(@log_filename, ChkBuild.public_top+@compressed_rawfail_relpath)
     failure = detect_failure(@t)
     @current_status = (failure || :success).to_s
@@ -341,7 +341,7 @@ class ChkBuild::IFormat # internal format
     update_summary(title, different_sections, title_assoc)
     update_recent
     make_last_html(title, different_sections)
-    compress_file(ChkBuild.public_top+@last_html_relpath, ChkBuild.public_top+@last_html_gz_relpath)
+    Util.compress_file(ChkBuild.public_top+@last_html_relpath, ChkBuild.public_top+@last_html_gz_relpath)
     make_loghtml(title, different_sections)
     make_failhtml(title)
     make_diffhtml(title, different_sections)
@@ -964,14 +964,6 @@ End
 	}
       }
       atomic_make_file(ChkBuild.public_top+@rss_relpath) {|f| f.puts rss.to_s }
-    }
-  end
-
-  def compress_file(src, dst)
-    Zlib::GzipWriter.wrap(open(dst, "w")) {|z|
-      open(src) {|f|
-        FileUtils.copy_stream(f, z)
-      }
     }
   end
 
