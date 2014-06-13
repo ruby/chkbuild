@@ -218,28 +218,50 @@ class ChkBuild::Build
     build_dir.mkdir
     (build_dir+"BUILD").open("w") {|f| f.puts "#{@depsuffixed_name}/#{start_time}" }
     File.symlink build_dir.relative_path_from(symlink_build_dir.parent), symlink_build_dir
+    ruby_command = RbConfig.ruby
+
     target_params_name = build_dir + "params.marshal"
     target_output_name = build_dir + "result.marshal"
-    build2 = ChkBuild::IBuild.new(
+    ibuild = ChkBuild::IBuild.new(
       @target, @suffixes, @depsuffixed_name, @depbuilds, @target_dir,
-      @public_log, @current_txt_relpath, @current_txt, @log_relpath,
-      @opts, @page_uri_absolute, @page_uri_from_top)
+      @public_log, @current_txt, @opts)
+
     File.open(target_params_name, "wb") {|f|
-      Marshal.dump([build2, ChkBuild::Build::BuiltHash], f)
+      Marshal.dump([ibuild, ChkBuild::Build::BuiltHash], f)
     }
-    ruby_command = RbConfig.ruby
     status = ChkBuild.lock_puts(@depsuffixed_name) {
-      system(ruby_command, "-I#{ChkBuild::TOP_DIRECTORY}", $0, "internal-build", @depsuffixed_name, start_time, target_params_name.to_s, target_output_name.to_s)
+      system(ruby_command, "-I#{ChkBuild::TOP_DIRECTORY}", $0,
+             "internal-build", @depsuffixed_name,
+             target_params_name.to_s)
       $?
     }
-    str = File.open(target_output_name, "rb") {|f| f.read }
+    set_built_info(start_time_obj, start_time, status, build_dir, nil)
+
+    format_params_name = build_dir + "format_params.marshal"
+    format_output_name = build_dir + "format_result.marshal"
+    iformat = ChkBuild::IFormat.new(
+      @target, @suffixes, @depsuffixed_name, @depbuilds, @target_dir,
+      @public_log, @current_txt, @opts,
+      @page_uri_absolute, @page_uri_from_top)
+
+    File.open(format_params_name, "wb") {|f|
+      Marshal.dump([iformat, ChkBuild::Build::BuiltHash], f)
+    }
+    status2 = ChkBuild.lock_puts(@depsuffixed_name) {
+      system(ruby_command, "-I#{ChkBuild::TOP_DIRECTORY}", $0,
+             "internal-format", @depsuffixed_name,
+             format_params_name.to_s, format_output_name.to_s)
+      $?
+    }
+    str = File.open(format_output_name, "rb") {|f| f.read }
     begin
       version = Marshal.load(str)
     rescue ArgumentError
       version = self.suffixed_name
     end
     set_built_info(start_time_obj, start_time, status, build_dir, version)
-    return status
+
+    return status.success? ? status2 : status
   end
 
   def start_time
@@ -269,4 +291,13 @@ class ChkBuild::Build
     raise "#{self.suffixed_name}: no version yet"
   end
 
+  class CommandError < StandardError
+    def initialize(status, reason, message=reason)
+      super message
+      @reason = reason
+      @status = status
+    end
+
+    attr_accessor :reason
+  end
 end

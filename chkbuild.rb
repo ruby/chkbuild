@@ -42,6 +42,7 @@ require "util"
 require 'chkbuild/target'
 require 'chkbuild/build'
 require 'chkbuild/ibuild'
+require 'chkbuild/iformat'
 
 require 'chkbuild/ruby'
 require 'chkbuild/gcc'

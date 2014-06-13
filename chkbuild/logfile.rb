@@ -182,6 +182,10 @@ class ChkBuild::LogFile
     logfile
   end
 
+  def self.append_open(filename)
+    self.new(filename, true)
+  end
+
   def dependencies
     return [] unless log = self.get_section('dependencies')
     r = []
