@@ -261,7 +261,17 @@ class ChkBuild::Build
     end
     set_built_info(start_time_obj, start_time, status, build_dir, version)
 
+    run_upload_hooks(build_dir + 'log')
+
     return status.success? ? status2 : status
+  end
+
+  def run_upload_hooks(log_filename)
+    File.open(log_filename, 'a') {|f|
+      with_stdouterr(f) {
+        ChkBuild.run_upload_hooks(self.suffixed_name)
+      }
+    }
   end
 
   def start_time

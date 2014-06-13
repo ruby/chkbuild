@@ -332,7 +332,6 @@ class ChkBuild::IFormat # internal format
     make_diffhtml(title, different_sections)
     make_rss(title, different_sections)
     update_older_page if @older_time && failure != :netfail
-    ChkBuild.run_upload_hooks(self.suffixed_name)
   end
 
   def update_older_page

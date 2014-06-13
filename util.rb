@@ -298,6 +298,22 @@ module Util
     }
   end
 
+  def with_stdouterr(io)
+    sync_stdout = STDOUT.sync
+    save_stdout = STDOUT.dup
+    save_stderr = STDERR.dup
+    STDOUT.reopen(io)
+    STDERR.reopen(io)
+    begin
+      yield
+    ensure
+      STDOUT.reopen(save_stdout)
+      STDERR.reopen(save_stderr)
+      STDOUT.sync = sync_stdout
+      STDERR.sync = true
+    end
+  end
+
   def with_tempfile(content) # :yield: tempfile
     t = Tempfile.new("chkbuild")
     t << content
