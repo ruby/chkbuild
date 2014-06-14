@@ -102,24 +102,8 @@ class ChkBuild::IBuild # internal build
 
   BuiltHash = ChkBuild::Build::BuiltHash
 
-  def has_prebuilt_info?
-    BuiltHash[depsuffixed_name] && 2 <= BuiltHash[depsuffixed_name].length
-  end
-
   def has_built_info?
     BuiltHash[depsuffixed_name] && 5 <= BuiltHash[depsuffixed_name].length
-  end
-
-  def built_status
-    BuiltHash[depsuffixed_name][2]
-  end
-
-  def built_dir
-    BuiltHash[depsuffixed_name][3]
-  end
-
-  def built_version
-    BuiltHash[depsuffixed_name][4]
   end
 
   def internal_build
@@ -135,28 +119,6 @@ class ChkBuild::IBuild # internal build
 
   def start_time
     return @t
-  end
-
-  def success?
-    if has_built_info?
-      if built_status.to_i == 0
-        true
-      else
-        false
-      end
-    else
-      nil
-    end
-  end
-
-  def dir
-    return built_dir if has_built_info?
-    raise "#{self.suffixed_name}: no dir yet"
-  end
-
-  def version
-    return built_version if has_built_info?
-    raise "#{self.suffixed_name}: no version yet"
   end
 
   def child_build_wrapper(parent_pipe)

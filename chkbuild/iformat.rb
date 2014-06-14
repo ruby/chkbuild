@@ -88,24 +88,8 @@ class ChkBuild::IFormat # internal format
 
   BuiltHash = ChkBuild::Build::BuiltHash
 
-  def has_prebuilt_info?
-    BuiltHash[depsuffixed_name] && 2 <= BuiltHash[depsuffixed_name].length
-  end
-
   def has_built_info?
     BuiltHash[depsuffixed_name] && 5 <= BuiltHash[depsuffixed_name].length
-  end
-
-  def built_status
-    BuiltHash[depsuffixed_name][2]
-  end
-
-  def built_dir
-    BuiltHash[depsuffixed_name][3]
-  end
-
-  def built_version
-    BuiltHash[depsuffixed_name][4]
   end
 
   def internal_format(format_output_name)
@@ -907,10 +891,6 @@ End
   def show_backtrace(err=$!)
     puts "|#{err.message} (#{err.class})"
     err.backtrace.each {|pos| puts "| #{pos}" }
-  end
-
-  def has_neterror?(time)
-    detect_failure(time) == :netfail
   end
 
   def detect_failure(time)
