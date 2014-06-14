@@ -55,7 +55,9 @@ require 'chkbuild/upload'
 class ChkBuild::IFormat # internal format
   include Util
 
-  def initialize(target, suffixes, depsuffixed_name, suffixed_name, target_dir, public_log, current_txt, opts)
+  def initialize(start_time_obj, start_time, target, suffixes, depsuffixed_name, suffixed_name, target_dir, public_log, current_txt, opts)
+    @start_time_obj = start_time_obj
+    @start_time = start_time
     @target = target
     @suffixes = suffixes
     @suffixed_name = suffixed_name
@@ -92,10 +94,6 @@ class ChkBuild::IFormat # internal format
 
   def has_built_info?
     BuiltHash[depsuffixed_name] && 5 <= BuiltHash[depsuffixed_name].length
-  end
-
-  def prebuilt_start_time_obj
-    BuiltHash[depsuffixed_name][0].utc
   end
 
   def prebuilt_start_time
@@ -887,7 +885,6 @@ End
   def make_rss(title, has_diff)
     with_page_uri_from_top(@rss_relpath, true) {
       latest_url = uri_from_top(@compressed_diffhtml_relpath)
-      t = prebuilt_start_time_obj
       if (ChkBuild.public_top+@rss_relpath).exist?
 	rss = RSS::Parser.parse((ChkBuild.public_top+@rss_relpath).read)
 	olditems = rss.items
@@ -915,7 +912,7 @@ End
 	maker.items.new_item {|item|
 	  item.link = latest_url
 	  item.title = title
-	  item.date = t
+	  item.date = @start_time_obj
 	  item.content_encoded = make_rss_html_content(has_diff)
 	}
       }

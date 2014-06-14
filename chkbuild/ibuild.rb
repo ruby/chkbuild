@@ -55,7 +55,9 @@ require 'chkbuild/upload'
 class ChkBuild::IBuild # internal build
   include Util
 
-  def initialize(target, suffixes, suffixed_name, depsuffixed_name, depbuilds, target_dir, public_log, current_txt, opts)
+  def initialize(start_time_obj, start_time, target, suffixes, suffixed_name, depsuffixed_name, depbuilds, target_dir, public_log, current_txt, opts)
+    @start_time_obj = start_time_obj
+    @start_time = start_time
     @target = target
     @suffixes = suffixes
     @suffixed_name = suffixed_name
@@ -106,10 +108,6 @@ class ChkBuild::IBuild # internal build
 
   def has_built_info?
     BuiltHash[depsuffixed_name] && 5 <= BuiltHash[depsuffixed_name].length
-  end
-
-  def prebuilt_start_time_obj
-    BuiltHash[depsuffixed_name][0].utc
   end
 
   def prebuilt_start_time
@@ -195,7 +193,7 @@ class ChkBuild::IBuild # internal build
     show_process_ps
     ret = self.do_build
     @logfile.start_section 'end'
-    puts "elapsed #{format_elapsed_time(Time.now - prebuilt_start_time_obj)}"
+    puts "elapsed #{format_elapsed_time(Time.now - @start_time_obj)}"
     make_compressed_rawlog
     ret
   end

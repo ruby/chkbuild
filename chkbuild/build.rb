@@ -177,10 +177,6 @@ class ChkBuild::Build
     BuiltHash[depsuffixed_name] && 5 <= BuiltHash[depsuffixed_name].length
   end
 
-  def prebuilt_start_time_obj
-    BuiltHash[depsuffixed_name][0].utc
-  end
-
   def prebuilt_start_time
     BuiltHash[depsuffixed_name][1]
   end
@@ -215,7 +211,7 @@ class ChkBuild::Build
     ruby_command = RbConfig.ruby
 
     target_params_name = build_dir + "params.marshal"
-    ibuild = ibuild_new
+    ibuild = ibuild_new(start_time_obj, start_time)
 
     File.open(target_params_name, "wb") {|f|
       Marshal.dump([ibuild, ChkBuild::Build::BuiltHash], f)
@@ -230,7 +226,7 @@ class ChkBuild::Build
 
     format_params_name = build_dir + "format_params.marshal"
     format_output_name = build_dir + "format_result.marshal"
-    iformat = iformat_new
+    iformat = iformat_new(start_time_obj, start_time)
 
     File.open(format_params_name, "wb") {|f|
       Marshal.dump([iformat, ChkBuild::Build::BuiltHash], f)
@@ -254,14 +250,14 @@ class ChkBuild::Build
     return status.success? ? status2 : status
   end
 
-  def ibuild_new
-    ChkBuild::IBuild.new(
+  def ibuild_new(start_time_obj, start_time)
+    ChkBuild::IBuild.new(start_time_obj, start_time,
       @target, @suffixes, @suffixed_name, @depsuffixed_name, @depbuilds, @target_dir,
       @public_log, @current_txt, @opts)
   end
 
-  def iformat_new
-    ChkBuild::IFormat.new(
+  def iformat_new(start_time_obj, start_time)
+    ChkBuild::IFormat.new(start_time_obj, start_time,
       @target, @suffixes, @suffixed_name, @depsuffixed_name, @target_dir,
       @public_log, @current_txt, @opts)
   end
