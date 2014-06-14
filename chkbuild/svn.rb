@@ -32,7 +32,27 @@ require 'fileutils'
 
 module ChkBuild; end # for testing
 
+module ChkBuild::SVNUtil
+  def svn_path_sort(ary)
+    ary.sort_by {|path|
+      path.gsub(%r{([^/]+)(/|\z)}) {
+        if $2 == ""
+          if $1 == '.'
+            "A"
+          else
+            "B#{$1}"
+          end
+        else
+          "C#{$1}\0"
+        end
+      }
+    }
+  end
+end
+
 class ChkBuild::IBuild
+  include ChkBuild::SVNUtil
+
   def svn(svnroot, rep_dir, working_dir, opts={})
     network_access {
       svn_internal(svnroot, rep_dir, working_dir, opts)
@@ -141,6 +161,10 @@ class ChkBuild::IBuild
       end
     }
   end
+end
+
+class ChkBuild::IFormat
+  include ChkBuild::SVNUtil
 
   def svn_restore_file_info(lines)
     h = {}
@@ -166,22 +190,6 @@ class ChkBuild::IBuild
     h1 = svn_restore_file_info(lines1)
     h2 = svn_restore_file_info(lines2)
     svn_print_changes(h1, h2, viewer, out)
-  end
-
-  def svn_path_sort(ary)
-    ary.sort_by {|path|
-      path.gsub(%r{([^/]+)(/|\z)}) {
-        if $2 == ""
-          if $1 == '.'
-            "A"
-          else
-            "B#{$1}"
-          end
-        else
-          "C#{$1}\0"
-        end
-      }
-    }
   end
 
   def svn_rev_uri(viewer, r)

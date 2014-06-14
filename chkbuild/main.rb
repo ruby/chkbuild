@@ -178,7 +178,15 @@ End
       t1 = arg_t1 || ts[-2]
       t2 = arg_t2 || ts[-1]
       puts "#{build.depsuffixed_name}: #{t1}->#{t2}"
-      build.output_diff(t1, t2, STDOUT)
+      iformat = ChkBuild::IFormat.new(
+        t, build.suffixes, build.depsuffixed_name,
+        build.depbuilds, build.target_dir,
+        build.instance_eval { @public_log },
+        build.instance_eval { @current_txt },
+        build.opts,
+        build.instance_eval { @page_uri_absolute },
+        build.instance_eval { @page_uri_from_top })
+      iformat.output_diff(t1, t2, STDOUT)
       puts
     }
   end
