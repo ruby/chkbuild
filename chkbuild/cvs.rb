@@ -129,7 +129,9 @@ class ChkBuild::IBuild
       }
     }
   end
+end
 
+class ChkBuild::IFormat
   def output_cvs_change_lines(checkout_line, lines1, lines2, out)
     if /CHECKOUT cvs (\S+) (\S+) (\S*)\n/ !~ checkout_line
       out.puts "unexpected checkout line: #{checkout_line}"
