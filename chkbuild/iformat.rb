@@ -156,17 +156,6 @@ class ChkBuild::IFormat # internal format
     #@public_log.mkpath
     #force_link "log", @current_txt
     make_local_tmpdir
-    path = ["#{@build_dir}/bin"]
-    path.concat @opts[:additional_path] if @opts[:additional_path]
-    path.concat ENV['PATH'].split(/:/)
-    ENV['PATH'] = path.join(':')
-    if @opts[:additional_pkg_config_path]
-      pkg_config_path = @opts[:additional_pkg_config_path]
-      if ENV['PKG_CONFIG_PATH']
-        pkg_config_path += ENV['PKG_CONFIG_PATH'].split(/:/)
-      end
-      ENV['PKG_CONFIG_PATH'] = pkg_config_path.join(':')
-    end
   end
 
   def show_title_info(title, title_version, title_assoc)
