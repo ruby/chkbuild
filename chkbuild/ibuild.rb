@@ -78,10 +78,6 @@ class ChkBuild::IBuild # internal build
     !@suffixes.empty?
   end
 
-  def update_option(opts)
-    @opts.update(opts)
-  end
-
   def traverse_depbuild(memo={}, &block)
     return if memo[self]
     memo[self] = true

@@ -80,10 +80,6 @@ class ChkBuild::IFormat # internal format
     !@suffixes.empty?
   end
 
-  def update_option(opts)
-    @opts.update(opts)
-  end
-
   def sort_times(times)
     u, l = times.partition {|d| /Z\z/ =~ d }
     u.sort!
