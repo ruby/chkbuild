@@ -262,7 +262,7 @@ class ChkBuild::Build
 
   def iformat_new
     ChkBuild::IFormat.new(
-      @target, @suffixes, @suffixed_name, @depsuffixed_name, @depbuilds, @target_dir,
+      @target, @suffixes, @suffixed_name, @depsuffixed_name, @target_dir,
       @public_log, @current_txt, @opts)
   end
 

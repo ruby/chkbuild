@@ -55,12 +55,11 @@ require 'chkbuild/upload'
 class ChkBuild::IFormat # internal format
   include Util
 
-  def initialize(target, suffixes, depsuffixed_name, suffixed_name, depbuilds, target_dir, public_log, current_txt, opts)
+  def initialize(target, suffixes, depsuffixed_name, suffixed_name, target_dir, public_log, current_txt, opts)
     @target = target
     @suffixes = suffixes
     @suffixed_name = suffixed_name
     @depsuffixed_name = depsuffixed_name
-    @depbuilds = depbuilds
     @target_dir = target_dir
     @public_log = public_log
     @current_txt = current_txt
@@ -68,7 +67,7 @@ class ChkBuild::IFormat # internal format
     @page_uri_absolute = nil
     @page_uri_from_top = nil
   end
-  attr_reader :target, :suffixes, :depbuilds
+  attr_reader :target, :suffixes
   attr_reader :target_dir, :opts
   attr_reader :suffixed_name, :depsuffixed_name
 
