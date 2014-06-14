@@ -82,10 +82,6 @@ class ChkBuild::IBuild
         FileUtils.rm_rf(working_dir)
       end
       h2 = nil
-      if File.identical?(self.build_dir, '.') &&
-         !(ts = self.build_time_sequence - [self.start_time]).empty? &&
-         File.directory?(old_working_dir = self.target_dir + ts.last + working_dir)
-      end
       svn_logfile(opts) {|outio, opts2|
         opts2[:output_interval_file_list] = [STDOUT, STDERR, outio]
 	self.run "svn", "checkout", url, working_dir, opts2

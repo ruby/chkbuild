@@ -102,10 +102,8 @@ class ChkBuild::IBuild
 	}
       end
     }
-    old_head = nil
     if File.exist?(working_dir) && File.exist?("#{working_dir}/.git")
       Dir.chdir(working_dir) {
-        old_head = git_head_commit
         git_logfile(opts) {|opts2|
           self.run "git", "pull", opts2
         }
@@ -114,14 +112,6 @@ class ChkBuild::IBuild
       FileUtils.rm_rf(working_dir) if File.exist?(working_dir)
       pdir = File.dirname(working_dir)
       FileUtils.mkdir_p(pdir) if !File.directory?(pdir)
-      old_head = nil
-      if File.identical?(self.build_dir, '.') &&
-         !(ts = self.build_time_sequence - [self.start_time]).empty? &&
-         File.directory?(old_working_dir = self.target_dir + ts.last + working_dir)
-        Dir.chdir(old_working_dir) {
-          old_head = git_head_commit
-        }
-      end
       git_logfile(opts) {|opts2|
 	command = ["git", "clone", "-q"]
 	command << '--branch' << opts[:branch] if opts[:branch]
