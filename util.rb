@@ -221,7 +221,7 @@ module Util
         return
       end
     end
-    cur_limit, max_limit = Process.getrlimit(resource)
+    _cur_limit, max_limit = Process.getrlimit(resource)
     Process.setrlimit(resource, max_limit, max_limit)
   end
 
@@ -233,7 +233,7 @@ module Util
         return
       end
     end
-    cur_limit, max_limit = Process.getrlimit(resource)
+    _cur_limit, max_limit = Process.getrlimit(resource)
     if max_limit < val
       val = max_limit
     end

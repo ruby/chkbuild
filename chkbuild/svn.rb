@@ -63,7 +63,6 @@ class ChkBuild::IBuild
   def svn_internal(svnroot, rep_dir, working_dir, opts={})
     url = svnroot + '/' + rep_dir
     opts = opts.dup
-    opts_info = opts.dup
     opts[:section] ||= "svn/#{working_dir}"
     if File.exist?(working_dir) && File.exist?("#{working_dir}/.svn")
       Dir.chdir(working_dir) {

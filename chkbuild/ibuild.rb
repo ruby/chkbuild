@@ -346,6 +346,7 @@ class ChkBuild::IBuild # internal build
   def with_procmemsize(opts)
     if opts[:procmemsize]
       current_pid = $$
+      ret = nil
       IO.popen("procmemsize -p #{current_pid}", "w") {|io|
         procmemsize_pid = io.pid
         ret = yield
@@ -393,10 +394,9 @@ class ChkBuild::IBuild # internal build
   def network_access(name=nil)
     begin
       yield
-    ensure
-      if err = $!
-        @logfile.start_section("neterror")
-      end
+    rescue Exception
+      @logfile.start_section("neterror")
+      raise
     end
   end
 
@@ -465,7 +465,6 @@ class ChkBuild::IBuild # internal build
     end
 
     puts "+ #{Escape.shell_command [command, *args]}" if !opts[:hide_commandline]
-    pos = STDOUT.pos
     ruby_script = script_to_run_in_child(opts, command, alt_commands, *args)
     begin
       command_status = TimeoutCommand.timeout_command(ruby_script, @logfile.filename, opts.fetch(:timeout, '1h'), STDERR, opts)
@@ -511,7 +510,6 @@ class ChkBuild::IBuild # internal build
     }
 
     if Process.respond_to? :setrlimit
-      limit_given = ChkBuild.get_limit
       limit = {}
       opts.each {|k, v|
         limit[$'.intern] = v if /\Ar?limit_/ =~ k.to_s && v

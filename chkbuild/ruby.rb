@@ -28,8 +28,6 @@
 # OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-require 'chkbuild'
-
 module ChkBuild::Ruby
   METHOD_LIST_SCRIPT = <<'End'
 use_symbol = Object.instance_methods[0].is_a?(Symbol)
@@ -218,8 +216,8 @@ def (ChkBuild::Ruby::CompleteOptions).call(target_opts)
 
   opts = target_opts.dup
   hs.each {|h|
-    h.each {|k, v|
-      opts[k] = v if !opts.include?(k)
+    h.each {|k1, v1|
+      opts[k1] = v1 if !opts.include?(k1)
     }
   }
 
@@ -813,7 +811,6 @@ ChkBuild.define_title_hook('ruby', "abi-check") {|title, log|
     str << "#{high}H" if high != 0
     str << "#{medium}M" if medium != 0
     #str << "#{low}L" if low != 0
-    str
     title.update_title(:status, str)
   end
 }

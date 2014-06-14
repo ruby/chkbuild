@@ -221,7 +221,6 @@ class ChkBuild::Build
     ruby_command = RbConfig.ruby
 
     target_params_name = build_dir + "params.marshal"
-    target_output_name = build_dir + "result.marshal"
     ibuild = ibuild_new
 
     File.open(target_params_name, "wb") {|f|
@@ -229,7 +228,7 @@ class ChkBuild::Build
     }
     status = ChkBuild.lock_puts(@depsuffixed_name) {
       system(ruby_command, "-I#{ChkBuild::TOP_DIRECTORY}", $0,
-             "internal-build", @depsuffixed_name,
+             "internal-build",
              target_params_name.to_s)
       $?
     }
@@ -244,7 +243,7 @@ class ChkBuild::Build
     }
     status2 = ChkBuild.lock_puts(@depsuffixed_name) {
       system(ruby_command, "-I#{ChkBuild::TOP_DIRECTORY}", $0,
-             "internal-format", @depsuffixed_name,
+             "internal-format",
              format_params_name.to_s, format_output_name.to_s)
       $?
     }

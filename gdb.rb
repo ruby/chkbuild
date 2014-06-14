@@ -73,7 +73,7 @@ module GDB
   def rename_core(core_path)
     suffix = ".chkbuild."
     n = 1
-    while File.exist?(new_path = "#{core_path}.chkbuild.#{n}")
+    while File.exist?(new_path = "#{core_path}#{suffix}#{n}")
       n += 1
     end
     File.rename(core_path, new_path)

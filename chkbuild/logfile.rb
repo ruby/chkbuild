@@ -104,7 +104,6 @@ class ChkBuild::LogFile
       if File.file? filename
         logfile.start_section filename
         contents = File.read filename
-        basename = File.basename(filename)
         puts contents
       end
     }
@@ -267,7 +266,7 @@ class ChkBuild::LogFile
       if pat =~ line
         epos = @io.pos
         spos = epos - line.length
-        _, secname, rest = self.class.parse_section_header(line)
+        _, secname, _rest = self.class.parse_section_header(line)
         ret[secname] = spos
       end
     }

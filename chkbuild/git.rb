@@ -137,7 +137,6 @@ class ChkBuild::IBuild
   end
 
   def git_single_log(rev)
-    result = []
     command = "git log --max-count=1 #{rev}"
     IO.popen(command) {|f|
       f.read

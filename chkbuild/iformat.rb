@@ -129,20 +129,20 @@ class ChkBuild::IFormat # internal format
     BuiltHash[depsuffixed_name][4]
   end
 
-  def internal_format(target_output_name)
+  def internal_format(format_output_name)
     if !has_built_info?
       raise "not built yet: #{depsuffixed_name}"
     end
-    if child_format_wrapper(target_output_name, nil)
+    if child_format_wrapper(format_output_name, nil)
       exit 0
     else
       exit 1
     end
   end
 
-  def child_format_wrapper(target_output_name, parent_pipe)
+  def child_format_wrapper(format_output_name, parent_pipe)
     @errors = []
-    child_format_target(target_output_name)
+    child_format_target(format_output_name)
   end
 
   def make_local_tmpdir
@@ -151,26 +151,26 @@ class ChkBuild::IFormat # internal format
     ENV['TMPDIR'] = tmpdir.to_s
   end
 
-  def child_format_target(target_output_name)
+  def child_format_target(format_output_name)
     if @opts[:nice]
       begin
         Process.setpriority(Process::PRIO_PROCESS, 0, @opts[:nice])
       rescue Errno::EACCES # already niced.
       end
     end
-    setup_format(target_output_name)
+    setup_format(format_output_name)
     title, title_version, title_assoc = gen_title
     update_result(title, title_version, title_assoc)
     show_title_info(title, title_version, title_assoc)
     @logfile.start_section 'end2'
   end
 
-  def setup_format(target_output_name)
+  def setup_format(format_output_name)
     @t = prebuilt_start_time
     @build_dir = ChkBuild.build_top + @t
     @log_filename = @build_dir + 'log'
     mkcd @target_dir
-    @parent_pipe = File.open(target_output_name, "wb")
+    @parent_pipe = File.open(format_output_name, "wb")
     Dir.chdir @t
     @logfile = ChkBuild::LogFile.append_open(@log_filename)
     @logfile.change_default_output
@@ -503,9 +503,11 @@ End
     while !lines.empty? && /\A<a / !~ lines[0]
       lines.shift
     end
-    title = "#{@depsuffixed_name} recent build summary (#{ChkBuild.nickname})"
 
+    # variables for RECENT_HTMLTemplate:
+    title = "#{@depsuffixed_name} recent build summary (#{ChkBuild.nickname})"
     recent_summary = lines.reverse.join
+
     content = with_page_uri_from_top(@recent_html_relpath) {
       ERB.new(RECENT_HTMLTemplate).result(binding)
     }
@@ -891,7 +893,9 @@ End
 End
 
   def make_rss_html_content(has_diff)
+    # variables for RSS_CONTENT_HTMLTemplate:
     max_diff_lines = 500
+
     ERB.new(RSS_CONTENT_HTMLTemplate, nil, '%').result(binding)
   end
 
@@ -977,7 +981,6 @@ End
         time_seq << $1
       end
     }
-    time2_has_neterror = has_neterror?(time2)
     time2_failure = detect_failure(time2)
     time_seq = sort_times(time_seq)
     time_seq.delete time2

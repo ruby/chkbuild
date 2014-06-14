@@ -92,29 +92,27 @@ End
   end
 
   def ChkBuild.main_internal_build
-    depsuffixed_name = ARGV.shift
-    target_params_name = ARGV.shift
+    format_params_name = ARGV.shift
     File.umask(002)
     STDIN.reopen("/dev/null", "r")
     STDOUT.sync = true
     ChkBuild.build_top.mkpath
-    ibuild, builthash = File.open(target_params_name) {|f| Marshal.load(f) }
+    ibuild, builthash = File.open(format_params_name) {|f| Marshal.load(f) }
     ChkBuild::Build::BuiltHash.update builthash
     ibuild.internal_build
     exit 1
   end
 
   def ChkBuild.main_internal_format
-    depsuffixed_name = ARGV.shift
-    target_params_name = ARGV.shift
-    target_output_name = ARGV.shift
+    format_params_name = ARGV.shift
+    format_output_name = ARGV.shift
     File.umask(002)
     STDIN.reopen("/dev/null", "r")
     STDOUT.sync = true
     ChkBuild.build_top.mkpath
-    iformat, builthash = File.open(target_params_name) {|f| Marshal.load(f) }
+    iformat, builthash = File.open(format_params_name) {|f| Marshal.load(f) }
     ChkBuild::Build::BuiltHash.update builthash
-    iformat.internal_format target_output_name
+    iformat.internal_format format_output_name
     exit 1
   end
 

@@ -106,7 +106,7 @@ class ChkBuild::IBuild
     puts "CHECKOUT cvs #{cvsroot} #{mod} #{branch || ''}"
     h2.keys.sort.each {|k|
       f = k.flatten.join('/')
-      cvsroot2, repository2, r2 = h2[k] || [nil, nil, 'none']
+      _cvsroot2, _repository2, r2 = h2[k] || [nil, nil, 'none']
       digest = sha256_digest_file(f)
       puts "FILE #{f}\t#{r2}\t#{digest}"
     }
