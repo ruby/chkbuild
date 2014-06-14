@@ -67,8 +67,6 @@ class ChkBuild::Build
     @public_log = ChkBuild.public_top+@log_relpath
     @current_txt_relpath = "#{@depsuffixed_name}/current.txt"
     @current_txt = ChkBuild.public_top+@current_txt_relpath
-    @page_uri_from_top = nil
-    @page_uri_absolute = nil
   #p [:pid, $$, @depsuffixed_name]
   end
   attr_reader :target, :suffixes, :depbuilds
@@ -241,8 +239,7 @@ class ChkBuild::Build
     format_output_name = build_dir + "format_result.marshal"
     iformat = ChkBuild::IFormat.new(
       @target, @suffixes, @depsuffixed_name, @depbuilds, @target_dir,
-      @public_log, @current_txt, @opts,
-      @page_uri_absolute, @page_uri_from_top)
+      @public_log, @current_txt, @opts)
 
     File.open(format_params_name, "wb") {|f|
       Marshal.dump([iformat, ChkBuild::Build::BuiltHash], f)

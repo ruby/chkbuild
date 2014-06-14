@@ -183,9 +183,7 @@ End
         build.depbuilds, build.target_dir,
         build.instance_eval { @public_log },
         build.instance_eval { @current_txt },
-        build.opts,
-        build.instance_eval { @page_uri_absolute },
-        build.instance_eval { @page_uri_from_top })
+        build.opts)
       iformat.output_diff(t1, t2, STDOUT)
       puts
     }
