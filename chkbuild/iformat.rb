@@ -69,6 +69,7 @@ class ChkBuild::IFormat # internal format
   end
   attr_reader :target, :suffixes, :depbuilds
   attr_reader :target_dir, :opts
+  attr_reader :depsuffixed_name
 
   def inspect
     "\#<#{self.class}: #{self.depsuffixed_name}>"
@@ -87,14 +88,6 @@ class ChkBuild::IFormat # internal format
     @suffixes.each {|suffix|
       name << '-' if /\A-/ !~ suffix
       name << suffix
-    }
-    name
-  end
-
-  def depsuffixed_name
-    name = self.suffixed_name
-    @depbuilds.each {|depbuild|
-      name << '_' << depbuild.suffixed_name if depbuild.has_suffix?
     }
     name
   end
