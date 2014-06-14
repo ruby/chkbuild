@@ -154,6 +154,18 @@ class ChkBuild::IBuild
     }
   end
 
+  def git_head_commit
+    IO.popen("git rev-list --max-count=1 HEAD") {|f|
+      # <sha1><LF>
+      # 4db0223676a371da8c4247d9a853529ef50a3b01
+      f.read.chomp
+    }
+  end
+end
+
+class ChkBuild::IFormat
+  GIT_SHARED_DIR = ChkBuild.build_top + 'git-repos'
+
   def git_oneline_logs2(old_head, new_head)
     result = []
     #command = "git log --pretty=oneline #{old_head}..#{new_head}"
@@ -168,14 +180,6 @@ class ChkBuild::IBuild
     }
     result.reverse!
     result
-  end
-
-  def git_head_commit
-    IO.popen("git rev-list --max-count=1 HEAD") {|f|
-      # <sha1><LF>
-      # 4db0223676a371da8c4247d9a853529ef50a3b01
-      f.read.chomp
-    }
   end
 
   def git_revisions
@@ -316,7 +320,7 @@ ChkBuild.define_file_changes_viewer('git',
   |match, reptype, pat, checkout_line|
   user = match[1]
   project = match[2]
-  ChkBuild::IBuild::GitHub.new("https://github.com/#{user}/#{project}")
+  ChkBuild::IFormat::GitHub.new("https://github.com/#{user}/#{project}")
 }
 
 ChkBuild.define_file_changes_viewer('git',
@@ -325,12 +329,12 @@ ChkBuild.define_file_changes_viewer('git',
   # git://git.savannah.gnu.org/autoconf.git
   # http://git.savannah.gnu.org/cgit/autoconf.git
   project_basename = match[1]
-  ChkBuild::IBuild::Cgit.new("http://git.savannah.gnu.org/cgit/#{project_basename}.git")
+  ChkBuild::IFormat::Cgit.new("http://git.savannah.gnu.org/cgit/#{project_basename}.git")
 
   # # GitWeb:
   # # http://git.savannah.gnu.org/gitweb/?p=autoconf.git
   # project_basename = CGI.escape(CGI.unescape($1)) # segment to query component
-  # ChkBuild::IBuild::GitWeb.new("http://git.savannah.gnu.org/gitweb/?p=#{project_basename}.git")
+  # ChkBuild::IFormat::GitWeb.new("http://git.savannah.gnu.org/gitweb/?p=#{project_basename}.git")
 }
 
 ChkBuild.define_title_hook(nil, %r{\Agit/}) {|title, logs|
