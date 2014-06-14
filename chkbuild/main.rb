@@ -178,12 +178,7 @@ End
       t1 = arg_t1 || ts[-2]
       t2 = arg_t2 || ts[-1]
       puts "#{build.depsuffixed_name}: #{t1}->#{t2}"
-      iformat = ChkBuild::IFormat.new(
-        t, build.suffixes, build.depsuffixed_name,
-        build.depbuilds, build.target_dir,
-        build.instance_eval { @public_log },
-        build.instance_eval { @current_txt },
-        build.opts)
+      iformat = build.iformat_new
       iformat.output_diff(t1, t2, STDOUT)
       puts
     }
@@ -197,7 +192,8 @@ End
       raise "no log: #{build.depsuffixed_name}/#{arg_t}" if arg_t and !ts.include?(arg_t)
       t = arg_t || ts[-1]
       puts "#{build.depsuffixed_name}: #{t}"
-      tmp = build.make_diff_content(t)
+      iformat = build.iformat_new
+      tmp = iformat.make_diff_content(t)
       tmp.rewind
       IO.copy_stream(tmp, STDOUT)
     }
@@ -215,7 +211,8 @@ End
       end
       t = arg_t || ts[-1]
       puts "#{build.depsuffixed_name}: #{t}"
-      build.output_fail(t, STDOUT)
+      iformat = build.iformat_new
+      iformat.output_fail(t, STDOUT)
       puts
     }
   end

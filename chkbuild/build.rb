@@ -220,9 +220,7 @@ class ChkBuild::Build
 
     target_params_name = build_dir + "params.marshal"
     target_output_name = build_dir + "result.marshal"
-    ibuild = ChkBuild::IBuild.new(
-      @target, @suffixes, @depsuffixed_name, @depbuilds, @target_dir,
-      @public_log, @current_txt, @opts)
+    ibuild = ibuild_new
 
     File.open(target_params_name, "wb") {|f|
       Marshal.dump([ibuild, ChkBuild::Build::BuiltHash], f)
@@ -237,9 +235,7 @@ class ChkBuild::Build
 
     format_params_name = build_dir + "format_params.marshal"
     format_output_name = build_dir + "format_result.marshal"
-    iformat = ChkBuild::IFormat.new(
-      @target, @suffixes, @depsuffixed_name, @depbuilds, @target_dir,
-      @public_log, @current_txt, @opts)
+    iformat = iformat_new
 
     File.open(format_params_name, "wb") {|f|
       Marshal.dump([iformat, ChkBuild::Build::BuiltHash], f)
@@ -261,6 +257,18 @@ class ChkBuild::Build
     run_upload_hooks(build_dir + 'log')
 
     return status.success? ? status2 : status
+  end
+
+  def ibuild_new
+    ChkBuild::IBuild.new(
+      @target, @suffixes, @depsuffixed_name, @depbuilds, @target_dir,
+      @public_log, @current_txt, @opts)
+  end
+
+  def iformat_new
+    ChkBuild::IFormat.new(
+      @target, @suffixes, @depsuffixed_name, @depbuilds, @target_dir,
+      @public_log, @current_txt, @opts)
   end
 
   def run_upload_hooks(log_filename)
