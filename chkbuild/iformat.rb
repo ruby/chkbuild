@@ -76,10 +76,6 @@ class ChkBuild::IFormat # internal format
     "\#<#{self.class}: #{self.depsuffixed_name}>"
   end
 
-  def has_suffix?
-    !@suffixes.empty?
-  end
-
   def sort_times(times)
     u, l = times.partition {|d| /Z\z/ =~ d }
     u.sort!

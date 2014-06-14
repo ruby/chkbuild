@@ -74,10 +74,6 @@ class ChkBuild::IBuild # internal build
     "\#<#{self.class}: #{self.depsuffixed_name}>"
   end
 
-  def has_suffix?
-    !@suffixes.empty?
-  end
-
   def traverse_depbuild(memo={}, &block)
     return if memo[self]
     memo[self] = true
