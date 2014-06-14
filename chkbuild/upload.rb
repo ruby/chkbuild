@@ -35,10 +35,10 @@ module ChkBuild
     @upload_hook << block
   end
 
-  def self.run_upload_hooks(suffixed_name)
+  def self.run_upload_hooks(depsuffixed_name)
     @upload_hook.reverse_each {|block|
       begin
-        block.call suffixed_name
+        block.call depsuffixed_name
       rescue Exception
         p $!
       end
@@ -48,12 +48,12 @@ module ChkBuild
   # rsync/ssh
 
   def self.rsync_ssh_upload_target(rsync_target, private_key=nil)
-    self.add_upload_hook {|name|
-      self.do_upload_rsync_ssh(rsync_target, private_key, name)
+    self.add_upload_hook {|depsuffixed_name|
+      self.do_upload_rsync_ssh(rsync_target, private_key, depsuffixed_name)
     }
   end
 
-  def self.do_upload_rsync_ssh(rsync_target, private_key, name)
+  def self.do_upload_rsync_ssh(rsync_target, private_key, depsuffixed_name)
     if %r{\A(?:([^@:]+)@)([^:]+)::(.*)\z} !~ rsync_target
       raise "invalid rsync target: #{rsync_target.inspect}"
     end
@@ -66,7 +66,7 @@ module ChkBuild
     begin
       save = ENV['SSH_AUTH_SOCK']
       ENV['SSH_AUTH_SOCK'] = nil
-      system "rsync", "--delete", "-rte", "ssh -akxi #{private_key}", "#{ChkBuild.public_top}/#{name}", "#{rsync_target}"
+      system "rsync", "--delete", "-rte", "ssh -akxi #{private_key}", "#{ChkBuild.public_top}/#{depsuffixed_name}", "#{rsync_target}"
     ensure
       ENV['SSH_AUTH_SOCK'] = save
     end

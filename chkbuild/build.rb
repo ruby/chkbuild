@@ -269,7 +269,7 @@ class ChkBuild::Build
   def run_upload_hooks(log_filename)
     File.open(log_filename, 'a') {|f|
       with_stdouterr(f) {
-        ChkBuild.run_upload_hooks(self.suffixed_name)
+        ChkBuild.run_upload_hooks(@depsuffixed_name)
       }
     }
   end
