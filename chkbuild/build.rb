@@ -119,12 +119,6 @@ class ChkBuild::Build
     l + u # chkbuild used localtime at old time.
   end
 
-  def build_time_sequence
-    dirs = @target_dir.entries.map {|e| e.to_s }
-    dirs.reject! {|d| /\A\d{8}T\d{6}Z?\z/ !~ d } # year 10000 problem
-    sort_times(dirs)
-  end
-
   def log_time_sequence
     return [] if !@public_log.directory?
     names = @public_log.entries.map {|e| e.to_s }
