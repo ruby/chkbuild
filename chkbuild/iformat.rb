@@ -55,9 +55,10 @@ require 'chkbuild/upload'
 class ChkBuild::IFormat # internal format
   include Util
 
-  def initialize(target, suffixes, depsuffixed_name, depbuilds, target_dir, public_log, current_txt, opts)
+  def initialize(target, suffixes, depsuffixed_name, suffixed_name, depbuilds, target_dir, public_log, current_txt, opts)
     @target = target
     @suffixes = suffixes
+    @suffixed_name = suffixed_name
     @depsuffixed_name = depsuffixed_name
     @depbuilds = depbuilds
     @target_dir = target_dir
@@ -69,7 +70,7 @@ class ChkBuild::IFormat # internal format
   end
   attr_reader :target, :suffixes, :depbuilds
   attr_reader :target_dir, :opts
-  attr_reader :depsuffixed_name
+  attr_reader :suffixed_name, :depsuffixed_name
 
   def inspect
     "\#<#{self.class}: #{self.depsuffixed_name}>"
@@ -81,15 +82,6 @@ class ChkBuild::IFormat # internal format
 
   def update_option(opts)
     @opts.update(opts)
-  end
-
-  def suffixed_name
-    name = @target.target_name.dup
-    @suffixes.each {|suffix|
-      name << '-' if /\A-/ !~ suffix
-      name << suffix
-    }
-    name
   end
 
   def sort_times(times)

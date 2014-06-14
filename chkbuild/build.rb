@@ -61,7 +61,8 @@ class ChkBuild::Build
     @opts = opts
     @depbuilds = depbuilds
 
-    @depsuffixed_name = self.depsuffixed_name
+    @suffixed_name = self.mk_suffixed_name
+    @depsuffixed_name = self.mk_depsuffixed_name
     @target_dir = ChkBuild.build_top + @depsuffixed_name
     @log_relpath = "#{@depsuffixed_name}/log"
     @public_log = ChkBuild.public_top+@log_relpath
@@ -71,6 +72,7 @@ class ChkBuild::Build
   end
   attr_reader :target, :suffixes, :depbuilds
   attr_reader :target_dir, :opts
+  attr_reader :suffixed_name, :depsuffixed_name
 
   def inspect
     "\#<#{self.class}: #{self.depsuffixed_name}>"
@@ -84,7 +86,7 @@ class ChkBuild::Build
     @opts.update(opts)
   end
 
-  def suffixed_name
+  def mk_suffixed_name
     name = @target.target_name.dup
     @suffixes.each {|suffix|
       name << '-' if /\A-/ !~ suffix
@@ -93,7 +95,7 @@ class ChkBuild::Build
     name
   end
 
-  def depsuffixed_name
+  def mk_depsuffixed_name
     name = self.suffixed_name
     @depbuilds.each {|depbuild|
       name << '_' << depbuild.suffixed_name if depbuild.has_suffix?
@@ -261,13 +263,13 @@ class ChkBuild::Build
 
   def ibuild_new
     ChkBuild::IBuild.new(
-      @target, @suffixes, @depsuffixed_name, @depbuilds, @target_dir,
+      @target, @suffixes, @suffixed_name, @depsuffixed_name, @depbuilds, @target_dir,
       @public_log, @current_txt, @opts)
   end
 
   def iformat_new
     ChkBuild::IFormat.new(
-      @target, @suffixes, @depsuffixed_name, @depbuilds, @target_dir,
+      @target, @suffixes, @suffixed_name, @depsuffixed_name, @depbuilds, @target_dir,
       @public_log, @current_txt, @opts)
   end
 
