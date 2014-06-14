@@ -57,7 +57,7 @@ class ChkBuild::IBuild # internal build
 
   def initialize(start_time_obj, start_time, target, suffixes, suffixed_name, depsuffixed_name, depbuilds, target_dir, public_log, current_txt, opts)
     @start_time_obj = start_time_obj
-    @start_time = start_time
+    @t = start_time
     @target = target
     @suffixes = suffixes
     @suffixed_name = suffixed_name
@@ -110,10 +110,6 @@ class ChkBuild::IBuild # internal build
     BuiltHash[depsuffixed_name] && 5 <= BuiltHash[depsuffixed_name].length
   end
 
-  def prebuilt_start_time
-    BuiltHash[depsuffixed_name][1]
-  end
-
   def built_status
     BuiltHash[depsuffixed_name][2]
   end
@@ -138,8 +134,7 @@ class ChkBuild::IBuild # internal build
   end
 
   def start_time
-    return prebuilt_start_time if has_prebuilt_info?
-    raise "#{self.suffixed_name}: no start_time yet"
+    return @t
   end
 
   def success?
@@ -199,7 +194,6 @@ class ChkBuild::IBuild # internal build
   end
 
   def setup_build
-    @t = prebuilt_start_time
     @build_dir = ChkBuild.build_top + @t
     @log_filename = @build_dir + 'log'
     mkcd @target_dir

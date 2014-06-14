@@ -204,7 +204,7 @@ class ChkBuild::Build
     target_dir = ChkBuild.build_top + @depsuffixed_name
     target_dir.mkpath
     build_dir = ChkBuild.build_top + start_time
-    symlink_build_dir = target_dir + prebuilt_start_time
+    symlink_build_dir = target_dir + start_time
     build_dir.mkdir
     (build_dir+"BUILD").open("w") {|f| f.puts "#{@depsuffixed_name}/#{start_time}" }
     File.symlink build_dir.relative_path_from(symlink_build_dir.parent), symlink_build_dir

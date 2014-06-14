@@ -57,7 +57,7 @@ class ChkBuild::IFormat # internal format
 
   def initialize(start_time_obj, start_time, target, suffixes, depsuffixed_name, suffixed_name, target_dir, public_log, current_txt, opts)
     @start_time_obj = start_time_obj
-    @start_time = start_time
+    @t = start_time
     @target = target
     @suffixes = suffixes
     @suffixed_name = suffixed_name
@@ -94,10 +94,6 @@ class ChkBuild::IFormat # internal format
 
   def has_built_info?
     BuiltHash[depsuffixed_name] && 5 <= BuiltHash[depsuffixed_name].length
-  end
-
-  def prebuilt_start_time
-    BuiltHash[depsuffixed_name][1]
   end
 
   def built_status
@@ -149,7 +145,6 @@ class ChkBuild::IFormat # internal format
   end
 
   def setup_format(format_output_name)
-    @t = prebuilt_start_time
     @build_dir = ChkBuild.build_top + @t
     @log_filename = @build_dir + 'log'
     mkcd @target_dir
