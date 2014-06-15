@@ -155,8 +155,7 @@ class ChkBuild::Build
     if !additional_pkg_config_path.empty?
       @opts[:additional_pkg_config_path] = additional_pkg_config_path
     end
-    status = self.build_in_child
-    status.to_i == 0
+    self.build_in_child
   end
 
   BuiltHash = {}
@@ -220,7 +219,7 @@ class ChkBuild::Build
       system(ruby_command, "-I#{ChkBuild::TOP_DIRECTORY}", $0,
              "internal-build",
              target_params_name.to_s)
-      $?
+      $?.success?
     }
     set_built_info(start_time_obj, start_time, status, build_dir, nil)
 
@@ -235,7 +234,7 @@ class ChkBuild::Build
       system(ruby_command, "-I#{ChkBuild::TOP_DIRECTORY}", $0,
              "internal-format",
              format_params_name.to_s, format_output_name.to_s)
-      $?
+      $?.success?
     }
     str = File.open(format_output_name, "rb") {|f| f.read }
     begin
@@ -247,7 +246,7 @@ class ChkBuild::Build
 
     run_upload_hooks(build_dir + 'log')
 
-    return status.success? ? status2 : status
+    return status && status2
   end
 
   def ibuild_new(start_time_obj, start_time)
@@ -277,7 +276,7 @@ class ChkBuild::Build
 
   def success?
     if has_built_info?
-      if built_status.to_i == 0
+      if built_status
         true
       else
         false
