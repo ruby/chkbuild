@@ -92,20 +92,20 @@ class ChkBuild::IFormat # internal format
     BuiltHash[depsuffixed_name] && 5 <= BuiltHash[depsuffixed_name].length
   end
 
-  def internal_format(format_output_name)
+  def internal_format
     if !has_built_info?
       raise "not built yet: #{depsuffixed_name}"
     end
-    if child_format_wrapper(format_output_name, nil)
+    if child_format_wrapper(nil)
       exit 0
     else
       exit 1
     end
   end
 
-  def child_format_wrapper(format_output_name, parent_pipe)
+  def child_format_wrapper(parent_pipe)
     @errors = []
-    child_format_target(format_output_name)
+    child_format_target
   end
 
   def make_local_tmpdir
@@ -114,25 +114,24 @@ class ChkBuild::IFormat # internal format
     ENV['TMPDIR'] = tmpdir.to_s
   end
 
-  def child_format_target(format_output_name)
+  def child_format_target
     if @opts[:nice]
       begin
         Process.setpriority(Process::PRIO_PROCESS, 0, @opts[:nice])
       rescue Errno::EACCES # already niced.
       end
     end
-    setup_format(format_output_name)
+    setup_format
     title, title_version, title_assoc = gen_title
     update_result(title, title_version, title_assoc)
     show_title_info(title, title_version, title_assoc)
     @logfile.start_section 'end2'
   end
 
-  def setup_format(format_output_name)
+  def setup_format
     @build_dir = ChkBuild.build_top + @t
     @log_filename = @build_dir + 'log'
     mkcd @target_dir
-    @parent_pipe = File.open(format_output_name, "wb")
     Dir.chdir @t
     @logfile = ChkBuild::LogFile.append_open(@log_filename)
     @logfile.change_default_output
@@ -244,7 +243,7 @@ class ChkBuild::IFormat # internal format
     @compressed_failhtml_relpath = "#{@depsuffixed_name}/log/#{@t}.fail.html.gz"
     @compressed_diffhtml_relpath = "#{@depsuffixed_name}/log/#{@t}.diff.html.gz"
 
-    send_title_to_parent(title_version)
+    store_title_version(title_version)
     force_link @current_txt, ChkBuild.public_top+@last_txt_relpath if @current_txt.file?
     make_logfail_text_gz(@log_filename, ChkBuild.public_top+@compressed_rawfail_relpath)
     failure = detect_failure(@t)
@@ -319,14 +318,10 @@ class ChkBuild::IFormat # internal format
     return title, title_version, title_assoc
   end
 
-  def send_title_to_parent(title_version)
+  def store_title_version(title_version)
     (ChkBuild.build_top+@depsuffixed_name+@t+"VERSION").open("w") {|f|
       f.puts title_version
     }
-    if @parent_pipe
-      Marshal.dump(title_version, @parent_pipe)
-      @parent_pipe.close
-    end
   end
 
   attr_reader :logfile

@@ -188,10 +188,6 @@ class ChkBuild::Build
     BuiltHash[depsuffixed_name][3]
   end
 
-  def built_version
-    BuiltHash[depsuffixed_name][4]
-  end
-
   def build_in_child
     if has_built_info?
       raise "already built: #{@depsuffixed_name}"
@@ -224,7 +220,6 @@ class ChkBuild::Build
     set_built_info(start_time_obj, start_time, status, build_dir, nil)
 
     format_params_name = build_dir + "format_params.marshal"
-    format_output_name = build_dir + "format_result.marshal"
     iformat = iformat_new(start_time_obj, start_time)
 
     File.open(format_params_name, "wb") {|f|
@@ -233,16 +228,9 @@ class ChkBuild::Build
     status2 = ChkBuild.lock_puts("#{@depsuffixed_name} iformat") {
       system(ruby_command, "-I#{ChkBuild::TOP_DIRECTORY}", $0,
              "internal-format",
-             format_params_name.to_s, format_output_name.to_s)
+             format_params_name.to_s)
       $?.success?
     }
-    str = File.open(format_output_name, "rb") {|f| f.read }
-    begin
-      version = Marshal.load(str)
-    rescue ArgumentError
-      version = self.suffixed_name
-    end
-    set_built_info(start_time_obj, start_time, status, build_dir, version)
 
     run_upload_hooks(build_dir + 'log')
 
@@ -289,11 +277,6 @@ class ChkBuild::Build
   def dir
     return built_dir if has_built_info?
     raise "#{self.suffixed_name}: no dir yet"
-  end
-
-  def version
-    return built_version if has_built_info?
-    raise "#{self.suffixed_name}: no version yet"
   end
 
   class CommandError < StandardError

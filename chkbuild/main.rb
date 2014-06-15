@@ -105,14 +105,13 @@ End
 
   def ChkBuild.main_internal_format
     format_params_name = ARGV.shift
-    format_output_name = ARGV.shift
     File.umask(002)
     STDIN.reopen("/dev/null", "r")
     STDOUT.sync = true
     ChkBuild.build_top.mkpath
     iformat, builthash = File.open(format_params_name) {|f| Marshal.load(f) }
     ChkBuild::Build::BuiltHash.update builthash
-    iformat.internal_format format_output_name
+    iformat.internal_format
     exit 1
   end
 

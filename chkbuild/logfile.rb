@@ -171,11 +171,7 @@ class ChkBuild::LogFile
           logfile.start_section 'dependencies'
           section_started = true
         end
-        if depbuild.suffixed_name == depbuild.version
-          puts "#{depbuild.suffixed_name} #{depbuild.start_time}"
-        else
-          puts "#{depbuild.suffixed_name} #{depbuild.start_time} (#{depbuild.version})"
-        end
+        puts "#{depbuild.suffixed_name} #{depbuild.start_time}"
       }
     }
     logfile
