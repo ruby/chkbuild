@@ -239,14 +239,12 @@ class ChkBuild::Build
 
   def ibuild_new(start_time_obj, start_time)
     ChkBuild::IBuild.new(start_time_obj, start_time,
-      @target, @suffixes, @suffixed_name, @depsuffixed_name, @depbuilds, @target_dir,
-      @public_log, @current_txt, @opts)
+      @target, @suffixes, @suffixed_name, @depsuffixed_name, @depbuilds, @opts)
   end
 
   def iformat_new(start_time_obj, start_time)
     ChkBuild::IFormat.new(start_time_obj, start_time,
-      @target, @suffixes, @suffixed_name, @depsuffixed_name, @target_dir,
-      @public_log, @current_txt, @opts)
+      @target, @suffixes, @suffixed_name, @depsuffixed_name, @opts)
   end
 
   def run_upload_hooks(log_filename)

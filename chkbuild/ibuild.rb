@@ -55,7 +55,7 @@ require 'chkbuild/upload'
 class ChkBuild::IBuild # internal build
   include Util
 
-  def initialize(start_time_obj, start_time, target, suffixes, suffixed_name, depsuffixed_name, depbuilds, target_dir, public_log, current_txt, opts)
+  def initialize(start_time_obj, start_time, target, suffixes, suffixed_name, depsuffixed_name, depbuilds, opts)
     @start_time_obj = start_time_obj
     @t = start_time
     @target = target
@@ -63,9 +63,11 @@ class ChkBuild::IBuild # internal build
     @suffixed_name = suffixed_name
     @depsuffixed_name = depsuffixed_name
     @depbuilds = depbuilds
-    @target_dir = target_dir
-    @public_log = public_log
-    @current_txt = current_txt
+    @target_dir = ChkBuild.build_top + @depsuffixed_name
+    log_relpath = "#{@depsuffixed_name}/log"
+    @public_log = ChkBuild.public_top+log_relpath
+    current_txt_relpath = "#{@depsuffixed_name}/current.txt"
+    @current_txt = ChkBuild.public_top+current_txt_relpath
     @opts = opts
   end
   attr_reader :target, :suffixes, :depbuilds
