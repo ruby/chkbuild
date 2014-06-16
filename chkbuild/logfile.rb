@@ -369,42 +369,4 @@ class ChkBuild::LogFile
     @io.rewind
     self.class.each_log_line(@io, &block)
   end
-
-  def modify_section(secname, data)
-    raise "not opened for writing" if !@writemode
-    spos = @sections[secname]
-    raise ArgumentError, "no section: #{secname.inspect}" if !spos
-    data += "\n" if /\n\z/ !~ data
-    old = nil
-    File.open(@filename, File::RDWR) {|f|
-      f.seek spos
-      rest = f.read
-      if /\n#{Regexp.quote @mark} / =~ rest
-        epos = $~.begin(0) + 1
-        curr = rest[0...epos]
-        rest = rest[epos..-1]
-      else
-        curr = rest
-        rest = ''
-      end
-      if /\n/ =~ curr
-        secline = $` + $&
-        old = $'
-      else
-        secline = curr + "\n"
-        old = ''
-      end
-      f.seek spos
-      f.print secline, data, rest
-      f.flush
-      f.truncate(f.pos)
-    }
-    off = data.length - old.length
-    @sections.each_pair {|n, pos|
-      if spos < pos
-        @sections[n] = pos + off
-      end
-    }
-    nil
-  end
 end

@@ -83,26 +83,4 @@ class TestLogFile < Test::Unit::TestCase
       assert_equal(secseize_c, secseize_b+1)
     }
   end
-
-  def test_modify_section
-    with_logfile {|l|
-      secname1 = secname2 = nil
-      l.with_default_output {
-        secname1 = l.start_section("a")
-        puts "aaa"
-        secname2 = l.start_section("b")
-        puts "bbb"
-      }
-      assert_equal("aaa\n", l.get_section("a"))
-      assert_equal("bbb\n", l.get_section("b"))
-      l.modify_section("a", "cc")
-      assert_equal("cc\n", l.get_section("a"))
-      l.modify_section("b", "dd")
-      assert_equal("dd\n", l.get_section("b"))
-      l.modify_section("a", "eeeeee")
-      assert_equal("eeeeee\n", l.get_section("a"))
-      l.modify_section("b", "ffffffff")
-      assert_equal("ffffffff\n", l.get_section("b"))
-    }
-  end
 end
