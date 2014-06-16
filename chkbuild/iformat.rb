@@ -88,16 +88,7 @@ class ChkBuild::IFormat # internal format
 
   ################
 
-  BuiltHash = ChkBuild::Build::BuiltHash
-
-  def has_built_info?
-    BuiltHash[depsuffixed_name] && 5 <= BuiltHash[depsuffixed_name].length
-  end
-
   def internal_format
-    if !has_built_info?
-      raise "not built yet: #{depsuffixed_name}"
-    end
     if child_format_wrapper(nil)
       exit 0
     else

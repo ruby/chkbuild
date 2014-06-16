@@ -156,58 +156,27 @@ class ChkBuild::Build
     self.build_in_child
   end
 
-  BuiltHash = {}
-
-  def set_prebuilt_info(start_time_obj, start_time)
-    BuiltHash[depsuffixed_name] = [start_time_obj, start_time]
-  end
-
-  def set_built_info(start_time_obj, start_time, status, dir, version)
-    BuiltHash[depsuffixed_name] = [start_time_obj, start_time, status, dir, version]
-  end
-
-  def has_prebuilt_info?
-    BuiltHash[depsuffixed_name] && 2 <= BuiltHash[depsuffixed_name].length
-  end
-
-  def has_built_info?
-    BuiltHash[depsuffixed_name] && 5 <= BuiltHash[depsuffixed_name].length
-  end
-
-  def prebuilt_start_time
-    BuiltHash[depsuffixed_name][1]
-  end
-
-  def built_status
-    BuiltHash[depsuffixed_name][2]
-  end
-
-  def built_dir
-    BuiltHash[depsuffixed_name][3]
-  end
-
   def build_in_child
-    if has_built_info?
+    if defined? @t
       raise "already built: #{@depsuffixed_name}"
     end
     t = Time.now.utc
     start_time_obj = Time.utc(t.year, t.month, t.day, t.hour, t.min, t.sec)
-    start_time = start_time_obj.strftime("%Y%m%dT%H%M%SZ")
-    set_prebuilt_info(start_time_obj, start_time)
+    @t = start_time_obj.strftime("%Y%m%dT%H%M%SZ") # definition of @t
     target_dir = ChkBuild.build_top + @depsuffixed_name
     target_dir.mkpath
-    build_dir = ChkBuild.build_top + start_time
-    symlink_build_dir = target_dir + start_time
-    build_dir.mkdir
-    (build_dir+"BUILD").open("w") {|f| f.puts "#{@depsuffixed_name}/#{start_time}" }
-    File.symlink build_dir.relative_path_from(symlink_build_dir.parent), symlink_build_dir
+    @build_dir = ChkBuild.build_top + @t # definition of @build_dir
+    symlink_build_dir = target_dir + @t
+    @build_dir.mkdir
+    (@build_dir+"BUILD").open("w") {|f| f.puts "#{@depsuffixed_name}/#{@t}" }
+    File.symlink @build_dir.relative_path_from(symlink_build_dir.parent), symlink_build_dir
     ruby_command = RbConfig.ruby
 
-    target_params_name = build_dir + "params.marshal"
-    ibuild = ibuild_new(start_time_obj, start_time)
+    target_params_name = @build_dir + "params.marshal"
+    ibuild = ibuild_new(start_time_obj, @t)
 
     File.open(target_params_name, "wb") {|f|
-      Marshal.dump([ibuild, ChkBuild::Build::BuiltHash], f)
+      Marshal.dump(ibuild, f)
     }
     status = ChkBuild.lock_puts("#{@depsuffixed_name} ibuild") {
       system(ruby_command, "-I#{ChkBuild::TOP_DIRECTORY}", $0,
@@ -215,13 +184,13 @@ class ChkBuild::Build
              target_params_name.to_s)
       $?.success?
     }
-    set_built_info(start_time_obj, start_time, status, build_dir, nil)
+    @success = status # definition of @success
 
-    format_params_name = build_dir + "format_params.marshal"
-    iformat = iformat_new(start_time_obj, start_time)
+    format_params_name = @build_dir + "format_params.marshal"
+    iformat = iformat_new(start_time_obj, @t)
 
     File.open(format_params_name, "wb") {|f|
-      Marshal.dump([iformat, ChkBuild::Build::BuiltHash], f)
+      Marshal.dump(iformat, f)
     }
     status2 = ChkBuild.lock_puts("#{@depsuffixed_name} iformat") {
       system(ruby_command, "-I#{ChkBuild::TOP_DIRECTORY}", $0,
@@ -230,7 +199,7 @@ class ChkBuild::Build
       $?.success?
     }
 
-    run_upload_hooks(build_dir + 'log')
+    run_upload_hooks(@build_dir + 'log')
 
     return status && status2
   end
@@ -254,25 +223,21 @@ class ChkBuild::Build
   end
 
   def start_time
-    return prebuilt_start_time if has_prebuilt_info?
+    return @t if defined? @t
     raise "#{self.suffixed_name}: no start_time yet"
   end
 
   def success?
-    if has_built_info?
-      if built_status
-        true
-      else
-        false
-      end
+    if defined? @success
+      @success
     else
       nil
     end
   end
 
   def dir
-    return built_dir if has_built_info?
-    raise "#{self.suffixed_name}: no dir yet"
+    return @build_dir if defined? @build_dir
+    raise "#{self.suffixed_name}: no build directory yet"
   end
 
   class CommandError < StandardError

@@ -97,8 +97,7 @@ End
     STDIN.reopen("/dev/null", "r")
     STDOUT.sync = true
     ChkBuild.build_top.mkpath
-    ibuild, builthash = File.open(format_params_name) {|f| Marshal.load(f) }
-    ChkBuild::Build::BuiltHash.update builthash
+    ibuild = File.open(format_params_name) {|f| Marshal.load(f) }
     ibuild.internal_build
     exit 1
   end
@@ -109,8 +108,7 @@ End
     STDIN.reopen("/dev/null", "r")
     STDOUT.sync = true
     ChkBuild.build_top.mkpath
-    iformat, builthash = File.open(format_params_name) {|f| Marshal.load(f) }
-    ChkBuild::Build::BuiltHash.update builthash
+    iformat = File.open(format_params_name) {|f| Marshal.load(f) }
     iformat.internal_format
     exit 1
   end

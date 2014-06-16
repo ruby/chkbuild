@@ -102,16 +102,7 @@ class ChkBuild::IBuild # internal build
 
   ################
 
-  BuiltHash = ChkBuild::Build::BuiltHash
-
-  def has_built_info?
-    BuiltHash[depsuffixed_name] && 5 <= BuiltHash[depsuffixed_name].length
-  end
-
   def internal_build
-    if has_built_info?
-      raise "already built: #{depsuffixed_name}"
-    end
     if child_build_wrapper(nil)
       exit 0
     else
