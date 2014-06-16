@@ -64,10 +64,8 @@ class ChkBuild::Build
     @suffixed_name = self.mk_suffixed_name
     @depsuffixed_name = self.mk_depsuffixed_name
     @target_dir = ChkBuild.build_top + @depsuffixed_name
-    @log_relpath = "#{@depsuffixed_name}/log"
-    @public_log = ChkBuild.public_top+@log_relpath
-    @current_txt_relpath = "#{@depsuffixed_name}/current.txt"
-    @current_txt = ChkBuild.public_top+@current_txt_relpath
+    logdir_relpath = "#{@depsuffixed_name}/log"
+    @public_logdir = ChkBuild.public_top+logdir_relpath
   #p [:pid, $$, @depsuffixed_name]
   end
   attr_reader :target, :suffixes, :depbuilds
@@ -120,8 +118,8 @@ class ChkBuild::Build
   end
 
   def log_time_sequence
-    return [] if !@public_log.directory?
-    names = @public_log.entries.map {|e| e.to_s }
+    return [] if !@public_logdir.directory?
+    names = @public_logdir.entries.map {|e| e.to_s }
     result = []
     names.each {|n|
       result << $1 if /\A(\d{8}T\d{6}Z?)(?:\.log)?\.txt\.gz\z/ =~ n

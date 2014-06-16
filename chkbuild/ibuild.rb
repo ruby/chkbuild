@@ -64,8 +64,8 @@ class ChkBuild::IBuild # internal build
     @depsuffixed_name = depsuffixed_name
     @depbuilds = depbuilds
     @target_dir = ChkBuild.build_top + @depsuffixed_name
-    log_relpath = "#{@depsuffixed_name}/log"
-    @public_log = ChkBuild.public_top+log_relpath
+    logdir_relpath = "#{@depsuffixed_name}/log"
+    @public_logdir = ChkBuild.public_top+logdir_relpath
     current_txt_relpath = "#{@depsuffixed_name}/current.txt"
     @current_txt = ChkBuild.public_top+current_txt_relpath
     @opts = opts
@@ -165,7 +165,7 @@ class ChkBuild::IBuild # internal build
     @logfile = ChkBuild::LogFile.write_open(@log_filename, self)
     @logfile.change_default_output
     (ChkBuild.public_top+@depsuffixed_name).mkpath
-    @public_log.mkpath
+    @public_logdir.mkpath
     force_link "log", @current_txt
     make_local_tmpdir
     remove_old_build(@t, @opts.fetch(:old, ChkBuild.num_oldbuilds))

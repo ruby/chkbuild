@@ -63,8 +63,8 @@ class ChkBuild::IFormat # internal format
     @suffixed_name = suffixed_name
     @depsuffixed_name = depsuffixed_name
     @target_dir = ChkBuild.build_top + @depsuffixed_name
-    log_relpath = "#{@depsuffixed_name}/log"
-    @public_log = ChkBuild.public_top+log_relpath
+    logdir_relpath = "#{@depsuffixed_name}/log"
+    @public_logdir = ChkBuild.public_top+logdir_relpath
     current_txt_relpath = "#{@depsuffixed_name}/current.txt"
     @current_txt = ChkBuild.public_top+current_txt_relpath
     @opts = opts
@@ -138,7 +138,7 @@ class ChkBuild::IFormat # internal format
     @logfile = ChkBuild::LogFile.append_open(@log_filename)
     @logfile.change_default_output
     #(ChkBuild.public_top+@depsuffixed_name).mkpath
-    #@public_log.mkpath
+    #@public_logdir.mkpath
     #force_link "log", @current_txt
     make_local_tmpdir
   end
@@ -915,7 +915,7 @@ End
   end
 
   def find_diff_target_time(time2)
-    entries = Dir.entries(@public_log)
+    entries = Dir.entries(@public_logdir)
     h = {}
     time_seq = []
     entries.each {|f|
@@ -1311,10 +1311,10 @@ End
   end
 
   def open_gziped_log(time, &block)
-    if File.file?(@public_log+"#{time}.log.txt.gz")
-      filename = @public_log+"#{time}.log.txt.gz"
+    if File.file?(@public_logdir+"#{time}.log.txt.gz")
+      filename = @public_logdir+"#{time}.log.txt.gz"
     else
-      filename = @public_log+"#{time}.txt.gz"
+      filename = @public_logdir+"#{time}.txt.gz"
     end
     Zlib::GzipReader.wrap(open(filename), &block)
   end
