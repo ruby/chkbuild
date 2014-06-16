@@ -28,30 +28,6 @@
 # OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-require 'fileutils'
-require 'time'
-require 'zlib'
-require "uri"
-require "tempfile"
-require "pathname"
-require "rbconfig"
-require "rss"
-
-require 'escape'
-require 'timeoutcom'
-require 'gdb'
-require "lchg"
-require "util"
-require "erbio"
-
-module ChkBuild
-end
-require 'chkbuild/options'
-require 'chkbuild/target'
-require 'chkbuild/title'
-require "chkbuild/logfile"
-require 'chkbuild/upload'
-
 class ChkBuild::IFormat # internal format
   include Util
 

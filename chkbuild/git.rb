@@ -28,12 +28,6 @@
 # OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-require 'fileutils'
-require 'uri'
-require 'cgi'
-
-require 'pp'
-
 module ChkBuild; end # for testing
 
 class ChkBuild::IBuild

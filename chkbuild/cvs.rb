@@ -28,8 +28,6 @@
 # OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-require "uri"
-
 class ChkBuild::IBuild
   def cvs(cvsroot, mod, branch, opts={})
     network_access {

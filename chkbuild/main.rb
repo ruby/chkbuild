@@ -28,9 +28,6 @@
 # OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-require 'pathname'
-require 'optparse'
-
 module ChkBuild
   TOP_DIRECTORY = Pathname.new(__FILE__).realpath.dirname.dirname
   SAMPLE_DIRECTORY = TOP_DIRECTORY + 'sample'
