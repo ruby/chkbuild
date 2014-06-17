@@ -154,7 +154,7 @@ class ChkBuild::Build
     File.open(target_params_name, "wb") {|f|
       Marshal.dump(ibuild, f)
     }
-    status = ChkBuild.lock_puts("#{@depsuffixed_name} ibuild") {
+    status = ChkBuild.lock_puts("#{@t} #{@depsuffixed_name} build") {
       system(ruby_command, "-I#{ChkBuild::TOP_DIRECTORY}", $0,
              "internal-build",
              target_params_name.to_s)
@@ -168,7 +168,7 @@ class ChkBuild::Build
     File.open(format_params_name, "wb") {|f|
       Marshal.dump(iformat, f)
     }
-    status2 = ChkBuild.lock_puts("#{@depsuffixed_name} iformat") {
+    status2 = ChkBuild.lock_puts("#{@t} #{@depsuffixed_name} format") {
       system(ruby_command, "-I#{ChkBuild::TOP_DIRECTORY}", $0,
              "internal-format",
              format_params_name.to_s)

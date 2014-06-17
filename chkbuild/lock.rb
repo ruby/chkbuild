@@ -60,7 +60,7 @@ module ChkBuild
         f.print "#{t1.iso8601} #{mesg}"
         ret = yield
         t2 = Time.now
-        f.puts "\t#{Util.format_elapsed_time t2-t1}"
+        f.puts "\t#{ret.inspect}\t#{Util.format_elapsed_time t2-t1}"
         ret
       else
         f.puts "#{Time.now.iso8601} #{mesg}"
