@@ -97,7 +97,9 @@ class ChkBuild::LogFile
       "/etc/debian_version",
       "/etc/redhat-release",
       "/etc/gentoo-release",
-      "/etc/system-release", # Amazon Linux
+      "/etc/slackware-version",
+      "/etc/system-release", # Fedora, Amazon Linux
+      "/etc/os-release", # systemd, http://0pointer.de/blog/projects/os-release.html
     ].each {|filename|
       if File.file? filename
         logfile.start_section filename
