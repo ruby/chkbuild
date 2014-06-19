@@ -309,6 +309,11 @@ module ChkBuild
       "#{match[1]}<pid>"
     }
 
+    # hw.usermem: 929820672
+    ChkBuild.define_diff_preprocess_gsub(target_name, /^hw\.usermem: \d+/) {|match|
+      "hw.usermem: <num>"
+    }
+
     # delete trailing spaces.
     ChkBuild.define_diff_preprocess_gsub(target_name, /[ \t]+$/) {|match|
       ""
