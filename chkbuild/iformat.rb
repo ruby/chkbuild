@@ -31,8 +31,7 @@
 class ChkBuild::IFormat # internal format
   include Util
 
-  def initialize(start_time_obj, start_time, target, suffixes, depsuffixed_name, suffixed_name, opts)
-    @start_time_obj = start_time_obj
+  def initialize(start_time, target, suffixes, depsuffixed_name, suffixed_name, opts)
     @t = start_time
     @target = target
     @suffixes = suffixes
@@ -844,7 +843,7 @@ End
 	maker.items.new_item {|item|
 	  item.link = latest_url
 	  item.title = title
-	  item.date = @start_time_obj
+	  item.date = Time.parse(@t)
 	  item.content_encoded = make_rss_html_content(has_diff)
 	}
       }

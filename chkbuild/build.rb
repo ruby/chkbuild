@@ -163,7 +163,7 @@ class ChkBuild::Build
     @success = status # definition of @success
 
     format_params_name = @build_dir + "format_params.marshal"
-    iformat = iformat_new(start_time_obj, @t)
+    iformat = iformat_new(@t)
 
     File.open(format_params_name, "wb") {|f|
       Marshal.dump(iformat, f)
@@ -185,8 +185,8 @@ class ChkBuild::Build
       @target, @suffixes, @suffixed_name, @depsuffixed_name, @depbuilds, @opts)
   end
 
-  def iformat_new(start_time_obj, start_time)
-    ChkBuild::IFormat.new(start_time_obj, start_time,
+  def iformat_new(start_time)
+    ChkBuild::IFormat.new(start_time,
       @target, @suffixes, @suffixed_name, @depsuffixed_name, @opts)
   end
 
