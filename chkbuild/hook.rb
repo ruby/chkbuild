@@ -255,6 +255,7 @@ module ChkBuild
 
     keys = %w[
       MemFree
+      MemAvailable
       Buffers
       Cached
       SwapCached
