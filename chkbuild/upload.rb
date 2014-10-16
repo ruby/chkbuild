@@ -73,6 +73,13 @@ module ChkBuild
   end
 
   # azure storage
+  #
+  # == Usage
+  # Add `ChkBuild.azure_upload_target` to sample/build-ruby
+  #
+  # == Environmental Variables
+  # * AZURE_STORAGE_ACCOUNT
+  # * AZURE_STORAGE_ACCESS_KEY
 
   def self.azure_upload_target
     ENV['AZURE_STORAGE_ACCOUNT'] ||= 'rubyci'
