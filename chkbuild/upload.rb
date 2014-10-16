@@ -73,6 +73,13 @@ module ChkBuild
   end
 
   # azure storage
+  #
+  # == Usage
+  # Add `ChkBuild.azure_upload_target` to sample/build-ruby
+  #
+  # == Environmental Variables
+  # * AZURE_STORAGE_ACCOUNT
+  # * AZURE_STORAGE_ACCESS_KEY
 
   def self.azure_upload_target
     ENV['AZURE_STORAGE_ACCOUNT'] ||= 'rubyci'
@@ -104,8 +111,9 @@ module ChkBuild
     return if paths.empty?
 
     paths.each do |path|
-      if self.azcp0(service, container, path, "#{ChkBuild.public_top}/path")
-        File.unlink "#{ChkBuild.public_top}/#{path}"
+      src = "#{ChkBuild.public_top}/#{path}"
+      if self.azcp0(service, container, path, src)
+        File.unlink src
       end
     end
     %w[current.txt last.html.gz recent.ltsv summary.html summary.txt
