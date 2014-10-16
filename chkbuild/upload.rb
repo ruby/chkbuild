@@ -71,4 +71,77 @@ module ChkBuild
       ENV['SSH_AUTH_SOCK'] = save
     end
   end
+
+  # azure storage
+
+  def self.azure_upload_target
+    ENV['AZURE_STORAGE_ACCOUNT'] ||= 'rubyci'
+    raise 'no AZURE_STORAGE_ACCESS_KEY env' unless ENV['AZURE_STORAGE_ACCESS_KEY']
+    require 'azure'
+    service = Azure::BlobService.new
+    self.add_upload_hook {|depsuffixed_name|
+      self.do_upload_azure(service, ChkBuild.nickname, depsuffixed_name)
+    }
+  end
+
+  def self.do_upload_azure(service, container, branch)
+    begin
+      res, body = service.get_blob(container, "#{branch}/recent.ltsv")
+      server_start_time = body[/\tstart_time:(\w+)/, 1]
+    rescue Azure::Core::Http::HTTPError
+      server_start_time = '00000000T000000Z'
+    end
+    puts "Azure: #{branch} start_time: #{server_start_time}"
+
+    paths = []
+    IO.foreach("#{ChkBuild.public_top}/#{branch}/recent.ltsv") do |line|
+      t = line[/\tstart_time:(\w+)/, 1]
+      break if (t <=> server_start_time) != 1
+      %w[diff fail log].product(%w[html txt]) do |a, b|
+        paths << "#{branch}/log/#{t}.#{a}.#{b}.gz"
+      end
+    end
+    return if paths.empty?
+
+    paths.each do |path|
+      if self.azcp0(service, container, path, "#{ChkBuild.public_top}/path")
+        File.unlink "#{ChkBuild.public_top}/#{path}"
+      end
+    end
+    %w[current.txt last.html.gz recent.ltsv summary.html summary.txt
+      last.html last.txt recent.html rss summary.ltsv].each do |fn|
+      path = "#{branch}/#{fn}"
+      self.azcp0(service, container, path, "#{ChkBuild.public_top}/#{path}")
+    end
+  end
+
+  def self.azcp0(service, container, blobname, filepath)
+    unless File.exist?(filepath)
+      puts "file '#{filepath}' is not found"
+      return false
+    end
+    options = {}
+
+    case filepath
+    when /\.txt\.gz\z/
+      options[:content_type] = "text/plain"
+      options[:content_encoding] = 'gzip'
+    when /\.html\.gz\z/
+      options[:content_type] = "text/html"
+      options[:content_encoding] = 'gzip'
+    when /\.(?:ltsv|txt)\z/
+      options[:content_type] = "text/plain"
+    when /\.html\z/
+      options[:content_type] = "text/html"
+    when /(?:\A|\/)rss\z/
+      options[:content_type] = "application/rss+xml"
+    else
+      warn "no content_type is defined for #{filepath}"
+    end
+    open(filepath, 'rb') do |f|
+      puts "uploading '#{filepath}'..."
+      service.create_block_blob(container, blobname, f, options)
+    end
+    true
+  end
 end
