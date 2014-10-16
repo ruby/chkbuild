@@ -104,8 +104,9 @@ module ChkBuild
     return if paths.empty?
 
     paths.each do |path|
-      if self.azcp0(service, container, path, "#{ChkBuild.public_top}/path")
-        File.unlink "#{ChkBuild.public_top}/#{path}"
+      src = "#{ChkBuild.public_top}/#{path}"
+      if self.azcp0(service, container, path, src)
+        File.unlink src
       end
     end
     %w[current.txt last.html.gz recent.ltsv summary.html summary.txt
