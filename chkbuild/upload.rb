@@ -101,8 +101,10 @@ module ChkBuild
     puts "Azure: #{branch} start_time: #{server_start_time}"
 
     paths = []
+    latest = nil
     IO.foreach("#{ChkBuild.public_top}/#{branch}/recent.ltsv") do |line|
       t = line[/\tstart_time:(\w+)/, 1]
+      latest = t unless latest
       break if (t <=> server_start_time) != 1
       %w[diff fail log].product(%w[html txt]) do |a, b|
         paths << "#{branch}/log/#{t}.#{a}.#{b}.gz"
@@ -112,7 +114,8 @@ module ChkBuild
 
     paths.each do |path|
       src = "#{ChkBuild.public_top}/#{path}"
-      if self.azcp0(service, container, path, src)
+      if self.azcp0(service, container, path, src) &&
+         !path.include?(latest) # for diffs
         File.unlink src
       end
     end
