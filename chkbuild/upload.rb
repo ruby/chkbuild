@@ -85,6 +85,7 @@ module ChkBuild
     ENV['AZURE_STORAGE_ACCOUNT'] ||= 'rubyci'
     raise 'no AZURE_STORAGE_ACCESS_KEY env' unless ENV['AZURE_STORAGE_ACCESS_KEY']
     require 'azure'
+    require_relative 'azure-patch'
     service = Azure::BlobService.new
     self.add_upload_hook {|depsuffixed_name|
       self.do_upload_azure(service, ChkBuild.nickname, depsuffixed_name)
