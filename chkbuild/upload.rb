@@ -85,6 +85,7 @@ module ChkBuild
     ENV['AZURE_STORAGE_ACCOUNT'] ||= 'rubyci'
     raise 'no AZURE_STORAGE_ACCESS_KEY env' unless ENV['AZURE_STORAGE_ACCESS_KEY']
     require 'azure'
+    require_relative 'azure-patch'
     service = Azure::BlobService.new
     self.add_upload_hook {|depsuffixed_name|
       self.do_upload_azure(service, ChkBuild.nickname, depsuffixed_name)
@@ -95,31 +96,35 @@ module ChkBuild
     begin
       res, body = service.get_blob(container, "#{branch}/recent.ltsv")
       server_start_time = body[/\tstart_time:(\w+)/, 1]
-    rescue Azure::Core::Http::HTTPError
+    rescue Azure::Core::Http::HTTPError => e
       server_start_time = '00000000T000000Z'
+      if e.type == 'ContainerNotFound'
+        service.create_container(container, public_access_level: 'container')
+      end
     end
     puts "Azure: #{branch} start_time: #{server_start_time}"
 
-    paths = []
-    IO.foreach("#{ChkBuild.public_top}/#{branch}/recent.ltsv") do |line|
-      t = line[/\tstart_time:(\w+)/, 1]
-      break if (t <=> server_start_time) != 1
-      %w[diff fail log].product(%w[html txt]) do |a, b|
-        paths << "#{branch}/log/#{t}.#{a}.#{b}.gz"
-      end
+    latest = IO.foreach("#{ChkBuild.public_top}/#{branch}/recent.ltsv") do |line|
+       break line[/\tstart_time:(\w+)/, 1]
     end
-    return if paths.empty?
 
-    paths.each do |path|
-      src = "#{ChkBuild.public_top}/#{path}"
-      if self.azcp0(service, container, path, src)
-        File.unlink src
+    Dir.foreach("#{ChkBuild.public_top}/#{branch}/log") do |path|
+      next unless path.end_with?('.gz')
+      blobname = "#{branch}/log/#{path}"
+      filepath = "#{ChkBuild.public_top}/#{blobname}"
+      if (service.get_blob_metadata(container, blobname) rescue false)
+        File.unlink filepath
+        next
+      end
+      if azcp0(service, container, blobname, filepath) && !path.start_with?(latest)
+        File.unlink filepath
       end
     end
+
     %w[current.txt last.html.gz recent.ltsv summary.html summary.txt
       last.html last.txt recent.html rss summary.ltsv].each do |fn|
       path = "#{branch}/#{fn}"
-      self.azcp0(service, container, path, "#{ChkBuild.public_top}/#{path}")
+      azcp0(service, container, path, "#{ChkBuild.public_top}/#{path}")
     end
   end
 
