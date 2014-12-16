@@ -87,6 +87,21 @@ module ChkBuild
     require 'azure'
     require_relative 'azure-patch'
     service = Azure::BlobService.new
+    service.with_filter do |req, _next|
+      i = 0
+      begin
+        return _next.call
+      rescue
+        case $!
+        when Errno::ETIMEDOUT
+          if i < 3
+            i += 1
+            retry
+          end
+        end
+        raise
+      end
+    end
     self.add_upload_hook {|depsuffixed_name|
       self.do_upload_azure(service, ChkBuild.nickname, depsuffixed_name)
     }
