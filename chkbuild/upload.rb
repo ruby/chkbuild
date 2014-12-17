@@ -90,7 +90,7 @@ module ChkBuild
     service.with_filter do |req, _next|
       i = 0
       begin
-        return _next.call
+        next _next.call
       rescue
         case $!
         when Errno::ETIMEDOUT
