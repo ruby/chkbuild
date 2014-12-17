@@ -873,8 +873,8 @@ ChkBuild.define_diff_preprocess_gsub('ruby', /^tcltklib: (.*)Ruby[\d.]+ \([\d-]+
 
 # + file miniruby
 # miniruby: ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked (uses shared libs), for GNU/Linux 2.6.26, BuildID[sha1]=0xd5a7c589cce09467a49e1792bc822ae48f75b5ee, not stripped
-ChkBuild.define_diff_preprocess_gsub('ruby', /BuildID\[sha1\]=0x[0-9a-f]+,/) {|match|
-  "BuildID[sha1]=0x<hex>"
+ChkBuild.define_diff_preprocess_gsub('ruby', /BuildID\[sha1\]=(?:0x)?[0-9a-f]+,/) {|match|
+  "BuildID[sha1]=<hex>"
 }
 
 # file.c:884: warning: comparison between signed and unsigned
