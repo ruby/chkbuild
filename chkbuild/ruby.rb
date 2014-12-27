@@ -1257,10 +1257,11 @@ ChkBuild.define_diff_preprocess_gsub('ruby', %r{^( *SIZE:\s+)[0-9]+}) {|match|
 }
 
 # make dist
-#   MD5:    fc3ac1bff7e906cbca72c3dffce638b0
-#   SHA256: 677a188cb312453da596e21d5b843ba96d332f8ff93a247cd6c88d93f5e74093
-#   SHA512: b609be93572cea518672881dfcb872f6d8618dd5746b13591ec7a9e7feead918db5c92e13a528dca6a4a5d1a94cb5b170b131a700f2ffce846ad0c298b1cbe8c
-ChkBuild.define_diff_preprocess_gsub('ruby', %r{^( *(MD5|SHA256|SHA512):\s+)[0-9a-f]+}) {|match|
+#   MD5:    629c38f48128fdbdc3359d3a504253fe
+#   SHA1:   ab2e8b8fc5809684aacc4010621a71e1b4bb7ca0
+#   SHA256: 6769c80ada7d1eaade81dadaf0ab5bbd0f09d462428c9ff777705837eea94982
+#   SHA512: 098fbc17d138b168a85bb571ef30369c2d2cf5bf9156301c6d9ecbe325fea4d699f0e60aa72d3bea8289bb0ed494ab7d7256e563dd6c11fff2ca6929c3752bba
+ChkBuild.define_diff_preprocess_gsub('ruby', %r{^( *(MD5|SHA1|SHA256|SHA512):\s+)[0-9a-f]+}) {|match|
   "#{match[1]}<digest>"
 }
 
