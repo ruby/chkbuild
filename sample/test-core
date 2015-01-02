@@ -2,12 +2,14 @@
 
 require 'chkbuild'
 
+#ChkBuild.limit(:core => 0) # bytes
+
 ChkBuild.def_target("coretest") {|b|
   FileUtils.cp(`which ruby`.chomp, "ruby")
   b.run("ruby", "-e", <<'End')
 Process.setrlimit(Process::RLIMIT_CORE, Process::RLIM_INFINITY, Process::RLIM_INFINITY)
-trap("SEGV", "DEFAULT")
-Process.kill("SEGV", $$)
+trap("QUIT", "SYSTEM_DEFAULT")
+Process.kill("QUIT", $$)
 End
 }
 

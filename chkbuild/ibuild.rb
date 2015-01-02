@@ -451,17 +451,19 @@ class ChkBuild::IBuild # internal build
             raise ArgumentError, "unexpected resource value"
           end
         end
-
-        resource_limit(:RLIMIT_CORE, :unlimited)
-	v = #{limit.has_key?(:cpu) ? limit[:cpu].to_i : "nil" }
-	resource_limit(:RLIMIT_CPU, v) if v
-	v = #{limit.has_key?(:stack) ? limit[:stack].to_i : "nil" }
-	resource_limit(:RLIMIT_STACK, v) if v
-	v = #{limit.has_key?(:data) ? limit[:data].to_i : "nil" }
-	resource_limit(:RLIMIT_DATA, v) if v
-	v = #{limit.has_key?(:as) ? limit[:as].to_i : "nil" }
-	resource_limit(:RLIMIT_AS, v) if v
       End
+
+      %w[core cpu stack data as].each {|res|
+        if limit.has_key?(res.intern)
+          v = limit[res.intern]
+          if limit[res.intern] == :unlimited
+            ruby_script << "v = :unlimited\n"
+          else
+            ruby_script << "v = #{v.to_i}\n"
+          end
+          ruby_script << "resource_limit(:RLIMIT_#{res.upcase}, v)\n"
+        end
+      }
     end
 
     if opts.include?(:stdout)

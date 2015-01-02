@@ -31,6 +31,7 @@
 module ChkBuild
   @default_options = {
     :num_oldbuilds => 1,
+    :limit_core => :unlimited,
     :limit_cpu => nil,
     :limit_stack => nil,
     :limit_data => nil,
