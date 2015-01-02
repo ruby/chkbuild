@@ -213,33 +213,6 @@ module Util
     nil
   end
 
-  def resource_unlimit(resource)
-    if Symbol === resource
-      begin
-        resource = Process.const_get(resource)
-      rescue NameError
-        return
-      end
-    end
-    _cur_limit, max_limit = Process.getrlimit(resource)
-    Process.setrlimit(resource, max_limit, max_limit)
-  end
-
-  def resource_limit(resource, val)
-    if Symbol === resource
-      begin
-        resource = Process.const_get(resource)
-      rescue NameError
-        return
-      end
-    end
-    _cur_limit, max_limit = Process.getrlimit(resource)
-    if max_limit < val
-      val = max_limit
-    end
-    Process.setrlimit(resource, val, val)
-  end
-
   def sha256_digest_file(filename)
     d = Digest::SHA256.new
     open(filename) {|f|
