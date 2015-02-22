@@ -393,10 +393,10 @@ def (ChkBuild::Ruby).build_proc(b)
   Dir.chdir(ruby_build_dir)
 
   use_rubyspec &&= b.catch_error {
-    b.git('git://github.com/nurse/mspec.git', 'mspec', bopts)
+    b.git('https://github.com/ruby/mspec.git', 'mspec', bopts)
   }
   use_rubyspec &&= b.catch_error {
-    b.git('git://github.com/nurse/rubyspec.git', 'rubyspec', bopts)
+    b.git('https://github.com/ruby/rubyspec.git', 'rubyspec', bopts)
   }
 
   large_cflags = nil
