@@ -59,7 +59,6 @@ ChkBuild::Ruby.def_target(
     '2.2',
     '2.1',
     '2.0.0',
-    '1.9.3',
   ],
 
 #   [ # :abi_check needs --enable-shared
