@@ -598,7 +598,7 @@ def (ChkBuild::Ruby).build_proc(b)
       b.catch_error {
         FileUtils.rmtree "rubyspec_temp"
         config = Dir.pwd + "/rubyspec/ruby.mspec"
-        command = %W[bin/ruby mspec/bin/mspec -V -f s -B #{config} -t #{rubybin}]
+        command = %W[bin/ruby mspec/bin/mspec -B #{config} -V -f s -t #{rubybin}]
         command << "rubyspec"
         command << {
           :section=>"rubyspec"
