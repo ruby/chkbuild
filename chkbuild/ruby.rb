@@ -127,36 +127,6 @@ End
       n.to_s
     end
   end
-
-  def rubyspec_exclude_directories(excludes = ["rubyspec/optional/ffi"], args = ["rubyspec"])
-    excludes = excludes.map {|f| File.directory?(f) ? "#{f}/" : f }
-    args = args.map {|f| File.directory?(f) ? "#{f}/" : f }
-    while !excludes.empty?
-      args = args.map {|arg|
-	if %r{/\z} =~ arg && excludes.any? {|e| e.start_with?(arg) }
-	  Dir["#{arg}*"].sort.map {|n|
-	    if %w[.git fixtures nbproject shared tags].include? File.basename(n)
-	      []
-	    elsif File.directory?(n)
-	      "#{n}/"
-	    elsif /_spec\.rb\z/ =~ n
-	      n
-	    else
-	      []
-	    end
-	  }
-	else
-	  arg
-	end
-      }
-      args.flatten!
-      matched = args & excludes
-      args -= matched
-      excludes -= matched
-    end
-    args = args.map {|arg| arg.chomp("/") }
-    args
-  end
 end
 
 module ChkBuild::Ruby::CompleteOptions
@@ -633,8 +603,7 @@ def (ChkBuild::Ruby).build_proc(b)
           config = Dir.pwd + "/rubyspec/ruby.1.9.mspec"
         end
         command = %W[bin/ruby mspec/bin/mspec -V -f s -B #{config} -t #{rubybin}]
-        # command << "rubyspec"
-        command.concat ChkBuild::Ruby.rubyspec_exclude_directories(excludes, ["rubyspec"])
+        command << "rubyspec"
         command << {
           :section=>"rubyspec"
         }
