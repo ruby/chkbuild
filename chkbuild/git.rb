@@ -299,7 +299,7 @@ end
 segment_regexp = '(?:[A-Za-z0-9\-._~!$&\'()*+,;=:@]|%[0-9A-Fa-f][0-9A-Fa-f])*'
 
 ChkBuild.define_file_changes_viewer('git',
-  %r{\Agit://github\.com/(#{segment_regexp})/(#{segment_regexp})\.git\z}o) {
+  %r{\A(?:git|https)://github\.com/(#{segment_regexp})/(#{segment_regexp})\.git\z}o) {
   |match, reptype, pat, checkout_line|
   user = match[1]
   project = match[2]
