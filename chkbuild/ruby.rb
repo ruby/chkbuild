@@ -615,12 +615,8 @@ def (ChkBuild::Ruby).build_proc(b)
             next if !s.file?
             b.catch_error {
               FileUtils.rmtree "rubyspec_temp"
-              if ruby_version.before(1,9)
-                config = ruby_build_dir + "rubyspec/ruby.1.8.mspec"
-              else
-                config = ruby_build_dir + "rubyspec/ruby.1.9.mspec"
-              end
-              command = %W[bin/ruby mspec/bin/mspec -V -f s -B #{config} -t #{rubybin}]
+              config = ruby_build_dir + "rubyspec/ruby.mspec"
+              command = %W[bin/ruby mspec/bin/mspec -B #{config} -V -f s -t #{rubybin}]
               command << f.to_s
               command << {
                 :section=>f.to_s
