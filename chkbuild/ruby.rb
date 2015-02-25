@@ -597,7 +597,7 @@ def (ChkBuild::Ruby).build_proc(b)
       excludes = ["rubyspec/optional/ffi"]
       b.catch_error {
         FileUtils.rmtree "rubyspec_temp"
-        config = Dir.pwd + "/rubyspec/ruby.mspec"
+        config = Dir.pwd + "/rubyspec/default.mspec"
         command = %W[bin/ruby mspec/bin/mspec -B #{config} -V -f s -t #{rubybin}]
         command << "rubyspec"
         command << {
@@ -615,7 +615,7 @@ def (ChkBuild::Ruby).build_proc(b)
             next if !s.file?
             b.catch_error {
               FileUtils.rmtree "rubyspec_temp"
-              config = ruby_build_dir + "rubyspec/ruby.mspec"
+              config = ruby_build_dir + "rubyspec/default.mspec"
               command = %W[bin/ruby mspec/bin/mspec -B #{config} -V -f s -t #{rubybin}]
               command << f.to_s
               command << {
@@ -1152,8 +1152,8 @@ ChkBuild.define_diff_preprocess_gsub('ruby', %r{^== rubyspec(/\S+)? }) {|match|
 }
 
 # rubyspec:
-# + bin/ruby mspec/bin/mspec -V -f s -B <build-dir>/rubyspec/ruby.1.9.mspec -t <build-dir>/bin/ruby rubyspec/command_line rubyspec/core rubyspec/language rubyspec/library rubyspec/optional/capi
-# + bin/ruby mspec/bin/mspec -V -f s -B <build-dir>/rubyspec/ruby.1.9.mspec -t <build-dir>/bin/ruby rubyspec/command_line/dash_a_spec.rb
+# + bin/ruby mspec/bin/mspec -V -f s -B <build-dir>/rubyspec/default.mspec -t <build-dir>/bin/ruby rubyspec/command_line rubyspec/core rubyspec/language rubyspec/library rubyspec/optional/capi
+# + bin/ruby mspec/bin/mspec -V -f s -B <build-dir>/rubyspec/default.mspec -t <build-dir>/bin/ruby rubyspec/command_line/dash_a_spec.rb
 ChkBuild.define_diff_preprocess_gsub('ruby', %r{^\+ bin/ruby mspec/bin/mspec (.*)/bin/ruby rubyspec/.+$}) {|match|
   "+ bin/ruby mspec/bin/mspec #{match[1]}/bin/ruby rubyspec/<testfile>"
 }
