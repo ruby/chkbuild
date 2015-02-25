@@ -597,11 +597,7 @@ def (ChkBuild::Ruby).build_proc(b)
       excludes = ["rubyspec/optional/ffi"]
       b.catch_error {
         FileUtils.rmtree "rubyspec_temp"
-        if ruby_version.before(1,9)
-          config = Dir.pwd + "/rubyspec/ruby.1.8.mspec"
-        else
-          config = Dir.pwd + "/rubyspec/ruby.1.9.mspec"
-        end
+        config = Dir.pwd + "/rubyspec/ruby.mspec"
         command = %W[bin/ruby mspec/bin/mspec -V -f s -B #{config} -t #{rubybin}]
         command << "rubyspec"
         command << {
