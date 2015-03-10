@@ -123,6 +123,8 @@ class ChkBuild::IBuild
       }
       puts "CHECKOUT git #{cloneurl} #{working_dir}"
       puts "LASTCOMMIT #{new_head}"
+      branch = git_current_branch
+      puts "BRANCH #{branch}"
     }
   end
 
@@ -141,6 +143,13 @@ class ChkBuild::IBuild
     IO.popen("git rev-list --max-count=1 HEAD") {|f|
       # <sha1><LF>
       # 4db0223676a371da8c4247d9a853529ef50a3b01
+      f.read.chomp
+    }
+  end
+
+  def git_current_branch
+    command = "git rev-parse --abbrev-ref HEAD"
+    IO.popen(command) {|f|
       f.read.chomp
     }
   end
