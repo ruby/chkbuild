@@ -76,6 +76,7 @@ class ChkBuild::IBuild
     opts_shared = opts.dup
     opts_shared[:section] += "(shared)"
     cloneurl2 = "#{GIT_SHARED_DIR}/#{working_dir}.git"
+    branch = opts[:branch] || git_default_branch(cloneurl)
     Dir.chdir(GIT_SHARED_DIR) {
       if File.directory?(cloneurl2) &&
          Dir.chdir(cloneurl2) { `git config --get remote.origin.url` }.chomp != cloneurl
@@ -108,7 +109,7 @@ class ChkBuild::IBuild
       FileUtils.mkdir_p(pdir) if !File.directory?(pdir)
       git_logfile(opts) {|opts2|
 	command = ["git", "clone", "-q"]
-	command << '--branch' << opts[:branch] if opts[:branch]
+	command << '--branch' << branch if branch
 	command << cloneurl2
 	command << working_dir
 	command << opts2
@@ -152,6 +153,28 @@ class ChkBuild::IBuild
     IO.popen(command) {|f|
       f.read.chomp
     }
+  end
+
+  def git_default_branch(git_url)
+    remote_heads = IO.popen(['git', 'ls-remote', git_url, 'HEAD', 'refs/heads/*']) {|f| f.readlines }
+    head_commit = nil
+    h = {}
+    remote_heads.each {|line|
+      next if /\A([0-9a-f]+)\s+(\S+)\n\z/ !~ line
+      commit = $1
+      ref = $2
+      case ref
+      when 'HEAD'
+        head_commit = commit
+      when %r{\Arefs/heads/}
+        h[commit] = $'
+      end
+    }
+    if head_commit && h.has_key?(head_commit)
+      h[head_commit]
+    else
+      nil
+    end
   end
 end
 
