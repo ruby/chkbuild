@@ -594,7 +594,6 @@ def (ChkBuild::Ruby).build_proc(b)
     Dir.chdir(ruby_build_dir)
     if use_rubyspec
       rubybin = ruby_build_dir + "bin/ruby"
-      excludes = ["rubyspec/optional/ffi"]
       b.catch_error {
         FileUtils.rmtree "rubyspec_temp"
         config = Dir.pwd + "/rubyspec/default.mspec"
@@ -610,7 +609,6 @@ def (ChkBuild::Ruby).build_proc(b)
           d.stable_find {|f|
             Find.prune if %w[.git fixtures nbproject shared tags].include? f.basename.to_s
             next if /_spec\.rb\z/ !~ f.basename.to_s
-            Find.prune if excludes.any? {|e| f.to_s.start_with?("#{e}/") }
             s = f.lstat
             next if !s.file?
             b.catch_error {
