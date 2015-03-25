@@ -750,7 +750,7 @@ ChkBuild.define_failure_hook('ruby', "test-all") {|log|
 }
 
 ChkBuild.define_failure_hook('ruby', "rubyspec") {|log|
-  if /.*^\d+ files?, \d+ examples?, \d+ expectations?, (\d+) failures?, (\d+) errors?$/m =~ log
+  if /.*^\d+ files?, \d+ examples?, \d+ expectations?, (\d+) failures?, (\d+) errors?/m =~ log
     failures = $1.to_i
     errors = $2.to_i
     if failures != 0 || errors != 0
