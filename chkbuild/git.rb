@@ -284,14 +284,14 @@ class ChkBuild::IFormat
     end
   end
 
-  def git_print_logs(logs, urigen, out)
+  def git_print_logs(working_dir, logs, urigen, out)
     logs.each {|commit_hash, title_line|
       if urigen
         commit = urigen.call(commit_hash)
       else
         commit = commit_hash
       end
-      line = "COMMIT #{title_line}\t#{commit}"
+      line = "COMMIT #{working_dir} #{title_line}\t#{commit}"
       out.puts line
     }
   end
@@ -317,7 +317,7 @@ class ChkBuild::IFormat
     cloneurl2 = "#{GIT_SHARED_DIR}/#{working_dir}.git"
     Dir.chdir(cloneurl2) {
       logs = git_oneline_logs2(lastrev1, lastrev2)
-      git_print_logs(logs, urigen, out)
+      git_print_logs(working_dir, logs, urigen, out)
     }
   end
 end
