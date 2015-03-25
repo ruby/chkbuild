@@ -1136,8 +1136,8 @@ ChkBuild.define_diff_preprocess_gsub('ruby', %r{/dev/pts/\d+}) {|match|
 # rubyspec:
 # 2932 files, 13911 examples, 182945 expectations, 34 failures, 24 errors
 # 1 file, 36 examples, 52766 expectations, 0 failures, 0 errors
-ChkBuild.define_diff_preprocess_gsub('ruby', /^\d+ files?, \d+ examples?, \d+ expectations?, \d+ failures?, \d+ errors?$/) {|match|
-  '<num> files, <num> examples, <num> expectations, <num> failures, <num> errors'
+ChkBuild.define_diff_preprocess_gsub('ruby', /^\d+ files?, \d+ examples?, \d+ expectations?, \d+ failures?, \d+ errors?(?:, \d+ tagged)?/) {|match|
+  '<num> files, <num> examples, <num> expectations, <num> failures, <num> errors, <num> tagged'
 }
 
 # rubyspec:
