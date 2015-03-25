@@ -734,13 +734,9 @@ ChkBuild.define_failure_hook('ruby', "test.rb") {|log|
 }
 
 ChkBuild.define_failure_hook('ruby', "test-all") {|log|
-  if /.*^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors$/m =~ log
-    failures = $1.to_i
-    errors = $2.to_i
-    if failures != 0 || errors != 0
-      "#{failures}F#{errors}E"
-    end
-  elsif /.*^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors, (\d+) skips$/m =~ log
+  # 5422 tests, 1924652 assertions, 11 failures, 5 errors
+  # 16162 tests, 2235446 assertions, 1 failures, 0 errors, 39 skips
+  if /.*^\d+ tests, \d+ assertions, (\d+) failures, (\d+) errors/m =~ log
     failures = $1.to_i
     errors = $2.to_i
     if failures != 0 || errors != 0
@@ -750,6 +746,8 @@ ChkBuild.define_failure_hook('ruby', "test-all") {|log|
 }
 
 ChkBuild.define_failure_hook('ruby', "rubyspec") {|log|
+  # 3604 files, 24079 examples, 173399 expectations, 0 failures, 0 errors
+  # 3455 files, 24098 examples, 173444 expectations, 0 failures, 0 errors, 0 tagged
   if /.*^\d+ files?, \d+ examples?, \d+ expectations?, (\d+) failures?, (\d+) errors?/m =~ log
     failures = $1.to_i
     errors = $2.to_i
