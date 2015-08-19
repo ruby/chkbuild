@@ -172,4 +172,111 @@ module ChkBuild
     end
     true
   end
+
+  # S3
+  #
+  # == Usage
+  # Add `ChkBuild.s3_upload_target` to sample/build-ruby
+  #
+  # == Environmental Variables
+  #  :access_key_id => ENV['AWS_ACCESS_KEY_ID'],
+  #  :secret_access_key => ENV['AWS_SECRET_ACCESS_KEY'])
+
+  def self.s3_upload_target
+    bucket_name = 'rubyci'
+    region = 'ap-northeast-1'
+    require 'aws-sdk'
+    bucket = Aws::S3::Resource.new(region: region).bucket(bucket_name)
+    self.add_upload_hook {|depsuffixed_name|
+      self.do_upload_s3(bucket, depsuffixed_name)
+    }
+  end
+
+  def self.do_upload_s3(bucket, branch)
+    cmd = %w[gzgrep zgrep].find{|x|spawn(x, '-V', out: IO::NULL, err: IO::NULL) rescue nil}
+    keep = []
+    require 'open3'
+    logdir = s3_localpath("#{branch}/log")
+    res, _ = Open3.capture2('find', logdir, '-name', '*.fail.html.gz', '-exec', cmd,'-Hm1','placeholder_start','{}',';')
+    res.each_line do |line|
+      # 20150816T150308Z.fail.html.gz:      <!--placeholder_start-->NewerDiff<!--placeholder_end--> &gt;
+      keep << line[logdir.size+1, 16]
+    end
+    puts"keep: #{keep}"
+
+    now = Time.now
+    Dir.foreach(logdir) do |filename|
+      next unless filename.end_with?('.gz')
+      path = "#{branch}/log/#{filename}"
+      filepath = s3_localpath(path)
+      if s3sync(bucket, path)
+        # upload success
+        if path.end_with?('.html.gz') &&
+          IO.read(filepath, 1000).include?('placeholder_start')
+          next
+        end
+        unless keep.include?(filename[0, 16])
+          puts "remove: #{filename}"
+          File.unlink filepath # temporaly don't remove logs
+        end
+      end
+    end
+
+    %w[current.txt last.html.gz recent.ltsv summary.html summary.txt
+      last.html last.txt recent.html rss summary.ltsv].each do |fn|
+      path = "#{branch}/#{fn}"
+      s3sync(bucket, path)
+    end
+  end
+
+  def self.s3_localpath(path)
+    "#{ChkBuild.public_top}/#{path}"
+  end
+
+  def self.s3_remotepath(path)
+    "#{ChkBuild.nickname}/#{path}"
+  end
+
+  def self.s3sync(bucket, path)
+    blobname = s3_remotepath(path)
+    filepath = s3_localpath(path)
+    unless File.exist?(filepath)
+      warn "file '#{filepath}' is not found"
+      return false
+    end
+
+    options = {}
+    case path
+    when /\.txt\.gz\z/
+      options[:content_type] = 'text/plain'
+      options[:content_encoding] = 'gzip'
+    when /\.html\.gz\z/
+      options[:content_type] = 'text/html'
+      options[:content_encoding] = 'gzip'
+    when /\.(?:ltsv|txt)\z/
+      options[:content_type] = 'text/plain'
+    when /\.html\z/
+      options[:content_type] = 'text/html'
+    when /(?:\A|\/)rss\z/
+      options[:content_type] = 'application/rss+xml'
+    else
+      warn "no content_type is defined for #{filepath}"
+    end
+
+    puts "uploading '#{filepath}' to #{blobname}..."
+    bucket.object(blobname).upload_file(filepath, options)
+    true
+  end
+end
+
+if __FILE__ == $0
+  require 'pathname'
+  require_relative 'main'
+  def ChkBuild.main; end
+  load File.expand_path('../../start-build', __FILE__)
+
+  Dir.foreach(ChkBuild.s3_localpath("")) do |depsuffixed_name|
+    next unless depsuffixed_name.start_with?('ruby-')
+    ChkBuild.run_upload_hooks(depsuffixed_name)
+  end
 end
