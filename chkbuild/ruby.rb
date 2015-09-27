@@ -1273,7 +1273,9 @@ ChkBuild.define_file_changes_viewer('svn',
 
 ChkBuild.define_failure_start_pattern('ruby', nil, /\[BUG\]/)
 ChkBuild.define_failure_start_pattern('ruby', 'btest', /: $/)
-ChkBuild.define_failure_start_pattern('ruby', 'test-all', /\AFinished tests in /)
-ChkBuild.define_failure_start_pattern('ruby', %r{\Atest/}, /\AFinished tests in /)
+['test-all', %r{\Atest/}].each {|secname|
+  ChkBuild.define_failure_start_pattern('ruby', secname, /\A\d+ tests, \d+ assertions, [1-9]\d* failures, \d+ errors/)
+  ChkBuild.define_failure_start_pattern('ruby', secname, /\A\d+ tests, \d+ assertions, \d+ failures, [1-9]\d* errors/)
+}
 ChkBuild.define_failure_start_pattern('ruby', 'rubyspec', /\A1\)\n\z/)
 ChkBuild.define_failure_start_pattern('ruby', %r{\A(?!(btest\z|test-all\z|test/|rubyspec))}, /:\d+:in `/)
