@@ -141,6 +141,7 @@ def (ChkBuild::Ruby::CompleteOptions).call(target_opts)
     when "mvm" then hs << { :ruby_branch => 'branches/mvm' }
     when "half-baked-1.9" then hs << { :ruby_branch => 'branches/half-baked-1.9' }
     when "matzruby" then hs << { :ruby_branch => 'branches/matzruby' }
+    when "2.3" then hs << { :ruby_branch => 'branches/ruby_2_3' }
     when "2.2" then hs << { :ruby_branch => 'branches/ruby_2_2' }
     when "2.1" then hs << { :ruby_branch => 'branches/ruby_2_1' }
     when "2.0.0" then hs << { :ruby_branch => 'branches/ruby_2_0_0' }
