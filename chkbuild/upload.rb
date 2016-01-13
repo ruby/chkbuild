@@ -114,7 +114,7 @@ module ChkBuild
     rescue Azure::Core::Http::HTTPError => e
       server_start_time = '00000000T000000Z'
       if e.type == 'ContainerNotFound'
-        service.create_container(container, public_access_level: 'container')
+        service.create_container(container, :public_access_level => 'container')
       end
     end
     puts "Azure: #{branch} start_time: #{server_start_time}"
