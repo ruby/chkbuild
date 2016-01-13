@@ -193,7 +193,7 @@ module ChkBuild
   end
 
   def self.do_upload_s3(bucket, branch)
-    cmd = %w[gzgrep zgrep].find{|x|spawn(x, '-V', out: IO::NULL, err: IO::NULL) rescue nil}
+    cmd = %w[/opt/csw/bin/zgrep gzgrep zgrep].find{|x|spawn(x, '-V', out: IO::NULL, err: IO::NULL) rescue nil}
     keep = []
     require 'open3'
     logdir = s3_localpath("#{branch}/log")
