@@ -344,6 +344,12 @@ def (ChkBuild::Ruby).build_proc(b)
       end
     }
   end
+  if /\A\d+-\d+-\d+\z/ !~ version_info['RUBY_RELEASE_DATE']
+    version_info['RUBY_RELEASE_DATE'] = '%04d-%02d-%02d' % version_info.values_at(
+      *%w[YEAR MONTH DAY].map{|s|"RUBY_RELEASE_#{s}"}
+    ).map(&:to_i)
+    puts %<#define RUBY_RELEASE_DATE "#{version_info['RUBY_RELEASE_DATE']}">
+  end
   ruby_version = ChkBuild::Ruby::RubyVersion.new(version_info)
 
   if force_gperf
