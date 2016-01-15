@@ -913,7 +913,7 @@ ChkBuild.define_diff_preprocess_gsub('ruby', %r{^ *A tool for checking backward 
 }
 
 # btest since 2014-06-08
-#   test_attr.rb 
+#   test_attr.rb
 #   #1 test_attr.rb:1:in `<top (required)>' F 0.006
 #   stderr output is not empty
 #      bootstraptest.tmp.rb:2:in `<main>': undefined local variable or method `x' for main:Object (NameError)
