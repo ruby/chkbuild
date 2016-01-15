@@ -484,7 +484,7 @@ def (ChkBuild::Ruby).build_proc(b)
       b.catch_error { b.make("btest", "OPTS=-v -q", make_options.merge(:section=>"btest")) }
     end
     b.catch_error {
-      b.run("./miniruby", "#{srcdir+'sample/test.rb'}", :section=>"test.rb")
+      b.make("test-sample", make_options.merge(:section=>"test.rb"))
       if /^end of test/ !~ b.logfile.get_section('test.rb')
         raise ChkBuild::Build::CommandError.new(0, "test.rb")
       end
@@ -913,7 +913,7 @@ ChkBuild.define_diff_preprocess_gsub('ruby', %r{^ *A tool for checking backward 
 }
 
 # btest since 2014-06-08
-#   test_attr.rb 
+#   test_attr.rb
 #   #1 test_attr.rb:1:in `<top (required)>' F 0.006
 #   stderr output is not empty
 #      bootstraptest.tmp.rb:2:in `<main>': undefined local variable or method `x' for main:Object (NameError)
