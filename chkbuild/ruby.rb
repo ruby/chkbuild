@@ -484,7 +484,12 @@ def (ChkBuild::Ruby).build_proc(b)
       b.catch_error { b.make("btest", "OPTS=-v -q", make_options.merge(:section=>"btest")) }
     end
     b.catch_error {
-      b.run("./miniruby", "#{srcdir+'sample/test.rb'}", :section=>"test.rb")
+      testfile = if File.exist?("#{srcdir+'basictest/test.rb'}")
+                   "#{srcdir+'basictest/test.rb'}" # Ruby 2.4 or later.
+                 else
+                   "#{srcdir+'sample/test.rb'}"
+                 end
+      b.run("./miniruby", testfile, :section=>"test.rb")
       if /^end of test/ !~ b.logfile.get_section('test.rb')
         raise ChkBuild::Build::CommandError.new(0, "test.rb")
       end
