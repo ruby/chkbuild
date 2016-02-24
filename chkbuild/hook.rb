@@ -69,7 +69,7 @@ module ChkBuild
   ChkBuild.define_title_hook(nil, nil) {|title, logfile|
     num_warns = 0
     logfile.each_line {|line|
-      line.scan(/warn/i) {
+      line.scan(/\bwarning:/i) {
         num_warns += 1
       }
     }
