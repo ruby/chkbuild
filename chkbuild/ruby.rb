@@ -106,7 +106,7 @@ End
   DOMAINLABEL = /[A-Za-z0-9-]+/
   DOMAINPAT = /#{DOMAINLABEL}(\.#{DOMAINLABEL})*/
 
-  MaintainedBranches = %w[trunk 2.1 2.0.0 1.9.3]
+  MaintainedBranches = %w[trunk 2.3 2.2 2.1]
 
   module_function
 
@@ -918,7 +918,7 @@ ChkBuild.define_diff_preprocess_gsub('ruby', %r{^ *A tool for checking backward 
 }
 
 # btest since 2014-06-08
-#   test_attr.rb 
+#   test_attr.rb
 #   #1 test_attr.rb:1:in `<top (required)>' F 0.006
 #   stderr output is not empty
 #      bootstraptest.tmp.rb:2:in `<main>': undefined local variable or method `x' for main:Object (NameError)
