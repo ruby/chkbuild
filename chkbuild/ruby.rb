@@ -893,11 +893,12 @@ ChkBuild.define_diff_preprocess_gsub('ruby', /^done\.  \(\d+\.\d\duser \d+\.\d\d
 # rdoc:
 #   0% [ 1/513]   eval.c
 #   0% [ 2/513]   prelude.c
+#   2% [19/949]  ...chkbuild/tmp/build/20160406T053229Z/ruby/doc/contributing.rdoc
 # ...
 #  99% [512/513]   ext/zlib/zlib.c
 # 100% [513/513]   doc/re.rdoc
-ChkBuild.define_diff_preprocess_gsub('ruby', %r{^\s*\d+%\s+\[\s*\d+/\d+\]}) {|match|
-  "XXX% [XXX/XXX]"
+ChkBuild.define_diff_preprocess_gsub('ruby', %r{^\s*\d+%\s+\[\s*\d+/\d+\]  (\S*/)?([^/]+)$}) {|match|
+  "XXX% [XXX/XXX]  #{match[1] ? '<dir>/' : ''}#{match[2]}"
 }
 
 # ldd
@@ -1090,6 +1091,18 @@ ChkBuild.define_diff_preprocess_gsub('ruby', %r{-?\d+\.\d\d s: }) {|match|
 # CGIMultipartTest#test_cgi_multipart_badbody = 0.01 s = .
 ChkBuild.define_diff_preprocess_gsub('ruby', %r{-?\d+\.\d\d s =}) {|match|
   '<elapsed> s ='
+}
+
+# test/lib/test
+# [ 2831/16461] TestArray#test_product = 2.18 s
+ChkBuild.define_diff_preprocess_gsub('ruby', %r{ = -?\d+\.\d\d s}) {|match|
+  ' = <elapsed> s'
+}
+
+# test/lib/test
+# [ 2831/16461] TestArray#test_product = 2.18 s
+ChkBuild.define_diff_preprocess_gsub('ruby', %r{^\[ *\d+/\d+\] }) {|match|
+  '[n/n] '
 }
 
 # Errno::ENOENT: No such file or directory - /home/akr/chkbuild/tmp/build/ruby-trunk/<buildtime>/tmp/generate_test_12905.csv
