@@ -224,6 +224,13 @@ ChkBuild.define_title_hook(%w[nativeruby crossruby], %w[svn-info/ruby version.h 
   end
 }
 
+ChkBuild.define_title_hook(%w[nativeruby crossruby], 'svn-info/ruby') {|title, log|
+  lastrev = /^Last Changed Rev: (\d+)$/.match(log)
+  if lastrev
+    title.update_hidden_title(:ruby_rev, "r#{lastrev[1]}")
+  end
+}
+
 def show_binaries(b)
   if Util.search_command('file')
     b.catch_error {
@@ -246,7 +253,7 @@ end
 
 ChkBuild.define_build_proc('nativeruby') {|b|
   b.svn("http://svn.ruby-lang.org/repos/ruby", 'trunk', 'ruby')
-  b.svn_info('ruby')
+  b.svn_info('ruby', :section=>"svn-info/ruby")
   Dir.chdir('ruby') {
     show_version_h(b)
     b.run('autoconf')
@@ -267,7 +274,7 @@ ChkBuild.define_build_proc('crossruby') {|b|
   b.catch_error { b.run(baseruby, "-v", :section=>"baseruby-version") }
   branch = b.opts[:branch] || 'trunk'
   b.svn("http://svn.ruby-lang.org/repos/ruby", branch, 'ruby')
-  b.svn_info('ruby')
+  b.svn_info('ruby', :section=>"svn-info/ruby")
   Dir.chdir('ruby') {
     show_version_h(b)
     b.run('autoconf')

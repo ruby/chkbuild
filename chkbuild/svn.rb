@@ -54,6 +54,8 @@ class ChkBuild::IBuild
   def svn(svnroot, rep_dir, working_dir, opts={})
     network_access {
       svn_internal(svnroot, rep_dir, working_dir, opts)
+      opts = opts.dup
+      opts[:section] = nil
       svn_info(working_dir, opts)
     }
   end
@@ -108,7 +110,7 @@ class ChkBuild::IBuild
   def svn_info(working_dir, opts={})
     opts = opts.dup
     opts["ENV:LC_ALL"] = "C"
-    opts[:section] = nil
+    opts[:section] = 'svn-info' unless opts.has_key? :section
     Dir.chdir(working_dir) {
       self.run "svn", "info", opts
     }
