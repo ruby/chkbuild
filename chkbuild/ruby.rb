@@ -666,6 +666,9 @@ ChkBuild.define_title_hook('ruby', %w[svn-info/ruby version.h verconf.h]) {|titl
   lastrev = /^Last Changed Rev: (\d+)$/.match(log)
   version = /^#\s*define RUBY_VERSION "(\S+)"/.match(log)
   reldate = /^#\s*define RUBY_RELEASE_DATE "(\S+)"/.match(log)
+  relyear = /^#\s*define RUBY_RELEASE_YEAR (\d+)/.match(log)
+  relmonth = /^#\s*define RUBY_RELEASE_MONTH (\d+)/.match(log)
+  relday = /^#\s*define RUBY_RELEASE_DAY (\d+)/.match(log)
   patchlev = /^#\s*define RUBY_PATCHLEVEL (\S+)/.match(log)
   platform = /^#\s*define RUBY_PLATFORM "(\S+)"/.match(log)
   if lastrev
@@ -674,10 +677,15 @@ ChkBuild.define_title_hook('ruby', %w[svn-info/ruby version.h verconf.h]) {|titl
       str << "r#{lastrev[1]} "
     end
     str << 'ruby '
+    if reldate
+      reldate = reldate[1]
+    elsif relyear && relmonth && relday
+      reldate = "#{relyear[1]}-#{relmonth[1]}-#{relday[1]}"
+    end
     if version && reldate
       str << version[1]
       str << (patchlev[1] == '-1' ? 'dev' : "p#{patchlev[1]}") if patchlev
-      str << " (" << reldate[1] << ")"
+      str << " (" << reldate << ")"
       str << " [" << platform[1] << "]" if platform
       ss = title.suffixed_name.split(/-/)[1..-1].reject {|s|
         /\A(trunk|1\.8)\z/ =~ s ||

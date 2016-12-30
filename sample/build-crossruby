@@ -213,7 +213,7 @@ ChkBuild.define_title_hook(%w[nativeruby crossruby], %w[svn-info/ruby version.h 
     str << 'ruby '
     if reldate
       reldate = reldate[1]
-    elsif !reldate && relyear && relmonth && relday
+    elsif relyear && relmonth && relday
       reldate = "#{relyear[1]}-#{relmonth[1]}-#{relday[1]}"
     end
     if version && reldate
