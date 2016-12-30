@@ -195,7 +195,7 @@ def show_verconf_h(b)
   end
 end
 
-ChkBuild.define_title_hook(%w[nativeruby crossruby], %w[svn/ruby version.h verconf.h]) {|title, logs|
+ChkBuild.define_title_hook(%w[nativeruby crossruby], %w[svn-info/ruby version.h verconf.h]) {|title, logs|
   log = logs.join('')
   lastrev = /^Last Changed Rev: (\d+)$/.match(log)
   version = /^#\s*define RUBY_VERSION "(\S+)"/.match(log)
@@ -246,6 +246,7 @@ end
 
 ChkBuild.define_build_proc('nativeruby') {|b|
   b.svn("http://svn.ruby-lang.org/repos/ruby", 'trunk', 'ruby')
+  b.svn_info('ruby')
   Dir.chdir('ruby') {
     show_version_h(b)
     b.run('autoconf')
