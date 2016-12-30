@@ -309,7 +309,8 @@ def (ChkBuild::Ruby).build_proc(b)
 
   Dir.chdir(checkout_dir)
   b.svn("http://svn.ruby-lang.org/repos/ruby", ruby_branch, 'ruby')
-  svn_info_section = b.logfile.get_section('svn/ruby')
+  b.svn_info('ruby', :section=>"svn-info/ruby")
+  svn_info_section = b.logfile.get_section('svn-info/ruby')
   ruby_svn_rev = svn_info_section[/Last Changed Rev: (\d+)/, 1].to_i
 
   Dir.chdir("ruby")
@@ -660,7 +661,7 @@ ChkBuild.define_build_proc('ruby') {|b|
   ChkBuild::Ruby.build_proc(b)
 }
 
-ChkBuild.define_title_hook('ruby', %w[svn/ruby version.h verconf.h]) {|title, logs|
+ChkBuild.define_title_hook('ruby', %w[svn-info/ruby version.h verconf.h]) {|title, logs|
   log = logs.join('')
   lastrev = /^Last Changed Rev: (\d+)$/.match(log)
   version = /^#\s*define RUBY_VERSION "(\S+)"/.match(log)
@@ -689,7 +690,7 @@ ChkBuild.define_title_hook('ruby', %w[svn/ruby version.h verconf.h]) {|title, lo
   end
 }
 
-ChkBuild.define_title_hook('ruby', 'svn/ruby') {|title, log|
+ChkBuild.define_title_hook('ruby', 'svn-info/ruby') {|title, log|
   lastrev = /^Last Changed Rev: (\d+)$/.match(log)
   if lastrev
     title.update_hidden_title(:ruby_rev, "r#{lastrev[1]}")
