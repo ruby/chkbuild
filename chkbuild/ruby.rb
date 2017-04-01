@@ -106,7 +106,7 @@ End
   DOMAINLABEL = /[A-Za-z0-9-]+/
   DOMAINPAT = /#{DOMAINLABEL}(\.#{DOMAINLABEL})*/
 
-  MaintainedBranches = %w[trunk 2.4 2.3 2.2 2.1]
+  MaintainedBranches = %w[trunk 2.4 2.3 2.2]
 
   module_function
 
