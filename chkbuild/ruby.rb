@@ -647,8 +647,8 @@ def (ChkBuild::Ruby).build_proc(b)
       end
     end
 
-    Dir.chdir(ruby_build_dir)
     if use_rubyspec_in_tree
+      b.mkcd("ruby")
       b.catch_error {
         FileUtils.rmtree "rubyspec_temp"
         b.make("test-rubyspec", "RUBYOPT=-w", make_options.merge(:section=>"rubyspec"))
