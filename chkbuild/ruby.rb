@@ -651,7 +651,7 @@ def (ChkBuild::Ruby).build_proc(b)
       b.mkcd("ruby")
       b.catch_error {
         FileUtils.rmtree "rubyspec_temp"
-        b.make("test-rubyspec", "RUBYOPT=-w", "MSPECOPT=-fm", make_options.merge(:section=>"rubyspec"))
+        b.make("test-rubyspec", "MSPECOPT=-fm", make_options.merge(:section=>"rubyspec"))
       }
     end
   end
