@@ -141,11 +141,8 @@ def (ChkBuild::Ruby::CompleteOptions).call(target_opts)
     when "mvm" then hs << { :ruby_branch => 'branches/mvm' }
     when "half-baked-1.9" then hs << { :ruby_branch => 'branches/half-baked-1.9' }
     when "matzruby" then hs << { :ruby_branch => 'branches/matzruby' }
-    when "2.5" then hs << { :ruby_branch => 'branches/ruby_2_5' }
-    when "2.4" then hs << { :ruby_branch => 'branches/ruby_2_4' }
-    when "2.3" then hs << { :ruby_branch => 'branches/ruby_2_3' }
-    when "2.2" then hs << { :ruby_branch => 'branches/ruby_2_2' }
-    when "2.1" then hs << { :ruby_branch => 'branches/ruby_2_1' }
+    when /\A([3-9]).([0-9]\d*)\z/ then hs << { :ruby_branch => "branches/ruby_#$1_#$2" }
+    when /\A2.([1-9]\d*)\z/ then hs << { :ruby_branch => "branches/ruby_2_#$1" }
     when "2.0.0" then hs << { :ruby_branch => 'branches/ruby_2_0_0' }
     when "1.9.3" then hs << { :ruby_branch => 'branches/ruby_1_9_3' }
     when "1.9.2" then hs << { :ruby_branch => 'branches/ruby_1_9_2' }
