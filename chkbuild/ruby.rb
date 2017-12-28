@@ -106,9 +106,26 @@ End
   DOMAINLABEL = /[A-Za-z0-9-]+/
   DOMAINPAT = /#{DOMAINLABEL}(\.#{DOMAINLABEL})*/
 
-  MaintainedBranches = %w[trunk 2.5 2.4 2.3 2.2]
+  OldestMaintainedRelease = "2.2"
 
   module_function
+
+  def ruby_branches
+    IO.popen("svn ls http://svn.ruby-lang.org/repos/ruby/branches") {|f|
+      f.readlines.map {|f| f.chomp("/\n") }
+    }
+  end
+
+  def maintained_release_branches(rbs=ruby_branches)
+    rbs.map {|b|
+      next if /\Aruby_(\d+)_(\d+)\z/ !~ b
+      major_minor = [$1.to_i, $2.to_i]
+      major_minor = nil if (major_minor <=> OldestMaintainedRelease.scan(/\d+/).map(&:to_i)) < 0
+      major_minor
+    }.compact.sort.reverse.map {|major, minor|
+      "#{major}.#{minor}"
+    }
+  end
 
   def def_target(*args)
     args << { :complete_options => CompleteOptions }

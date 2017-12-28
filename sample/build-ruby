@@ -56,10 +56,7 @@ require 'chkbuild'
 ChkBuild::Ruby.def_target(
   [
     { :suffix_? => 'trunk', :output_interval_timeout => '10min' },
-    '2.5',
-    '2.4',
-    '2.3',
-    '2.2',
+    *ChkBuild::Ruby.maintained_release_branches
   ],
 
 #   [ # :abi_check needs --enable-shared
