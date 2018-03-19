@@ -198,7 +198,7 @@ def (ChkBuild::Ruby::CompleteOptions).call(target_opts)
     :force_gperf => false,
     :use_rubyspec => false,
     :use_rubyspec_in_tree => false,
-    :use_bundler => false,
+    :use_bundled_gems => false,
     :inplace_build => true,
     :validate_dependencies => false,
     :do_test => true,
@@ -222,8 +222,8 @@ def (ChkBuild::Ruby::CompleteOptions).call(target_opts)
     opts[:use_rubyspec_in_tree] = true
   end
 
-  if /trunk/ =~ ruby_branch && opts[:use_bundler]
-    opts[:use_bundler] = true
+  if /trunk/ =~ ruby_branch && opts[:use_bundled_gems]
+    opts[:use_bundled_gems] = true
   end
 
   if ruby_branch == 'branches/mvm' &&
@@ -308,7 +308,7 @@ def (ChkBuild::Ruby).build_proc(b)
   make_options = Util.opts2hashparam(bopts, :make_options)
   use_rubyspec = bopts[:use_rubyspec]
   use_rubyspec_in_tree = bopts[:use_rubyspec_in_tree]
-  use_bundler = bopts[:use_bundler]
+  use_bundled_gems = bopts[:use_bundled_gems]
   force_gperf = bopts[:force_gperf]
   inplace_build = bopts[:inplace_build]
   parallel = bopts[:parallel]
@@ -676,9 +676,9 @@ def (ChkBuild::Ruby).build_proc(b)
       }
     end
 
-    if use_bundler
+    if use_bundled_gems
       b.catch_error {
-        b.make("yes-test-bundler", make_options.merge(:section => "test-bundler"))
+        b.make("yes-test-bundled-gems", make_options.merge(:section => "test-bundled-gems"))
       }
     end
   end
