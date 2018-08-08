@@ -405,7 +405,7 @@ class ChkBuild::IBuild # internal build
         if command_status.exited?
           puts "exit #{command_status.exitstatus}"
         elsif command_status.signaled?
-          puts "signal #{SignalNum2Name[command_status.termsig]} (#{command_status.termsig})"
+          puts "chkbuild: signal #{SignalNum2Name[command_status.termsig]} (#{command_status.termsig})"
         elsif command_status.stopped?
           puts "stop #{SignalNum2Name[command_status.stopsig]} (#{command_status.stopsig})"
         else

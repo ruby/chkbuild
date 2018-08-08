@@ -844,9 +844,9 @@ ChkBuild.define_title_hook('ruby', nil) {|title, logfile|
     line = line.sub(/combination may cause frequent hang or segmentation fault|hangs or segmentation faults/, '') # skip tk message.
     numbugs += line.scan(/\[BUG\]/i).length
     numsegv += line.scan(/segmentation fault|signal segv/i).length
-    numsigbus += line.scan(/signal SIGBUS/i).length
-    numsigill += line.scan(/signal SIGILL/i).length
-    numsigabrt += line.scan(/signal SIGABRT/i).length
+    numsigbus += line.scan(/chkbuild: signal SIGBUS/i).length
+    numsigill += line.scan(/chkbuild: signal SIGILL/i).length
+    numsigabrt += line.scan(/chkbuild: signal SIGABRT/i).length
     numfatal += line.scan(/\[FATAL\]/i).length
   }
   mark = ''
