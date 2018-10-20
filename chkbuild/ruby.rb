@@ -155,9 +155,6 @@ def (ChkBuild::Ruby::CompleteOptions).call(target_opts)
   suffixes.each {|s|
     case s
     when "trunk" then hs << { :ruby_branch => 'trunk' }
-    when "mvm" then hs << { :ruby_branch => 'branches/mvm' }
-    when "half-baked-1.9" then hs << { :ruby_branch => 'branches/half-baked-1.9' }
-    when "matzruby" then hs << { :ruby_branch => 'branches/matzruby' }
     when /\A([3-9]).([0-9]\d*)\z/ then hs << { :ruby_branch => "branches/ruby_#$1_#$2" }
     when /\A2.([1-9]\d*)\z/ then hs << { :ruby_branch => "branches/ruby_2_#$1" }
     when "2.0.0" then hs << { :ruby_branch => 'branches/ruby_2_0_0' }
@@ -226,14 +223,8 @@ def (ChkBuild::Ruby::CompleteOptions).call(target_opts)
     opts[:use_bundled_gems] = true
   end
 
-  if ruby_branch == 'branches/mvm' &&
-     opts.fetch(:cppflags, []).include?('-DRUBY_DEBUG_ENV')
-    opts.fetch(:cppflags).delete '-DRUBY_DEBUG_ENV'
-  end
-
   if Util.opts2aryparam(opts, :configure_args).include?("--enable-pthread")
-    if %r{\Abranches/ruby_1_8} !~ ruby_branch &&
-       %r{\Abranches/matzruby} !~ ruby_branch
+    if %r{\Abranches/ruby_1_8} !~ ruby_branch
       return nil
     end
   end
