@@ -227,6 +227,17 @@ module ChkBuild
       path = "#{branch}/#{fn}"
       s3sync(bucket, path)
     end
+
+    lcovdir = s3_localpath("#{branch}/lcov")
+    if File.directory?(lcovdir)
+      prefix = s3_localpath("")
+      Dir.glob(lcovdir + "/**/*", File::FNM_DOTMATCH).sort.each do |filepath|
+        if File.file?(filepath) && filepath.start_with?(prefix)
+	  path = filepath[prefix.size..-1]
+	  s3sync(bucket, path)
+        end
+      end
+    end
   end
 
   def self.s3_localpath(path)

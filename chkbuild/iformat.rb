@@ -210,10 +210,17 @@ class ChkBuild::IFormat # internal format
     @compressed_loghtml_relpath = "#{@depsuffixed_name}/log/#{@t}.log.html.gz"
     @compressed_failhtml_relpath = "#{@depsuffixed_name}/log/#{@t}.fail.html.gz"
     @compressed_diffhtml_relpath = "#{@depsuffixed_name}/log/#{@t}.diff.html.gz"
+    if opts[:coverage_measurement]
+      @lcov_info_filename = @build_dir + 'ruby/lcov-all.info'
+      @lcov_html_dirname = @build_dir + 'ruby/lcov-out'
+      @lcov_html_relpath = "#{@depsuffixed_name}/lcov"
+      @compressed_lcov_relpath = "#{@depsuffixed_name}/log/#{@t}-lcov.info.gz"
+    end
 
     store_title_version(title_version)
     force_link @current_txt, ChkBuild.public_top+@last_txt_relpath if @current_txt.file?
     make_logfail_text_gz(@log_filename, ChkBuild.public_top+@compressed_rawfail_relpath)
+    make_lcov_info_gz(@lcov_info_filename, ChkBuild.public_top+@compressed_lcov_relpath) if opts[:coverage_measurement]
     failure = detect_failure(@t)
     @current_status = (failure || :success).to_s
     @has_neterror = failure == :netfail
@@ -234,6 +241,7 @@ class ChkBuild::IFormat # internal format
     make_failhtml(title)
     make_diffhtml(title, different_sections)
     make_rss(title, different_sections)
+    make_lcov_out if opts[:coverage_measurement]
     update_older_page if @older_time && failure != :netfail
   end
 
@@ -1219,6 +1227,20 @@ End
       open(log_txt_filename) {|input|
         extract_failures(input, z)
       }
+    }
+  end
+
+  def make_lcov_out
+    if (ChkBuild.public_top+@lcov_html_relpath).exist?
+      require "fileutils"
+      FileUtils.rm_r(ChkBuild.public_top+@lcov_html_relpath)
+    end
+    FileUtils.cp_r(@lcov_html_dirname, ChkBuild.public_top+@lcov_html_relpath)
+  end
+
+  def make_lcov_info_gz(lcov_info_filename, dst_gz_filename)
+    atomic_make_compressed_file(dst_gz_filename) {|z|
+      z << lcov_info_filename.read
     }
   end
 
