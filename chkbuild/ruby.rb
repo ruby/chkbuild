@@ -111,8 +111,8 @@ End
   module_function
 
   def ruby_branches
-    IO.popen("svn ls http://svn.ruby-lang.org/repos/ruby/branches") {|f|
-      f.readlines.map {|f| f.chomp("/\n") }
+    IO.popen("git ls-remote https://github.com/ruby/ruby") {|f|
+      f.readlines.map {|f| f.chomp("/\n") }.map{|l| l.match(/[a-z0-9]+\trefs\/heads\/(.*)/)}.compact.map{|m| m[1]}
     }
   end
 
@@ -329,10 +329,8 @@ def (ChkBuild::Ruby).build_proc(b)
   srcdir = (checkout_dir+'ruby').relative_path_from(objdir)
 
   Dir.chdir(checkout_dir)
-  b.svn("http://svn.ruby-lang.org/repos/ruby", ruby_branch, 'ruby')
-  b.svn_info('ruby', :section=>"svn-info/ruby")
-  svn_info_section = b.logfile.get_section('svn-info/ruby')
-  ruby_svn_rev = svn_info_section[/Last Changed Rev: (\d+)/, 1].to_i
+  b.git("https://github.com/ruby/ruby", 'ruby', bopts)
+  ruby_git_rev = b.git_head_commit[0..8]
 
   Dir.chdir("ruby")
 
@@ -701,7 +699,7 @@ def (ChkBuild::Ruby).build_proc(b)
       relname = nil
     else
       # "make dist" support BRANCH@rev since Ruby 1.9.3.
-      relname = "#{ruby_branch}@#{ruby_svn_rev}"
+      relname = "#{ruby_branch}@#{ruby_git_rev}"
     end
     if relname
       b.make("dist", "RELNAME=#{relname}", "AUTOCONF=#{autoconf_command}")
