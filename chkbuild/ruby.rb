@@ -711,49 +711,49 @@ ChkBuild.define_build_proc('ruby') {|b|
   ChkBuild::Ruby.build_proc(b)
 }
 
-ChkBuild.define_title_hook('ruby', %w[svn-info/ruby version.h verconf.h]) {|title, logs|
-  log = logs.join('')
-  lastrev = /^Last Changed Rev: (\d+)$/.match(log)
-  version = /^#\s*define RUBY_VERSION "(\S+)"/.match(log)
-  reldate = /^#\s*define RUBY_RELEASE_DATE "(\S+)"/.match(log)
-  relyear = /^#\s*define RUBY_RELEASE_YEAR (\d+)/.match(log)
-  relmonth = /^#\s*define RUBY_RELEASE_MONTH (\d+)/.match(log)
-  relday = /^#\s*define RUBY_RELEASE_DAY (\d+)/.match(log)
-  patchlev = /^#\s*define RUBY_PATCHLEVEL (\S+)/.match(log)
-  platform = /^#\s*define RUBY_PLATFORM "(\S+)"/.match(log)
-  if lastrev
-    str = ''
-    if lastrev
-      str << "r#{lastrev[1]} "
-    end
-    str << 'ruby '
-    if reldate
-      reldate = reldate[1]
-    elsif relyear && relmonth && relday
-      reldate = "#{relyear[1]}-#{relmonth[1]}-#{relday[1]}"
-    end
-    if version && reldate
-      str << version[1]
-      str << (patchlev[1] == '-1' ? 'dev' : "p#{patchlev[1]}") if patchlev
-      str << " (" << reldate << ")"
-      str << " [" << platform[1] << "]" if platform
-      ss = title.suffixed_name.split(/-/)[1..-1].reject {|s|
-        /\A(trunk|1\.8)\z/ =~ s ||
-        version[1] == s
-      }
-      str << " [#{ss.join(',')}]" if !ss.empty?
-    end
-    str.sub!(/ \z/, '')
-    title.update_title(:version, str)
-  end
-}
+#ChkBuild.define_title_hook('ruby', %w[svn-info version.h verconf.h]) {|title, logs|
+#  log = logs.join('')
+#  lastrev = /^Last Changed Rev: (\d+)$/.match(log)
+#  version = /^#\s*define RUBY_VERSION "(\S+)"/.match(log)
+#  reldate = /^#\s*define RUBY_RELEASE_DATE "(\S+)"/.match(log)
+#  relyear = /^#\s*define RUBY_RELEASE_YEAR (\d+)/.match(log)
+#  relmonth = /^#\s*define RUBY_RELEASE_MONTH (\d+)/.match(log)
+#  relday = /^#\s*define RUBY_RELEASE_DAY (\d+)/.match(log)
+#  patchlev = /^#\s*define RUBY_PATCHLEVEL (\S+)/.match(log)
+#  platform = /^#\s*define RUBY_PLATFORM "(\S+)"/.match(log)
+#  if lastrev
+#    str = ''
+#    if lastrev
+#      str << "r#{lastrev[1]} "
+#    end
+#    str << 'ruby '
+#    if reldate
+#      reldate = reldate[1]
+#    elsif relyear && relmonth && relday
+#      reldate = "#{relyear[1]}-#{relmonth[1]}-#{relday[1]}"
+#    end
+#    if version && reldate
+#      str << version[1]
+#      str << (patchlev[1] == '-1' ? 'dev' : "p#{patchlev[1]}") if patchlev
+#      str << " (" << reldate << ")"
+#      str << " [" << platform[1] << "]" if platform
+#      ss = title.suffixed_name.split(/-/)[1..-1].reject {|s|
+#        /\A(trunk|1\.8)\z/ =~ s ||
+#        version[1] == s
+#      }
+#      str << " [#{ss.join(',')}]" if !ss.empty?
+#    end
+#    str.sub!(/ \z/, '')
+#    title.update_title(:version, str)
+#  end
+#}
 
-ChkBuild.define_title_hook('ruby', 'svn-info/ruby') {|title, log|
-  lastrev = /^Last Changed Rev: (\d+)$/.match(log)
-  if lastrev
-    title.update_hidden_title(:ruby_rev, "r#{lastrev[1]}")
-  end
-}
+#ChkBuild.define_title_hook('ruby', 'svn-info/ruby') {|title, log|
+#  lastrev = /^Last Changed Rev: (\d+)$/.match(log)
+#  if lastrev
+#    title.update_hidden_title(:ruby_rev, "r#{lastrev[1]}")
+#  end
+#}
 
 #ChkBuild.define_title_hook('ruby', "configure") {|title, log|
 #  if /^checking target system type\.\.\. (\S+)$/ =~ log
