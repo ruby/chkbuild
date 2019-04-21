@@ -111,8 +111,8 @@ End
   module_function
 
   def ruby_branches
-    IO.popen("svn ls http://svn.ruby-lang.org/repos/ruby/branches") {|f|
-      f.readlines.map {|f| f.chomp("/\n") }
+    IO.popen("git ls-remote https://github.com/ruby/ruby") {|f|
+      f.readlines.map {|f| f.chomp("/\n") }.map{|l| l.match(/[a-z0-9]+\trefs\/heads\/(.*)/)}.compact.map{|m| m[1]}
     }
   end
 
@@ -329,10 +329,8 @@ def (ChkBuild::Ruby).build_proc(b)
   srcdir = (checkout_dir+'ruby').relative_path_from(objdir)
 
   Dir.chdir(checkout_dir)
-  b.svn("http://svn.ruby-lang.org/repos/ruby", ruby_branch, 'ruby')
-  b.svn_info('ruby', :section=>"svn-info/ruby")
-  svn_info_section = b.logfile.get_section('svn-info/ruby')
-  ruby_svn_rev = svn_info_section[/Last Changed Rev: (\d+)/, 1].to_i
+  b.git("https://github.com/ruby/ruby", 'ruby', bopts)
+  ruby_git_rev = b.git_head_commit[0..8]
 
   Dir.chdir("ruby")
 
@@ -701,7 +699,7 @@ def (ChkBuild::Ruby).build_proc(b)
       relname = nil
     else
       # "make dist" support BRANCH@rev since Ruby 1.9.3.
-      relname = "#{ruby_branch}@#{ruby_svn_rev}"
+      relname = "#{ruby_branch}@#{ruby_git_rev}"
     end
     if relname
       b.make("dist", "RELNAME=#{relname}", "AUTOCONF=#{autoconf_command}")
@@ -713,9 +711,9 @@ ChkBuild.define_build_proc('ruby') {|b|
   ChkBuild::Ruby.build_proc(b)
 }
 
-ChkBuild.define_title_hook('ruby', %w[svn-info/ruby version.h verconf.h]) {|title, logs|
+ChkBuild.define_title_hook('ruby', %w[git/ruby version.h verconf.h]) {|title, logs|
   log = logs.join('')
-  lastrev = /^Last Changed Rev: (\d+)$/.match(log)
+  lastrev = /^LASTCOMMIT (\S+)$/.match(log)
   version = /^#\s*define RUBY_VERSION "(\S+)"/.match(log)
   reldate = /^#\s*define RUBY_RELEASE_DATE "(\S+)"/.match(log)
   relyear = /^#\s*define RUBY_RELEASE_YEAR (\d+)/.match(log)
@@ -726,7 +724,7 @@ ChkBuild.define_title_hook('ruby', %w[svn-info/ruby version.h verconf.h]) {|titl
   if lastrev
     str = ''
     if lastrev
-      str << "r#{lastrev[1]} "
+      str << lastrev[1][0..8]
     end
     str << 'ruby '
     if reldate
@@ -750,10 +748,10 @@ ChkBuild.define_title_hook('ruby', %w[svn-info/ruby version.h verconf.h]) {|titl
   end
 }
 
-ChkBuild.define_title_hook('ruby', 'svn-info/ruby') {|title, log|
-  lastrev = /^Last Changed Rev: (\d+)$/.match(log)
-  if lastrev
-    title.update_hidden_title(:ruby_rev, "r#{lastrev[1]}")
+ChkBuild.define_title_hook('ruby', 'git/ruby') {|title, log|
+lastrev = /^LASTCOMMIT (\S+)$/.match(log)
+if lastrev
+    title.update_hidden_title(:ruby_rev, lastrev[1][0..8])
   end
 }
 
