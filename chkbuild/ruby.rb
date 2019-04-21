@@ -724,7 +724,7 @@ ChkBuild.define_title_hook('ruby', %w[git/ruby version.h verconf.h]) {|title, lo
   if lastrev
     str = ''
     if lastrev
-      str << "r#{lastrev[1]} "
+      str << lastrev[1][0..8]
     end
     str << 'ruby '
     if reldate
@@ -751,7 +751,7 @@ ChkBuild.define_title_hook('ruby', %w[git/ruby version.h verconf.h]) {|title, lo
 ChkBuild.define_title_hook('ruby', 'git/ruby') {|title, log|
 lastrev = /^LASTCOMMIT (\S+)$/.match(log)
 if lastrev
-    title.update_hidden_title(:ruby_rev, "r#{lastrev[1]}")
+    title.update_hidden_title(:ruby_rev, lastrev[1][0..8])
   end
 }
 
