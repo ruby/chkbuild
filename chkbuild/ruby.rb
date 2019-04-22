@@ -330,7 +330,7 @@ def (ChkBuild::Ruby).build_proc(b)
 
   Dir.chdir(checkout_dir)
   b.git("https://github.com/ruby/ruby", 'ruby', bopts)
-  ruby_git_rev = b.git_head_commit[0..8]
+  ruby_git_rev = b.git_head_commit[0..10]
 
   Dir.chdir("ruby")
 
@@ -724,7 +724,7 @@ ChkBuild.define_title_hook('ruby', %w[git/ruby version.h verconf.h]) {|title, lo
   if lastrev
     str = ''
     if lastrev
-      str << lastrev[1][0..8]
+      str << lastrev[1][0..10]
     end
     str << 'ruby '
     if reldate
@@ -751,7 +751,7 @@ ChkBuild.define_title_hook('ruby', %w[git/ruby version.h verconf.h]) {|title, lo
 ChkBuild.define_title_hook('ruby', 'git/ruby') {|title, log|
 lastrev = /^LASTCOMMIT (\S+)$/.match(log)
 if lastrev
-    title.update_hidden_title(:ruby_rev, lastrev[1][0..8])
+    title.update_hidden_title(:ruby_rev, lastrev[1][0..10])
   end
 }
 
