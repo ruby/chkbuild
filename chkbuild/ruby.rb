@@ -224,6 +224,10 @@ def (ChkBuild::Ruby::CompleteOptions).call(target_opts)
     opts[:use_bundled_gems] = true
   end
 
+  if /branches/ =~ ruby_branch
+    opts[:branch] = ruby_branch.sub("branches/", "")
+  end
+
   if Util.opts2aryparam(opts, :configure_args).include?("--enable-pthread")
     if %r{\Abranches/ruby_1_8} !~ ruby_branch
       return nil
