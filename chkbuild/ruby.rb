@@ -338,10 +338,10 @@ def (ChkBuild::Ruby).build_proc(b)
     b.svn("http://svn.ruby-lang.org/repos/ruby", ruby_branch, 'ruby')
     b.svn_info('ruby', :section=>"svn-info/ruby")
     svn_info_section = b.logfile.get_section('svn-info/ruby')
-    ruby_svn_rev = svn_info_section[/Last Changed Rev: (\d+)/, 1].to_i
+    ruby_rev = svn_info_section[/Last Changed Rev: (\d+)/, 1].to_i
   else
     b.git("https://github.com/ruby/ruby", 'ruby', bopts)
-    ruby_git_rev = b.git_head_commit[0..10]
+    ruby_rev = b.git_head_commit[0..10]
   end
 
   Dir.chdir("ruby")
@@ -711,7 +711,7 @@ def (ChkBuild::Ruby).build_proc(b)
       relname = nil
     else
       # "make dist" support BRANCH@rev since Ruby 1.9.3.
-      relname = "#{ruby_branch}@#{ruby_git_rev}"
+      relname = "#{ruby_branch}@#{ruby_rev}"
     end
     if relname
       b.make("dist", "RELNAME=#{relname}", "AUTOCONF=#{autoconf_command}")
