@@ -333,8 +333,16 @@ def (ChkBuild::Ruby).build_proc(b)
   srcdir = (checkout_dir+'ruby').relative_path_from(objdir)
 
   Dir.chdir(checkout_dir)
-  b.git("https://github.com/ruby/ruby", 'ruby', bopts)
-  ruby_git_rev = b.git_head_commit[0..10]
+
+  if /ruby_2_[456]/ =~ ruby_branch
+    b.svn("http://svn.ruby-lang.org/repos/ruby", ruby_branch, 'ruby')
+    b.svn_info('ruby', :section=>"svn-info/ruby")
+    svn_info_section = b.logfile.get_section('svn-info/ruby')
+    ruby_svn_rev = svn_info_section[/Last Changed Rev: (\d+)/, 1].to_i
+  else
+    b.git("https://github.com/ruby/ruby", 'ruby', bopts)
+    ruby_git_rev = b.git_head_commit[0..10]
+  end
 
   Dir.chdir("ruby")
 
