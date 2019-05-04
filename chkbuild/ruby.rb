@@ -402,6 +402,10 @@ def (ChkBuild::Ruby).build_proc(b)
 
   Dir.chdir(ruby_build_dir)
 
+  if bopts[:branch]
+    bopts.delete(:branch)
+  end
+
   use_rubyspec &&= b.catch_error {
     b.git('https://github.com/ruby/mspec.git', 'mspec', bopts)
   }
