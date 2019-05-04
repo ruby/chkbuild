@@ -768,7 +768,8 @@ ChkBuild.define_title_hook('ruby', %w[svn-info/ruby git/ruby version.h verconf.h
   end
 }
 
-ChkBuild.define_title_hook('ruby', %w[svn-info/ruby git/ruby]) {|title, log|
+ChkBuild.define_title_hook('ruby', %w[svn-info/ruby git/ruby]) {|title, logs|
+  log = logs.join('')
   lastrev = /^LASTCOMMIT (\S+)$/.match(log)
   if !lastrev
     use_git = true
