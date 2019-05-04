@@ -731,7 +731,7 @@ ChkBuild.define_title_hook('ruby', %w[svn-info/ruby git/ruby version.h verconf.h
   log = logs.join('')
   lastrev = /^LASTCOMMIT (\S+)$/.match(log)
   if !lastrev
-    use_git = true
+    use_svn = true
     lastrev = /^Last Changed Rev: (\d+)$/.match(log)
   end
   version = /^#\s*define RUBY_VERSION "(\S+)"/.match(log)
@@ -744,10 +744,10 @@ ChkBuild.define_title_hook('ruby', %w[svn-info/ruby git/ruby version.h verconf.h
   if lastrev
     str = ''
     if lastrev
-      if use_git
-        str << "#{lastrev[1][0..10]} "
-      else
+      if use_svn
         str << "r#{lastrev[1]} "
+      else
+        str << "#{lastrev[1][0..10]} "
       end
     end
     str << 'ruby '
@@ -776,14 +776,14 @@ ChkBuild.define_title_hook('ruby', %w[svn-info/ruby git/ruby]) {|title, logs|
   log = logs.join('')
   lastrev = /^LASTCOMMIT (\S+)$/.match(log)
   if !lastrev
-    use_git = true
+    use_svn = true
     lastrev = /^Last Changed Rev: (\d+)$/.match(log)
   end
   if lastrev
-    if use_git
-      rev = lastrev[1][0..10]
-    else
+    if use_svn
       rev = "r#{lastrev[1]}"
+    else
+      rev = lastrev[1][0..10]
     end
     title.update_hidden_title(:ruby_rev, rev)
   end
