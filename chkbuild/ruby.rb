@@ -154,7 +154,7 @@ def (ChkBuild::Ruby::CompleteOptions).call(target_opts)
   suffixes = Util.opts2funsuffixes(target_opts)
   suffixes.each {|s|
     case s
-    when "trunk" then hs << { :ruby_branch => 'trunk' }
+    when "master" then hs << { :ruby_branch => 'master' }
     when /\A([3-9]).([0-9]\d*)\z/ then hs << { :ruby_branch => "branches/ruby_#$1_#$2" }
     when /\A2.([1-9]\d*)\z/ then hs << { :ruby_branch => "branches/ruby_2_#$1" }
     when "2.0.0" then hs << { :ruby_branch => 'branches/ruby_2_0_0' }
@@ -215,12 +215,12 @@ def (ChkBuild::Ruby::CompleteOptions).call(target_opts)
     opts[:use_rubyspec] = false
   end
 
-  if /trunk/ =~ ruby_branch && opts[:use_rubyspec]
+  if /master/ =~ ruby_branch && opts[:use_rubyspec]
     opts[:use_rubyspec] = false
     opts[:use_rubyspec_in_tree] = true
   end
 
-  if /trunk/ =~ ruby_branch && opts[:use_bundled_gems]
+  if /master/ =~ ruby_branch && opts[:use_bundled_gems]
     opts[:use_bundled_gems] = true
   end
 
@@ -234,7 +234,7 @@ def (ChkBuild::Ruby::CompleteOptions).call(target_opts)
     end
   end
 
-  if ruby_branch != "trunk"
+  if ruby_branch != "master"
     opts[:validate_dependencies] = false
   end
 
@@ -762,7 +762,7 @@ ChkBuild.define_title_hook('ruby', %w[svn-info/ruby git/ruby version.h verconf.h
       str << " (" << reldate << ")"
       str << " [" << platform[1] << "]" if platform
       ss = title.suffixed_name.split(/-/)[1..-1].reject {|s|
-        /\A(trunk|1\.8)\z/ =~ s ||
+        /\A(master|1\.8)\z/ =~ s ||
         version[1] == s
       }
       str << " [#{ss.join(',')}]" if !ss.empty?
