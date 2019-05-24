@@ -43,7 +43,7 @@ require 'chkbuild'
 
 ChkBuild::Ruby.def_target(
   [
-    { :suffix_? => 'trunk', :output_interval_timeout => '10min' },
+    { :suffix_? => 'master', :output_interval_timeout => '10min' },
   ],
 
   [nil, "pth"],
