@@ -85,7 +85,7 @@ class ChkBuild::IBuild
       if File.directory?(cloneurl2)
 	Dir.chdir(cloneurl2) {
 	  git_logfile(opts_shared) {|opts2|
-	    self.run("git", "fetch", opts2)
+	    self.run("git", "fetch", "--depth", "1", opts2)
 	  }
 	}
       else
@@ -93,14 +93,14 @@ class ChkBuild::IBuild
 	pdir = File.dirname(cloneurl2)
 	FileUtils.mkdir_p(pdir) if !File.directory?(pdir)
 	git_logfile(opts_shared) {|opts2|
-	  self.run "git", "clone", "-q", "--mirror", cloneurl, cloneurl2, opts2
+	  self.run "git", "clone", "--depth", "1", "-q", "--mirror", cloneurl, cloneurl2, opts2
 	}
       end
     }
     if File.exist?(working_dir) && File.exist?("#{working_dir}/.git")
       Dir.chdir(working_dir) {
         git_logfile(opts) {|opts2|
-          self.run "git", "pull", opts2
+          self.run "git", "pull", "--depth", "1", opts2
         }
       }
     else
@@ -108,7 +108,7 @@ class ChkBuild::IBuild
       pdir = File.dirname(working_dir)
       FileUtils.mkdir_p(pdir) if !File.directory?(pdir)
       git_logfile(opts) {|opts2|
-	command = ["git", "clone", "-q"]
+	command = ["git", "clone", "--depth", "1", "-q"]
 	command << '--branch' << branch if branch
 	command << cloneurl2
 	command << working_dir
