@@ -75,47 +75,18 @@ class ChkBuild::IBuild
     FileUtils.mkdir_p(GIT_SHARED_DIR)
     opts_shared = opts.dup
     opts_shared[:section] += "(shared)"
-    cloneurl2 = "#{GIT_SHARED_DIR}/#{working_dir}.git"
     branch = opts[:branch] || git_default_branch(cloneurl)
-    Dir.chdir(GIT_SHARED_DIR) {
-      if File.directory?(cloneurl2) &&
-         Dir.chdir(cloneurl2) { `git config --get remote.origin.url` }.chomp != cloneurl
-	FileUtils.rm_rf(cloneurl2)
-      end
-      if File.directory?(cloneurl2)
-	Dir.chdir(cloneurl2) {
-	  git_logfile(opts_shared) {|opts2|
-	    self.run("git", "fetch", "--depth", "1", opts2)
-	  }
-	}
-      else
-	FileUtils.rm_rf(cloneurl2) if File.exist?(cloneurl2)
-	pdir = File.dirname(cloneurl2)
-	FileUtils.mkdir_p(pdir) if !File.directory?(pdir)
-	git_logfile(opts_shared) {|opts2|
-	  self.run "git", "clone", "--depth", "1", "-q", "--mirror", cloneurl, cloneurl2, opts2
-	}
-      end
+    FileUtils.rm_rf(working_dir) if File.exist?(working_dir)
+    pdir = File.dirname(working_dir)
+    FileUtils.mkdir_p(pdir) if !File.directory?(pdir)
+    git_logfile(opts) {|opts2|
+      command = ["git", "clone", "--depth", "1", "-q"]
+      command << '--branch' << branch if branch
+      command << cloneurl
+      command << working_dir
+      command << opts2
+      self.run(*command)
     }
-    if File.exist?(working_dir) && File.exist?("#{working_dir}/.git")
-      Dir.chdir(working_dir) {
-        git_logfile(opts) {|opts2|
-          self.run "git", "pull", "--depth", "1", opts2
-        }
-      }
-    else
-      FileUtils.rm_rf(working_dir) if File.exist?(working_dir)
-      pdir = File.dirname(working_dir)
-      FileUtils.mkdir_p(pdir) if !File.directory?(pdir)
-      git_logfile(opts) {|opts2|
-	command = ["git", "clone", "--depth", "1", "-q"]
-	command << '--branch' << branch if branch
-	command << cloneurl2
-	command << working_dir
-	command << opts2
-        self.run(*command)
-      }
-    end
     Dir.chdir(working_dir) {
       new_head = git_head_commit
       new_head_log = git_single_log(new_head)
@@ -293,31 +264,6 @@ class ChkBuild::IFormat
       end
       line = "COMMIT #{working_dir} #{title_line}\t#{commit}"
       out.puts line
-    }
-  end
-
-  def output_git_change_lines(checkout_line, lines1, lines2, out)
-    if /CHECKOUT git (\S+) (\S+)/ !~ checkout_line
-      out.puts "unexpected checkout line: #{checkout_line}"
-      return
-    end
-    cloneurl = $1
-    working_dir = $2
-    urigen = ChkBuild.find_file_changes_viewer('git', cloneurl)
-
-    lastcommit1 = lines1.find {|line| /\ALASTCOMMIT / =~ line }
-    lastrev1 = $1 if lastcommit1 && /\ALASTCOMMIT ([0-9a-fA-F]+)/ =~ lastcommit1
-    lastcommit2 = lines2.find {|line| /\ALASTCOMMIT / =~ line }
-    lastrev2 = $1 if lastcommit2 && /\ALASTCOMMIT ([0-9a-fA-F]+)/ =~ lastcommit2
-    if !lastrev1 || !lastrev2
-      out.puts "no last revision found."
-      return
-    end
-
-    cloneurl2 = "#{GIT_SHARED_DIR}/#{working_dir}.git"
-    Dir.chdir(cloneurl2) {
-      logs = git_oneline_logs2(lastrev1, lastrev2)
-      git_print_logs(working_dir, logs, urigen, out)
     }
   end
 end
