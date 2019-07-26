@@ -39,13 +39,13 @@ chkbuild は、定期的にソフトウェアをビルドし、
 
 ```bash
   % cd $HOME
-  % git clone git://github.com/akr/chkbuild.git
+  % git clone https://github.com/ruby/chkbuild.git
   % cd chkbuild
   % ruby start-build
 
-  % w3m tmp/public_html/ruby-trunk/summary.html
-  % w3m tmp/public_html/ruby-1.8/summary.html
-  % w3m tmp/public_html/ruby-1.8-pth/summary.html
+  % w3m tmp/public_html/ruby-master/summary.html
+  % w3m tmp/public_html/ruby-2.6/summary.html
+  % w3m tmp/public_html/ruby-2.5/summary.html
 
   % rm -rf tmp
 ```
@@ -66,7 +66,7 @@ chkbuild は、定期的にソフトウェアをビルドし、
 ```bash
       % export U=foo
       % cd /home/$U
-      % git clone git://github.com/akr/chkbuild.git
+      % git clone https://github.com/ruby/chkbuild.git
 ```
 
 (2) chkbuild の設定
@@ -262,9 +262,9 @@ chkbuild は、定期的にソフトウェアをビルドし、
 
 (8) アナウンス
 
-    Ruby 開発者に見て欲しいなら、Ruby hotlinks に登録するといいかも知れません。
+    Ruby 開発者に見て欲しいなら、Ruby CI に登録するといいかも知れません。
 
-    http://www.rubyist.net/~kazu/samidare/latest
+    https://rubyci.org/
 
 設定
 --------
