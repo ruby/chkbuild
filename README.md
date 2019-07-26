@@ -262,9 +262,9 @@ chkbuild は、定期的にソフトウェアをビルドし、
 
 (8) アナウンス
 
-    Ruby 開発者に見て欲しいなら、Ruby hotlinks に登録するといいかも知れません。
+    Ruby 開発者に見て欲しいなら、Ruby CI に登録するといいかも知れません。
 
-    http://www.rubyist.net/~kazu/samidare/latest
+    https://rubyci.org/
 
 設定
 --------
