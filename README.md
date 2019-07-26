@@ -39,7 +39,7 @@ chkbuild は、定期的にソフトウェアをビルドし、
 
 ```bash
   % cd $HOME
-  % git clone git://github.com/akr/chkbuild.git
+  % git clone https://github.com/ruby/chkbuild.git
   % cd chkbuild
   % ruby start-build
 
@@ -66,7 +66,7 @@ chkbuild は、定期的にソフトウェアをビルドし、
 ```bash
       % export U=foo
       % cd /home/$U
-      % git clone git://github.com/akr/chkbuild.git
+      % git clone https://github.com/ruby/chkbuild.git
 ```
 
 (2) chkbuild の設定
