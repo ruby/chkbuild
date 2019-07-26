@@ -43,9 +43,9 @@ chkbuild は、定期的にソフトウェアをビルドし、
   % cd chkbuild
   % ruby start-build
 
-  % w3m tmp/public_html/ruby-trunk/summary.html
-  % w3m tmp/public_html/ruby-1.8/summary.html
-  % w3m tmp/public_html/ruby-1.8-pth/summary.html
+  % w3m tmp/public_html/ruby-master/summary.html
+  % w3m tmp/public_html/ruby-2.6/summary.html
+  % w3m tmp/public_html/ruby-2.5/summary.html
 
   % rm -rf tmp
 ```
