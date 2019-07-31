@@ -70,7 +70,7 @@ End
     ary << ["libc", lambda { Etc.confstr(Etc::CS_GNU_LIBC_VERSION) }]
   end
   ary.concat [
-    ["gmp", lambda { Bignum::GMP_VERSION }],
+    ["gmp", lambda { (1 << 1000).class::GMP_VERSION }],
     ["dbm", lambda { require "dbm"; DBM::VERSION }],
     ["gdbm", lambda { require "gdbm"; GDBM::VERSION }],
     ["readline", lambda { require "readline"; Readline::VERSION }],
