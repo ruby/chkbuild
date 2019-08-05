@@ -189,7 +189,7 @@ def (ChkBuild::Ruby::CompleteOptions).call(target_opts)
     :autoconf_command => 'autoconf',
     :configure_args => [],
     :configure_args_valgrind => %w[--with-valgrind],
-    :cppflags => %w[-DRUBY_DEBUG_ENV],
+    :configure_args_enable_debug_env => %w[--enable-debug-env],
     :dldflags => %w[],
     :make_options => {},
     :force_gperf => false,
