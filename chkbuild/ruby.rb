@@ -341,7 +341,7 @@ def (ChkBuild::Ruby).build_proc(b)
     ruby_rev = svn_info_section[/Last Changed Rev: (\d+)/, 1].to_i
   else
     b.git("https://github.com/ruby/ruby", 'ruby', bopts)
-    ruby_rev = b.git_head_commit[0..10]
+    ruby_rev = Dir.chdir('ruby') {b.git_head_commit[0..10]}
   end
 
   Dir.chdir("ruby")
