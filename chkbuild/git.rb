@@ -75,7 +75,7 @@ class ChkBuild::IBuild
     FileUtils.mkdir_p(GIT_SHARED_DIR)
     opts_shared = opts.dup
     opts_shared[:section] += "(shared)"
-    branch = opts[:branch] || git_default_branch(cloneurl)
+    branch = opts[:branch] #|| git_default_branch(cloneurl)
     FileUtils.rm_rf(working_dir) if File.exist?(working_dir)
     pdir = File.dirname(working_dir)
     FileUtils.mkdir_p(pdir) if !File.directory?(pdir)
