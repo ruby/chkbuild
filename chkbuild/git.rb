@@ -86,6 +86,15 @@ class ChkBuild::IBuild
       command << working_dir
       command << opts2
       self.run(*command)
+      if opts[:git_fetch_refspec]
+        Dir.chdir(working_dir) {
+          opts2[:section] = nil
+          command = ["git", "fetch", "-q", "origin"]
+          command << opts[:git_fetch_refspec]
+          command << opts2
+          self.run(*command)
+        }
+      end
     }
     Dir.chdir(working_dir) {
       new_head = git_head_commit
