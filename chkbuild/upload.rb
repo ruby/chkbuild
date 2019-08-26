@@ -183,6 +183,7 @@ module ChkBuild
   #  :secret_access_key => ENV['AWS_SECRET_ACCESS_KEY'])
 
   def self.s3_upload_target
+    return if ENV["DISABLE_S3_UPLOAD"] # for local test
     bucket_name = 'rubyci'
     region = 'ap-northeast-1'
     require 'aws-sdk'
