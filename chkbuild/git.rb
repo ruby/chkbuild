@@ -81,6 +81,7 @@ class ChkBuild::IBuild
     FileUtils.mkdir_p(pdir) if !File.directory?(pdir)
     git_logfile(opts) {|opts2|
       command = ["git", "clone", "-q"]
+      command << "--depth=1" if opts[:git_shallow_clone]
       command << '--branch' << branch if branch
       command << cloneurl
       command << working_dir

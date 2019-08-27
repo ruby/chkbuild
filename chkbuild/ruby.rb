@@ -730,6 +730,8 @@ def (ChkBuild::Ruby).build_proc(b)
     if ruby_version.before(1,9,3)
       # "make dist" doesn't support BRANCH@rev.
       relname = nil
+    elsif bopts[:git_shallow_clone]
+      relname = nil
     else
       # "make dist" support BRANCH@rev since Ruby 1.9.3.
       relname = "#{ruby_branch}@#{ruby_rev}"
