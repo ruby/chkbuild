@@ -136,6 +136,9 @@ when 'unstable10s'
 when 'scw-9d6766'
   arg[0].slice!(1,9)
   h[:timeout] = '3h'
+when 'openbsd65'
+  h[:autoconf_command] = 'autoconf-2.69'
+  h[:configure_args_opt] = %w[--with-opt-dir=/usr/local]
 end
 
 autoconf_command = '/home/naruse/local/autoconf/bin/autoconf'
