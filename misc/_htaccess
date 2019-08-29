@@ -1,0 +1,7 @@
+# .htaccess for Apache
+RemoveType .gz
+AddEncoding gzip .gz
+AddType text/plain ltsv
+<Files rss>
+	ForceType application/rss+xml
+</Files>

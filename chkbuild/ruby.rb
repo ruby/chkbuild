@@ -901,7 +901,8 @@ ChkBuild.define_title_hook('ruby', "abi-check") {|title, log|
 ChkBuild.define_title_hook('ruby', nil) {|title, logfile|
   numbugs = numsegv = numsigbus = numsigill = numsigabrt = numfatal = 0
   logfile.each_line {|line|
-    line = line.gsub(/^LASTLOG .*/, '') # skip commit message.
+    next if line.start_with?('LASTLOG ') # skip commit message.
+    next if line.start_with?('| ') # skip assertion message.
     line = line.sub(/combination may cause frequent hang or segmentation fault|hangs or segmentation faults/, '') # skip tk message.
     numbugs += line.scan(/\[BUG\]/i).length
     numsegv += line.scan(/segmentation fault|signal segv/i).length
