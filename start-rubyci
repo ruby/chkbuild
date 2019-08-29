@@ -1,0 +1,145 @@
+#!/usr/bin/env ruby
+
+# start-rubyci - build start script
+#
+# Copyright (C) 2005-2013 Tanaka Akira  <akr@fsij.org>
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#  1. Redistributions of source code must retain the above copyright
+#     notice, this list of conditions and the following disclaimer.
+#  2. Redistributions in binary form must reproduce the above
+#     copyright notice, this list of conditions and the following
+#     disclaimer in the documentation and/or other materials provided
+#     with the distribution.
+#  3. The name of the author may not be used to endorse or promote
+#     products derived from this software without specific prior
+#     written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
+# OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+# GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+# OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+# EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+$:.unshift File.dirname(File.expand_path(__FILE__))
+
+require 'chkbuild'
+
+#ENV['LC_ALL'] = 'C'
+
+# resource limits
+#word_bytes = [nil].pack("p").length
+#ChkBuild.limit(:cpu => 3600*4) # seconds
+#ChkBuild.limit(:stack => 1024*1024*10*word_bytes) # bytes
+#ChkBuild.limit(:data => 1024*1024*500*word_bytes) # bytes
+#ChkBuild.limit(:as => 1024*1024*500*word_bytes) # bytes
+
+# process priority
+#ChkBuild.nice = 10
+
+# ChkBuild.nickname identify chkbuild installation.
+# It is used for title of HTML, etc.
+# The default is the hostname (without domain).
+# ChkBuild.nickname = 'nickname'
+
+# ChkBuild.top_uri is used for RSS.
+# ChkBuild.top_uri = "file://#{ChkBuild.public_top}/"
+# ChkBuild.top_uri = nil # use relative URL
+
+#ChkBuild.azure_upload_target rescue nil
+ChkBuild.s3_upload_target
+arg = [].push(
+  [
+    { :suffix_? => 'master', :output_interval_timeout => '20min' },
+    *ChkBuild::Ruby.maintained_release_branches
+  ],
+
+#   [ # :abi_check needs --enable-shared
+#     { :suffix_? => 'trunk', :abi_check_notitle => '/home/akr/ruby/200p0', :output_interval_timeout => '10min' },
+#     { :suffix_? => '2.1', :abi_check => '/home/akr/ruby/210p0' },
+#     { :suffix_? => '2.0.0', :abi_check => '/home/akr/ruby/200p0' },
+#     { :suffix_? => '1.9.3', :abi_check => '/home/akr/ruby/193p0', :abi_check_options => ['--skip-symbols', ChkBuild::SAMPLE_DIRECTORY+'abi-check-ruby-1.9.3-skip-symbols.txt'] },
+#   ],
+
+  # ChkBuild::Ruby::MaintainedBranches,
+  # %w[trunk],
+  # %w[trunk 2.0.0],
+
+  # ['o0', 'o1', nil, 'o3', 'os'],
+
+  [nil, "pth"],
+
+  # ['m32', 'm64'],
+
+  # [nil, { :suffix_? => "-outofplace", :inplace_build => false}]
+
+  # :git_shallow_clone => true,
+  # :autoconf_command => 'autoconf',
+  # :configure_args_valgrind => %w[--with-valgrind],
+  # :configure_args_enable_shared => %w[--enable-shared],
+  # :cppflags => %w[-DRUBY_DEBUG_ENV],
+  # :optflags => %w[-O2],
+  # :debugflags => %w[-g],
+  # :warnflags => %w[-W -Wall -Wformat=2 -Wundef -Wno-parentheses -Wno-unused-parameter -Wno-missing-field-initializers],
+  # :dldflags => %w[],
+
+  # :validate_dependencies => false,
+  # :validate_dependencies => true,     # needs gmake and gcc 4.5 or later.
+  #
+  # :do_test => true,
+
+  # :old => 1,
+
+  :timeout => '2h',
+
+  :output_interval_timeout => '5min'
+  )
+
+h = arg[-1]
+
+case uname = `uname -srm`
+when /\ALinux/
+  ENV['HOME'] = "/home/#{ENV['USER']}" if File.exist?('/etc/redhat-release')
+  h[:optflags] = '-O3 -mfpmath=sse -msse2' if /i.86/ =~ uname
+when /\AFreeBSD/
+  ENV['PATH'] = "#{ENV['PATH']}:/usr/local/bin"
+  h[:configure_args_with_opt_dir] = %w[--with-opt-dir=/usr/local]
+  h[:optflags] = '-O3 -mfpmath=sse -msse2' if /i.86/ =~ uname
+when /\ASunOS/
+  h[:configure_args_disable_werror] = %w[--disable-werror]
+#  h[:configure_args_cc] = %w[CC=/opt/solarisstudio12.4/bin/cc]
+  arg[0].slice!(1,9)
+  h[:optflags] = '-O3 -mfpmath=sse -msse2' if /i86/ =~ uname
+  h[:git_shallow_clone] = true
+end
+
+case ChkBuild.nickname
+when 'tk2-243-31075', 'armv8b'
+  arg[0].slice!(1,9)
+when 'archlinux'
+  h[:configure_args_cc] = %w[CC=clang]
+  ENV['RUBY_FORCE_TEST_JIT'] = '1'
+when 'unstable10s'
+  h[:timeout] = '10h'
+  arg[0][0][:output_interval_timeout] = '60min'
+when 'scw-9d6766'
+  arg[0].slice!(1,9)
+  h[:timeout] = '3h'
+end
+
+autoconf_command = '/home/naruse/local/autoconf/bin/autoconf'
+h[:autoconf_command] = autoconf_command if File.exist?(autoconf_command)
+h[:configure_args] = ["--with-baseruby=#{RbConfig.ruby}"]
+
+ChkBuild::Ruby.def_target(*arg)
+
+ChkBuild.main
