@@ -51,6 +51,8 @@ require 'chkbuild'
 # The default is the hostname (without domain).
 # ChkBuild.nickname = 'nickname'
 
+ChkBuild.nickname = ENV["RUBYCI_NICKNAME"] if ENV["RUBYCI_NICKNAME"]
+
 # ChkBuild.top_uri is used for RSS.
 # ChkBuild.top_uri = "file://#{ChkBuild.public_top}/"
 # ChkBuild.top_uri = nil # use relative URL
