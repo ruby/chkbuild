@@ -86,14 +86,28 @@ class ChkBuild::IBuild
       command << cloneurl
       command << working_dir
       command << opts2
-      self.run(*command)
+      try = 0
+      begin
+        self.run(*command)
+      rescue ChkBuild::Build::CommandError
+        try += 1
+        retry if try < 3
+        raise
+      end
       if opts[:git_fetch_refspec]
         Dir.chdir(working_dir) {
           opts2[:section] = nil
           command = ["git", "fetch", "-q", "origin"]
           command << opts[:git_fetch_refspec]
           command << opts2
-          self.run(*command)
+          try = 0
+          begin
+            self.run(*command)
+          rescue ChkBuild::Build::CommandError
+            try += 1
+            retry if try < 3
+            raise
+          end
         }
       end
     }
