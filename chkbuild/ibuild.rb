@@ -114,7 +114,7 @@ class ChkBuild::IBuild # internal build
     puts "build-dir: #{@build_dir}"
     Dir.chdir(__dir__) do
       begin
-        rev = IO.popen("git rev-list --max-count=1 HEAD") {|f|
+        rev = IO.popen("git rev-parse HEAD") {|f|
           f.read.chomp
         }
       rescue Errno::ENOENT

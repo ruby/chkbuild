@@ -136,7 +136,7 @@ class ChkBuild::IBuild
   end
 
   def git_head_commit
-    IO.popen("git rev-list --max-count=1 HEAD") {|f|
+    IO.popen("git rev-parse HEAD") {|f|
       # <sha1><LF>
       # 4db0223676a371da8c4247d9a853529ef50a3b01
       f.read.chomp
@@ -196,7 +196,7 @@ class ChkBuild::IFormat
     h = IO.popen("git ls-tree -z -r HEAD") {|f|
       git_parse_status(f)
     }
-    IO.popen("git rev-list --max-count=1 HEAD") {|f|
+    IO.popen("git rev-parse HEAD") {|f|
       # <sha1><LF>
       # 4db0223676a371da8c4247d9a853529ef50a3b01
       commit_hash = f.read.chomp
