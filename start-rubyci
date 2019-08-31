@@ -139,6 +139,15 @@ when 'scw-9d6766'
 when 'openbsd65'
   h[:autoconf_command] = 'autoconf-2.69'
   h[:configure_args_opt] = %w[--with-opt-dir=/usr/local]
+when 'freebsd11zfs'
+  h[:configure_args] = %w[--with-opt-dir=/usr/local]
+when 'amazon'
+  h[:timeout] = '4h'
+  h[:output_interval_timeout] = '5min'
+when 'icc-x64'
+  h[:output_interval_timeout] = '20min'
+when 'centos6'
+  h[:autoconf_command] = 'autoconf268'
 end
 
 autoconf_command = '/home/naruse/local/autoconf/bin/autoconf'
