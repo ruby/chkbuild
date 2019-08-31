@@ -112,6 +112,16 @@ class ChkBuild::IBuild # internal build
     @logfile.start_section 'start'
     puts "start-time: #{@t}"
     puts "build-dir: #{@build_dir}"
+    Dir.chdir(__dir__) do
+      begin
+        rev = IO.popen("git rev-list --max-count=1 HEAD") {|f|
+          f.read.chomp
+        }
+      rescue Errno::ENOENT
+        rev = "(unknown)"
+      end
+      puts "chkbuild-version: #{ rev }"
+    end
     show_options
     show_cpu_info
     show_memory_info
