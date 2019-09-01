@@ -132,7 +132,7 @@ when 'archlinux'
   ENV['RUBY_FORCE_TEST_JIT'] = '1'
 when 'unstable10s'
   h[:timeout] = '10h'
-  arg[0][0][:output_interval_timeout] = '60min'
+  arg[0][0][:output_interval_timeout] = '120min'
 when 'scw-9d6766'
   arg[0].slice!(1,9)
   h[:timeout] = '3h'
