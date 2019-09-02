@@ -139,6 +139,8 @@ when 'scw-9d6766'
 when 'openbsd65'
   h[:autoconf_command] = 'autoconf-2.69'
   h[:configure_args_opt] = %w[--with-opt-dir=/usr/local]
+  ENV['RUBY_FIBER_VM_STACK_SIZE'] = '32768'
+  ENV['RUBY_FIBER_MACHINE_STACK_SIZE'] = '65536'
 when 'freebsd11zfs'
   h[:configure_args] = %w[--with-opt-dir=/usr/local]
 when 'amazon'
