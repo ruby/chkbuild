@@ -136,7 +136,7 @@ when 'unstable10s'
 when 'scw-9d6766'
   arg[0].slice!(1,9)
   h[:timeout] = '3h'
-when 'openbsd65'
+when 'openbsd-current'
   h[:autoconf_command] = 'autoconf-2.69'
   h[:configure_args_opt] = %w[--with-opt-dir=/usr/local]
   ENV['RUBY_FIBER_VM_STACK_SIZE'] = '32768'
