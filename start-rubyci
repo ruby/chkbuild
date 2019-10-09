@@ -150,6 +150,15 @@ when 'icc-x64'
   h[:output_interval_timeout] = '20min'
 when 'centos6'
   h[:autoconf_command] = 'autoconf268'
+when /\Aandroid(\d+)-/
+  api = $1.to_i
+  arch = $'.chomp
+  h[:configure_args_build] = %W[--build=#{ arch }-unknown-linux-android]
+  h[:cppflags] = %W[-D__ANDROID_API__=#{ api }]
+  arg[0].slice!(1,9)
+  h[:git_shallow_clone] = true
+  # hardlink is not available for a normal user on Android
+  def File.link(new, old); end
 end
 
 autoconf_command = '/home/naruse/local/autoconf/bin/autoconf'
