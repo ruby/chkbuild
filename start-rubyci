@@ -159,6 +159,12 @@ when /\Aandroid(\d+)-/
   h[:git_shallow_clone] = true
   # hardlink is not available for a normal user on Android
   def File.link(new, old); end
+when /^solaris/ # F
+  ENV["CC"] = "/usr/gcc/9/bin/gcc" if ChkBuild.nickname =~ /gcc$/
+  ENV["MAKE"] = "gmake"
+  ENV["RUBY_TEST_SUBPROCESS_TIMEOUT_SCALE"] = "10" if ChkBuild.nickname =~ /sunc$/
+  h[:cflags] = %w[-DFFI_NO_RAW_API]
+  h[:configure_args_with_libffi_include] = %w[--with-libffi-include=/usr/lib/libffi-3.2.1/include]
 end
 
 autoconf_command = '/home/naruse/local/autoconf/bin/autoconf'
