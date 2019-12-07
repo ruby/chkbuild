@@ -164,14 +164,15 @@ when /^solaris/ # F
   ENV["RUBY_TEST_SUBPROCESS_TIMEOUT_SCALE"] = "10" if ChkBuild.nickname =~ /sunc$/
   h[:cflags] = %w[-DFFI_NO_RAW_API]
   if ChkBuild.nickname =~ /^solaris10/
-    ENV["CC"] = "/opt/csw/bin/gcc" if ChkBuild.nickname =~ /gcc$/
+    ENV["CC"] = ChkBuild.nickname =~ /-gcc$/ ? "/opt/csw/bin/gcc" : "cc"
+    ENV["LDFLAGS"] = "-R/opt/csw/lib" if ChkBuild.nickname =~ /-sunc$/
     ENV["PKG_CONFIG"] = "/opt/csw/bin/pkg-config"
     h[:configure_args_disable_werror] = %w[--disable-werror]
     h[:configure_args_with_opt_dir] = %w[--with-opt-dir=/opt/csw]
     h[:configure_args_disable_largefile] = %w[--disable-largefile]
     h[:configure_args_with_libffi_include] = %w[--with-libffi-include=/opt/csw/lib/libffi-3.2.1/include]
   else
-    ENV["CC"] = "/usr/gcc/9/bin/gcc" if ChkBuild.nickname =~ /gcc$/
+    ENV["CC"] = "/usr/gcc/9/bin/gcc" if ChkBuild.nickname =~ /-gcc$/
     h[:configure_args_with_libffi_include] = %w[--with-libffi-include=/usr/lib/libffi-3.2.1/include]
   end
 end
