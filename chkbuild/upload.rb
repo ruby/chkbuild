@@ -186,7 +186,11 @@ module ChkBuild
     return if ENV["DISABLE_S3_UPLOAD"] # for local test
     bucket_name = 'rubyci'
     region = 'ap-northeast-1'
-    require 'aws-sdk'
+    begin
+      require 'aws-sdk'
+    rescue LoadError
+      require 'aws-sdk-s3'
+    end
     bucket = Aws::S3::Resource.new(region: region).bucket(bucket_name)
     self.add_upload_hook {|depsuffixed_name|
       self.do_upload_s3(bucket, depsuffixed_name)
