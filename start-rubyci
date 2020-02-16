@@ -150,6 +150,7 @@ when 'icc-x64'
   h[:output_interval_timeout] = '20min'
 when 'centos6'
   h[:autoconf_command] = 'autoconf268'
+  arg[0].slice!(0,1) # exclude ruby master
 when /\Aandroid(\d+)-/
   api = $1.to_i
   arch = $'.chomp
