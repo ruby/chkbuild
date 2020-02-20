@@ -166,6 +166,7 @@ when /^solaris/ # F
   h[:cflags] = %w[-DFFI_NO_RAW_API]
   if ChkBuild.nickname =~ /^solaris10/
     ENV["CC"] = ChkBuild.nickname =~ /-gcc$/ ? "/opt/csw/bin/gcc" : "cc"
+    ENV["CXX"] = "no-c++" if ChkBuild.nickname =~ /-sunc$/
     ENV["LDFLAGS"] = "-R/opt/csw/lib" if ChkBuild.nickname =~ /-sunc$/
     ENV["PKG_CONFIG"] = "/opt/csw/bin/pkg-config"
     h[:configure_args_disable_werror] = %w[--disable-werror]
