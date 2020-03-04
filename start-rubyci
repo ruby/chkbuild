@@ -151,6 +151,8 @@ when 'amazon'
   h[:timeout] = '4h'
   h[:output_interval_timeout] = '5min'
 when 'icc-x64'
+  ENV["CC"] = "icc -std=gnu99"
+  ENV["CXX"] = "icpc -std=gnu++11"
   h[:output_interval_timeout] = '20min'
 when 'centos6'
   h[:autoconf_command] = 'autoconf268'
