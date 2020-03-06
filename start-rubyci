@@ -145,6 +145,7 @@ when 'openbsd-current'
   h[:configure_args_opt] = %w[--with-opt-dir=/usr/local]
   ENV['RUBY_FIBER_VM_STACK_SIZE'] = '32768'
   ENV['RUBY_FIBER_MACHINE_STACK_SIZE'] = '65536'
+  h[:git_shallow_clone] = true
 when 'freebsd11zfs'
   h[:configure_args] = %w[--with-opt-dir=/usr/local]
 when 'amazon'
