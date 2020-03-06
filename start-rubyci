@@ -147,7 +147,8 @@ when 'openbsd-current'
   ENV['RUBY_FIBER_MACHINE_STACK_SIZE'] = '65536'
   h[:git_shallow_clone] = true
 when 'freebsd11zfs'
-  h[:configure_args] = %w[--with-opt-dir=/usr/local --disable-dtrace]
+  h[:configure_args_with_opt_dir] = %w[--with-opt-dir=/usr/local]
+  h[:configure_args_disable_dtrace] = %w[--disable-dtrace]
 when 'amazon'
   h[:timeout] = '4h'
   h[:output_interval_timeout] = '5min'
