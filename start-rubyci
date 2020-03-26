@@ -143,12 +143,14 @@ when 'scw-9d6766'
 when 'openbsd-current'
   h[:autoconf_command] = 'autoconf-2.69'
   h[:configure_args_opt] = %w[--with-opt-dir=/usr/local]
+  arg[0][0][:output_interval_timeout] = '60min'
   ENV['RUBY_FIBER_VM_STACK_SIZE'] = '32768'
   ENV['RUBY_FIBER_MACHINE_STACK_SIZE'] = '65536'
   h[:git_shallow_clone] = true
 when 'freebsd12'
   h[:configure_args_with_opt_dir] = %w[--with-opt-dir=/usr/local]
   h[:configure_args_disable_dtrace] = %w[--disable-dtrace]
+  h[:configure_args_disable_jit_support] = %w[--disable-jit-support]
 when 'amazon'
   h[:timeout] = '4h'
   h[:output_interval_timeout] = '5min'
