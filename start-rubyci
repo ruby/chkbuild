@@ -177,6 +177,7 @@ when /^solaris/ # F
   ENV["MAKE"] = "gmake"
   ENV["RUBY_TEST_TIMEOUT_SCALE"] = "10" if ChkBuild.nickname =~ /sunc$/
   h[:cflags] = %w[-DFFI_NO_RAW_API]
+  h[:timeout] = '5h'
   if ChkBuild.nickname =~ /^solaris10/
     ENV["CC"] = ChkBuild.nickname =~ /-gcc$/ ? "/opt/csw/bin/gcc" : "cc"
     ENV["CXX"] = "no-c++" if ChkBuild.nickname =~ /-sunc$/
