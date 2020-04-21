@@ -165,10 +165,10 @@ when 'centos6'
   h[:autoconf_command] = 'autoconf268'
   arg[0].slice!(0,1) # exclude ruby master
 when /\Aandroid(\d+)-/
-  api = $1.to_i
-  arch = $'.chomp
-  h[:configure_args_build] = %W[--build=#{ arch }-unknown-linux-android]
-  h[:cppflags] = %W[-D__ANDROID_API__=#{ api }]
+  #api = $1.to_i
+  #arch = $'.chomp
+  #h[:configure_args_build] = %W[--build=#{ arch }-unknown-linux-android]
+  #h[:cppflags] = %W[-D__ANDROID_API__=#{ api }]
   arg[0].slice!(1,9)
   h[:git_shallow_clone] = true
   # hardlink is not available for a normal user on Android
