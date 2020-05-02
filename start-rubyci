@@ -130,16 +130,6 @@ when 'tk2-243-31075', 'armv8b'
 when 'archlinux'
   h[:configure_args_cc] = %w[CC=clang]
   ENV['RUBY_FORCE_TEST_JIT'] = '1'
-when 'unstable10s'
-  h[:timeout] = '10h'
-  ENV["CXX"] = "no-c++"
-  arg[0][0][:output_interval_timeout] = '120min'
-when 'unstable11s'
-  ENV["CXX"] = "no-c++"
-when 'unstable10x', 'unstable11x'
-  # for debug: https://github.com/ruby/ruby/commit/1ad9364440f6685d2df3b855f5e22f644e9f1f43
-  h[:timeout] = '10h'
-  arg[0][0][:output_interval_timeout] = '120min'
 when 'scw-9d6766'
   arg[0].slice!(1,9)
   h[:timeout] = '3h'
