@@ -164,7 +164,6 @@ when /^solaris/ # F
   ENV["RUBY_TEST_TIMEOUT_SCALE"] = "10" if ChkBuild.nickname =~ /sunc$/
   h[:timeout] = '5h'
   if ChkBuild.nickname =~ /^solaris10/
-    ENV["PATH"] = "/export/home/users/mame/local/bin:" + ENV["PATH"] # temporal solution...
     h[:configure_args_disable_largefile] = %w[--disable-largefile]
     h[:configure_args_disable_werror] = %w[--disable-werror] # needed?
     ENV["PKG_CONFIG"] = "/opt/csw/bin/pkg-config" # system's pkg-config is too old
