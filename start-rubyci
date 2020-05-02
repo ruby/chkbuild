@@ -171,7 +171,9 @@ when /^solaris/ # F
       ENV["CC"] = "/opt/csw/bin/gcc"
     else # solaris10-sunc
       ENV["CC"] = "cc"
-      ENV["LDFLAGS"] = "-R/opt/csw/lib" # needed to use opencsw's openssl
+      # Open Solaris Studio's cc (sunc) does not record the rpath of OpenCSW's
+      # libssl.so to the executable, so explicitly specify the rpath
+      ENV["LDFLAGS"] = "-R/opt/csw/lib"
     end
   else
     if ChkBuild.nickname == "solaris11-gcc"
