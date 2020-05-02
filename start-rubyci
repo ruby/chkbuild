@@ -170,6 +170,7 @@ when /^solaris/ # F
     if ChkBuild.nickname == "solaris10-gcc"
       ENV["CC"] = "/opt/csw/bin/gcc"
     else # solaris10-sunc
+      ENV["CC"] = "cc"
       ENV["LDFLAGS"] = "-R/opt/csw/lib" # needed to use opencsw's openssl
     end
   else
