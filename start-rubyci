@@ -166,12 +166,14 @@ when /^solaris/ # F
   if ChkBuild.nickname =~ /^solaris10/
     h[:configure_args_disable_largefile] = %w[--disable-largefile]
     h[:configure_args_disable_werror] = %w[--disable-werror] # needed?
-    if ChkBuild.nickname =~ /-gcc$/
+    ENV["PKG_CONFIG"] = "/opt/csw/bin/pkg-config" # system's pkg-config is too old
+    if ChkBuild.nickname == "solaris10-gcc"
       ENV["CC"] = "/opt/csw/bin/gcc"
+    else # solaris10-sunc
+      ENV["LDFLAGS"] = "-R/opt/csw/lib" # needed to use opencsw's openssl
     end
-    ENV["PKG_CONFIG"] = "/opt/csw/bin/pkg-config"
   else
-    if ChkBuild.nickname =~ /-gcc$/
+    if ChkBuild.nickname == "solaris11-gcc"
       ENV["PKG_CONFIG_PATH"] = "/usr/lib/64/pkgconfig"
       ENV["CC"] = "/usr/gcc/9/bin/gcc"
     end
