@@ -185,7 +185,7 @@ when /^solaris/ # F
     h[:configure_args_with_libffi_include] = %w[--with-libffi-include=/opt/csw/lib/libffi-3.2.1/include]
   else
     ENV["CC"] = "/usr/gcc/9/bin/gcc" if ChkBuild.nickname =~ /-gcc$/
-    h[:configure_args_with_libffi_include] = %w[--with-libffi-include=/usr/lib/libffi-3.2.1/include]
+    h[:configure_args_with_libffi_include] = %w[--with-libffi-include=/usr/lib/64/libffi-3.2.1/include]
   end
 when "debian-riscv64"
   arg[0].slice!(1,9)
