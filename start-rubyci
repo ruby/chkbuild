@@ -154,6 +154,14 @@ when 'icc-x64'
 when 'centos6'
   h[:autoconf_command] = 'autoconf268'
   arg[0].slice!(0,1) # exclude ruby master
+when 'centos7'
+  h[:cppflags] ||= []
+  # GCC is very old and buggy in CentOS7.  This is needed to disable the false positive warning:
+  # https://rubyci.org/logs/rubyci.s3.amazonaws.com/centos7/ruby-master/log/20200512T153002Z.log.html.gz
+  #
+  #   eval.c:577:17: warning: ‘file’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+  #        const char *file = rb_source_location_cstr(&line);
+  h[:cppflags] << "-Wno-maybe-uninitialized"
 when /\Aandroid\d+-/
   arg[0].slice!(1,9)
   h[:git_shallow_clone] = true
