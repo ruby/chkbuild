@@ -193,12 +193,6 @@ when "debian-riscv64"
   arg[0].slice!(1,9)
 end
 
-case ChkBuild.nickname
-when "solaris11s-sunc", "icc-x64", "osx1014", /\Aandroid\d+-/, "openbsd-current"
-  h[:cppflags] ||= []
-  h[:cppflags] << "-DNDEBUG"
-end
-
 autoconf_command = '/home/naruse/local/autoconf/bin/autoconf'
 h[:autoconf_command] = autoconf_command if File.exist?(autoconf_command)
 h[:configure_args] = ["--with-baseruby=#{RbConfig.ruby}"]
