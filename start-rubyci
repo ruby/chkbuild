@@ -125,9 +125,6 @@ when /\ASunOS/
 end
 
 case ChkBuild.nickname
-when "osx1014"
-  h[:cppflags] ||= []
-  h[:cppflags] << "-DRUBY_ASSERT_NOASSUME"
 when 'tk2-243-31075', 'armv8b'
   arg[0].slice!(1,9)
 when 'archlinux'
@@ -194,6 +191,16 @@ when /^solaris/ # F
   end
 when "debian-riscv64"
   arg[0].slice!(1,9)
+when "osx1014"
+  h[:cppflags] ||= []
+  h[:cppflags] << "-DRUBY_ASSERT_NOASSUME"
+end
+
+case ChkBuild.nickname
+when "osx1014"
+  puts "test"
+  h[:cppflags] ||= []
+  h[:cppflags] << "-DRUBY_ASSERT_NOASSUME"
 end
 
 autoconf_command = '/home/naruse/local/autoconf/bin/autoconf'
