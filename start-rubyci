@@ -191,6 +191,9 @@ when /^solaris/ # F
   end
 when "debian-riscv64"
   arg[0].slice!(1,9)
+when "osx1014"
+  h[:cppflags] ||= []
+  h[:cppflags] << "-DRUBY_ASSERT_NOASSUME"
 end
 
 autoconf_command = '/home/naruse/local/autoconf/bin/autoconf'
