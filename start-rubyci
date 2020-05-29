@@ -196,13 +196,6 @@ when "osx1014"
   h[:cppflags] << "-DRUBY_ASSERT_NOASSUME"
 end
 
-case ChkBuild.nickname
-when "osx1014"
-  puts "test"
-  h[:cppflags] ||= []
-  h[:cppflags] << "-DRUBY_ASSERT_NOASSUME"
-end
-
 autoconf_command = '/home/naruse/local/autoconf/bin/autoconf'
 h[:autoconf_command] = autoconf_command if File.exist?(autoconf_command)
 h[:configure_args] = ["--with-baseruby=#{RbConfig.ruby}"]
