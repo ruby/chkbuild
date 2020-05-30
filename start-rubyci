@@ -191,7 +191,10 @@ when /^solaris/ # F
   end
 when "debian-riscv64"
   arg[0].slice!(1,9)
+when "osx1013"
+  h[:configure_args_with_openssl_dir] = %w[--with-openssl-dir=/opt/local]
 when "osx1014"
+  h[:configure_args_with_openssl_dir] = %w[--with-openssl-dir=/opt/local]
   h[:cppflags] ||= []
   h[:cppflags] << "-DRUBY_ASSERT_NOASSUME"
 end
