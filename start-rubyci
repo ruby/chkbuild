@@ -196,7 +196,7 @@ when "osx1013"
 when "osx1014"
   h[:configure_args_with_openssl_dir] = %w[--with-openssl-dir=/opt/local]
   h[:cppflags] ||= []
-  h[:cppflags] << "-DRUBY_ASSERT_NOASSUME"
+  h[:cppflags] << "-DRUBY_ASSERT_NOASSUME=1"
 end
 
 autoconf_command = '/home/naruse/local/autoconf/bin/autoconf'
