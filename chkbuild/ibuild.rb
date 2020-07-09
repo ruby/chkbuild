@@ -122,6 +122,7 @@ class ChkBuild::IBuild # internal build
       end
       puts "chkbuild-version: #{ rev }"
     end
+    puts "aws-sdk-backend: #{ $RUBYCI_AWS_SDK || "(none)" }"
     show_options
     show_cpu_info
     show_memory_info
