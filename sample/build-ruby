@@ -78,7 +78,7 @@ ChkBuild::Ruby.def_target(
 
   # [nil, { :suffix_? => "-outofplace", :inplace_build => false}]
 
-  # :git_shallow_clone => true,
+  :git_shallow_clone => true,
   # :autoconf_command => 'autoconf',
   # :configure_args_valgrind => %w[--with-valgrind],
   # :configure_args_enable_shared => %w[--enable-shared],
