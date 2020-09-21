@@ -199,6 +199,9 @@ when "osx1014"
   h[:configure_args_with_openssl_dir] = %w[--with-openssl-dir=/opt/local]
   h[:cppflags] ||= []
   h[:cppflags] << "-DRUBY_ASSERT_NOASSUME=1"
+when "osx1100arm"
+  ENV["PATH"] = "/usr/local/bin:/usr/local/sbin:#{ENV['PATH']}"
+  h[:configure_args_with_openssl_dir] = %w[--with-openssl-dir=/Users/hsbt/.rbenv/versions/2.7.1/openssl]
 end
 
 autoconf_command = '/home/naruse/local/autoconf/bin/autoconf'
