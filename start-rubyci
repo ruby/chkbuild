@@ -202,6 +202,7 @@ when "osx1014"
 when "osx1100arm"
   ENV["PATH"] = "/usr/local/bin:/usr/local/sbin:#{ENV['PATH']}"
   h[:configure_args_with_openssl_dir] = %w[--with-openssl-dir=/Users/hsbt/.rbenv/versions/2.7.1/openssl]
+  h[:configure_args_with_out_ext] = %w[--with-out-ext=+,gdbm]
 end
 
 autoconf_command = '/home/naruse/local/autoconf/bin/autoconf'
