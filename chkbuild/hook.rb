@@ -195,7 +195,7 @@ module ChkBuild
     # SleepAVG:      80%
     #
     define_diff_preprocess_gsub(target_name,
-      /^(Tgid|Pid|PPid|SleepAVG|VmPeak|VmSize|VmLck|VmHWM|VmRSS|VmData|VmStk|VmExe|VmLib|VmPTE|VmSwap|SigQ|voluntary_ctxt_switches|nonvoluntary_ctxt_switches):[ \t]*\d+/) {|match|
+      /^(Tgid|Pid|PPid|NStgid|NSpid|NSpgid|NSsid|SleepAVG|VmPeak|VmSize|VmLck|VmHWM|VmRSS|VmData|VmStk|VmExe|VmLib|VmPTE|VmSwap|RssAnon|RssFile|RssShmem|SigQ|voluntary_ctxt_switches|nonvoluntary_ctxt_switches):[ \t]*\d+/) {|match|
       "#{match[1]}: <nnn>"
     }
 
@@ -301,6 +301,10 @@ module ChkBuild
       HighFree
       LowTotal
       LowFree
+      KReclaimable
+      Percpu
+      CmaTotal
+      CmaFree
     ]
     ChkBuild.define_diff_preprocess_gsub(target_name, /^(#{Regexp.union(*keys)}): *\d+/) {|match|
       "#{match[1]}: <nnn>"
