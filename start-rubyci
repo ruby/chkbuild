@@ -201,7 +201,7 @@ when "osx1014"
   h[:cppflags] << "-DRUBY_ASSERT_NOASSUME=1"
 when "osx1100arm"
   ENV["PATH"] = "/opt/local/bin:/opt/local/sbin:#{ENV['PATH']}"
-  h[:configure_args_with_openssl_dir] = %w[--with-openssl-dir=/opt/local]
+  h[:configure_args_with_openssl_dir] = %w[--with-openssl-dir=/opt/local --with-gdbm-dir=/opt/local]
 when "osxbetaarm"
   ENV["PATH"] = "/usr/local/bin:/usr/local/sbin:#{ENV['PATH']}"
   h[:configure_args_with_openssl_dir] = %w[--with-openssl-dir=/Users/hsbt/.rbenv/versions/2.7.2/openssl]
