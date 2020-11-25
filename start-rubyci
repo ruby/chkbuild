@@ -203,9 +203,8 @@ when "osx1100arm"
   ENV["PATH"] = "/opt/local/bin:/opt/local/sbin:#{ENV['PATH']}"
   h[:configure_args_with_openssl_dir] = %w[--with-openssl-dir=/opt/local --with-gdbm-dir=/opt/local]
 when "osxbetaarm"
-  ENV["PATH"] = "/usr/local/bin:/usr/local/sbin:#{ENV['PATH']}"
-  h[:configure_args_with_openssl_dir] = %w[--with-openssl-dir=/Users/hsbt/.rbenv/versions/2.7.2/openssl]
-  h[:configure_args_with_out_ext] = %w[--with-out-ext=+,gdbm]
+  ENV["PATH"] = "/opt/homebrew/bin:/opt/homebrew/sbin:#{ENV['PATH']}"
+  h[:configure_args_with_openssl_dir] = %w[--with-openssl-dir=/opt/homebrew --with-gdbm-dir=/opt/homebrew]
 end
 
 autoconf_command = '/home/naruse/local/autoconf/bin/autoconf'
