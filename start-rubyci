@@ -142,7 +142,6 @@ when 'openbsd-current'
   h[:git_shallow_clone] = true
 when 'freebsd12'
   h[:configure_args_with_opt_dir] = %w[--with-opt-dir=/usr/local]
-  h[:configure_args_disable_dtrace] = %w[--disable-dtrace]
   h[:configure_args_disable_jit_support] = %w[--disable-jit-support]
 when 'amazon'
   h[:timeout] = '4h'
