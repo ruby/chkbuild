@@ -130,6 +130,7 @@ when 'tk2-243-31075', 'armv8b'
 when 'arch'
   h[:autoconf_command] = 'autoreconf'
   h[:autoconf_command_args] = '-i'
+  h[:git_shallow_clone] = true # to stop "make dist" which does not work on autoreconf
 when 'archlinux'
   h[:configure_args_cc] = %w[CC=clang]
   ENV['RUBY_FORCE_TEST_JIT'] = '1'
