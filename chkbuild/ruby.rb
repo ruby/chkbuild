@@ -739,7 +739,7 @@ def (ChkBuild::Ruby).build_proc(b)
       relname = "#{ruby_branch}@#{ruby_rev}"
     end
     if relname
-      b.make("dist", "RELNAME=#{relname}", "AUTOCONF='#{autoconf_command} #{autoconf_command_args.join(" ")}'")
+      b.make("dist", "RELNAME=#{relname}", "AUTOCONF=#{autoconf_command}")
     end
   }
 end
