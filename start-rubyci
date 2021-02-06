@@ -208,7 +208,7 @@ when "osx1100arm"
   h[:configure_args_with_openssl_dir] = %w[--with-openssl-dir=/opt/local --with-gdbm-dir=/opt/local]
 when "osxbetaarm"
   ENV["PATH"] = "/opt/homebrew/bin:/opt/homebrew/sbin:#{ENV['PATH']}"
-  h[:configure_args_with_openssl_dir] = %w[--with-openssl-dir=$(brew --prefix openssl)]
+  h[:configure_args_with_openssl_dir] = %w[--with-openssl-dir=$(brew\ --prefix\ openssl)]
   h[:configure_args_with_out_ext] = %w[--with-out-ext=+,gdbm]
 end
 
