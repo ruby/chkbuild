@@ -195,17 +195,9 @@ when /^solaris/ # F
   end
 when "debian-riscv64"
   arg[0].slice!(1,9)
-when "osx1013"
+when "osx1013", "osx1015", "osx1100arm"
   ENV["PATH"] = "/opt/local/bin:/opt/local/sbin:#{ENV['PATH']}"
   h[:configure_args_with_openssl_dir] = %w[--with-openssl-dir=/opt/local]
-when "osx1014", "osx1015"
-  ENV["PATH"] = "/opt/local/bin:/opt/local/sbin:#{ENV['PATH']}"
-  h[:configure_args_with_openssl_dir] = %w[--with-openssl-dir=/opt/local]
-  h[:cppflags] ||= []
-  h[:cppflags] << "-DRUBY_ASSERT_NOASSUME=1"
-when "osx1100arm"
-  ENV["PATH"] = "/opt/local/bin:/opt/local/sbin:#{ENV['PATH']}"
-  h[:configure_args_with_openssl_dir] = %w[--with-openssl-dir=/opt/local --with-gdbm-dir=/opt/local]
 end
 
 autoconf_command = '/home/naruse/local/autoconf/bin/autoconf'
