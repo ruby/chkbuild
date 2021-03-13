@@ -198,7 +198,7 @@ when "debian-riscv64"
 when "osx1013"
   ENV["PATH"] = "/opt/local/bin:/opt/local/sbin:#{ENV['PATH']}"
   h[:configure_args_with_openssl_dir] = %w[--with-openssl-dir=/opt/local]
-when "osx1014"
+when "osx1014", "osx1015"
   ENV["PATH"] = "/opt/local/bin:/opt/local/sbin:#{ENV['PATH']}"
   h[:configure_args_with_openssl_dir] = %w[--with-openssl-dir=/opt/local]
   h[:cppflags] ||= []
