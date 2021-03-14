@@ -200,8 +200,15 @@ when "osx1013", "osx1015", "osx1100arm"
   h[:configure_args_with_openssl_dir] = %w[--with-openssl-dir=/opt/local]
 end
 
+autoreconf_command = '/home/naruse/local/autoconf/bin/autoreconf'
 autoconf_command = '/home/naruse/local/autoconf/bin/autoconf'
-h[:autoconf_command] = autoconf_command if File.exist?(autoconf_command)
+case
+when File.exist?(autoreconf_command)
+  h[:autoconf_command] = autoreconf_command
+  h[:autoconf_command_args] = ['-i']
+when File.exist?(autoconf_command)
+  h[:autoconf_command] = autoconf_command
+end
 h[:configure_args] = ["--with-baseruby=#{RbConfig.ruby}"]
 
 ChkBuild::Ruby.def_target(*arg)
