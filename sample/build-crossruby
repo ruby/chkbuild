@@ -242,7 +242,7 @@ ChkBuild.define_title_hook(%w[nativeruby crossruby], 'svn-info/ruby') {|title, l
 def show_binaries(b)
   if Util.search_command('file')
     b.catch_error {
-      binaries = Dir.glob(%w[ruby ruby.exe rubyw.exe .ext/**/*.so].join("\0"))
+      binaries = Dir.glob(%w[ruby ruby.exe rubyw.exe .ext/**/*.so])
       binaries.sort!
       args = ["file", *binaries] + [{:section=>'ruby-file', :hide_commandline=>true}]
       b.run(*args)
@@ -260,8 +260,7 @@ def show_fake_rb(b)
 end
 
 ChkBuild.define_build_proc('nativeruby') {|b|
-  b.svn("http://svn.ruby-lang.org/repos/ruby", 'trunk', 'ruby')
-  b.svn_info('ruby', :section=>"svn-info/ruby")
+  b.git("https://github.com/ruby/ruby", 'ruby', {:git_fetch_refspec => "refs/notes/commits:refs/notes/commits"})
   Dir.chdir('ruby') {
     show_version_h(b)
     b.run('autoconf')
@@ -280,9 +279,8 @@ ChkBuild.define_build_proc('crossruby') {|b|
   nativeruby_build = b.depbuilds.find {|depbuild| depbuild.target.target_name == 'nativeruby' }
   baseruby = "#{nativeruby_build.dir}/bin/ruby"
   b.catch_error { b.run(baseruby, "-v", :section=>"baseruby-version") }
-  branch = b.opts[:branch] || 'trunk'
-  b.svn("http://svn.ruby-lang.org/repos/ruby", branch, 'ruby')
-  b.svn_info('ruby', :section=>"svn-info/ruby")
+  branch = b.opts[:branch] || 'master'
+  b.git("https://github.com/ruby/ruby", 'ruby', {:git_fetch_refspec => "refs/notes/commits:refs/notes/commits", :ruby_branch => branch})
   Dir.chdir('ruby') {
     show_version_h(b)
     b.run('autoconf')
@@ -316,7 +314,7 @@ nativeruby = ChkBuild.def_target('nativeruby',
 crossruby_args = []
 
 crossruby_args << [
-  {:suffix_? => 'trunk', :branch => 'trunk' },
+  { :suffix_? => 'master', :output_interval_timeout => '20min' },
   #{:suffix_? => '2.0.0', :branch => 'branches/ruby_2_0_0' },
 ]
 
