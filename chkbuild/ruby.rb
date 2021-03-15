@@ -303,6 +303,7 @@ def (ChkBuild::Ruby).build_proc(b)
   dldflags = Util.opts2aryparam(bopts, :dldflags)
   autoconf_command = bopts[:autoconf_command]
   autoconf_command_args = bopts[:autoconf_command_args]
+  autoreconf_command = bopts[:autoreconf_command]
   make_options = Util.opts2hashparam(bopts, :make_options)
   use_rubyspec = bopts[:use_rubyspec]
   use_rubyspec_in_tree = bopts[:use_rubyspec_in_tree]
@@ -417,7 +418,11 @@ def (ChkBuild::Ruby).build_proc(b)
     end
   end
 
-  b.run(autoconf_command, *(autoconf_command_args || []))
+  if autoreconf_command
+    b.run(autoreconf_command, "--install")
+  else
+    b.run(autoconf_command, *(autoconf_command_args || []))
+  end
 
   Dir.chdir(ruby_build_dir)
 

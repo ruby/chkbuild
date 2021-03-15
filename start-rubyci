@@ -128,9 +128,7 @@ case ChkBuild.nickname
 when 'tk2-243-31075', 'armv8b'
   arg[0].slice!(1,9)
 when 'arch'
-  h[:autoconf_command] = 'autoreconf'
-  h[:autoconf_command_args] = '-i'
-  h[:git_shallow_clone] = true # to stop "make dist" which does not work on autoreconf
+  h[:autoreconf_command] = 'autoreconf'
 when 'archlinux'
   h[:configure_args_cc] = %w[CC=clang]
   ENV['RUBY_FORCE_TEST_JIT'] = '1'
@@ -169,8 +167,7 @@ when /\Aandroid\d+-/
   h[:git_shallow_clone] = true
   # hardlink is not available for a normal user on Android
   def File.link(new, old); end
-  h[:autoconf_command] = 'autoreconf'
-  h[:autoconf_command_args] = '-i'
+  h[:autoreconf_command] = 'autoreconf'
 when /^solaris/ # F
   ENV["MAKE"] = "gmake"
   ENV["RUBY_TEST_TIMEOUT_SCALE"] = "10" if ChkBuild.nickname =~ /sunc$/
@@ -199,8 +196,7 @@ when "osx1013", "osx1015"
   ENV["PATH"] = "/opt/local/bin:/opt/local/sbin:#{ENV['PATH']}"
   h[:configure_args_with_openssl_dir] = %w[--with-openssl-dir=/opt/local]
 when "osx1100arm"
-  h[:autoconf_command] = 'autoreconf'
-  h[:autoconf_command_args] = '-i'
+  h[:autoreconf_command] = 'autoreconf'
   ENV["PATH"] = "/opt/local/bin:/opt/local/sbin:#{ENV['PATH']}"
   h[:configure_args_with_openssl_dir] = %w[--with-openssl-dir=/opt/local]
 end
