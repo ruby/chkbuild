@@ -137,6 +137,7 @@ when 'scw-9d6766'
   h[:timeout] = '3h'
 when 'openbsd-current'
   h[:autoconf_command] = 'autoconf-2.69'
+  h[:autoreconf_command] = 'autoreconf-2.69'
   h[:configure_args_opt] = %w[--with-opt-dir=/usr/local]
   arg[0][0][:output_interval_timeout] = '60min'
   ENV['RUBY_FIBER_VM_STACK_SIZE'] = '32768'
