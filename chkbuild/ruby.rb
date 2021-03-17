@@ -418,7 +418,11 @@ def (ChkBuild::Ruby).build_proc(b)
     end
   end
 
-  if autoreconf_command
+  if File.readable?("autogen.sh")
+    commands = ["./autogen.sh"]
+    commands << { "ENV:AUTORECONF" => autoreconf_command } if autoreconf_command
+    b.run(*commands)
+  elsif autoreconf_command
     b.run(autoreconf_command, "--install")
   else
     b.run(autoconf_command, *(autoconf_command_args || []))
