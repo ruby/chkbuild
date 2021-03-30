@@ -1,0 +1,308 @@
+#!/usr/bin/env ruby
+
+# start-build - build start script
+#
+# Copyright (C) 2005-2011 Tanaka Akira  <akr@fsij.org>
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#  1. Redistributions of source code must retain the above copyright
+#     notice, this list of conditions and the following disclaimer.
+#  2. Redistributions in binary form must reproduce the above
+#     copyright notice, this list of conditions and the following
+#     disclaimer in the documentation and/or other materials provided
+#     with the distribution.
+#  3. The name of the author may not be used to endorse or promote
+#     products derived from this software without specific prior
+#     written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS
+# OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+# GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+# OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+# EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+#ENV['PATH'] = "/usr/local/bin:#{ENV['PATH']}"
+
+$:.unshift File.dirname(File.expand_path(__FILE__))
+
+require 'chkbuild'
+
+ChkBuild.nickname = "crossruby"
+
+ChkBuild.s3_upload_target
+
+# copied from sample/build-crossruby
+
+ENV['LC_ALL'] = 'C'
+
+module CrossRuby
+  module CompleteOptions
+  end
+end
+
+def (CrossRuby::CompleteOptions).call(target_opts)
+  opts = target_opts.dup
+  opts[:suffix_1] = opts[:target].gsub(/-/, '') if !opts.has_key?(:suffix_1)
+  opts
+end
+
+def show_version_h(b)
+  version_data = {
+    'version.h' => %w[
+      RUBY_BRANCH_NAME
+      RUBY_PATCHLEVEL
+      RUBY_RELEASE_CODE
+      RUBY_RELEASE_DATE
+      RUBY_RELEASE_DAY
+      RUBY_RELEASE_MONTH
+      RUBY_RELEASE_YEAR
+      RUBY_VERSION
+      RUBY_VERSION_CODE
+      RUBY_VERSION_MAJOR
+      RUBY_VERSION_MINOR
+      RUBY_VERSION_TEENY
+    ],
+  }
+  if version_data.keys.any? {|fn| File.exist? fn }
+    b.logfile.start_section 'version.h'
+    version_data.each {|fn, version_macros|
+      if File.exist? fn
+        File.foreach(fn) {|line|
+          if /\A\#\s*define\s+([A-Z_]+)\s+(\S.*)\n\z/ =~ line &&
+             version_macros.include?($1)
+            puts line
+          end
+        }
+      end
+    }
+  end
+end
+
+def show_verconf_h(b)
+  verconf_list = [
+    'verconf.h',
+    'config.h',
+    *Dir.glob(".ext/include/*/ruby/config.h")
+  ]
+  if verconf_list.any? {|fn| File.exist? fn }
+    b.logfile.start_section 'verconf.h'
+    verconf_list.each {|fn|
+      if File.exist? fn
+        File.foreach(fn) {|line|
+          if /\A\#\s*define\s+([A-Z_]+)\s+(\S.*)\n\z/ =~ line &&
+             $1 == 'RUBY_PLATFORM'
+            puts line
+          end
+        }
+      end
+    }
+  end
+end
+
+ChkBuild.define_title_hook(%w[nativeruby crossruby], %w[svn-info/ruby version.h verconf.h]) {|title, logs|
+  log = logs.join('')
+  lastrev = /^Last Changed Rev: (\d+)$/.match(log)
+  version = /^#\s*define RUBY_VERSION "(\S+)"/.match(log)
+  reldate = /^#\s*define RUBY_RELEASE_DATE "(\S+)"/.match(log)
+  relyear = /^#\s*define RUBY_RELEASE_YEAR (\d+)/.match(log)
+  relmonth = /^#\s*define RUBY_RELEASE_MONTH (\d+)/.match(log)
+  relday = /^#\s*define RUBY_RELEASE_DAY (\d+)/.match(log)
+  patchlev = /^#\s*define RUBY_PATCHLEVEL (\S+)/.match(log)
+  platform = /^#\s*define RUBY_PLATFORM "(\S+)"/.match(log)
+  if lastrev
+    str = ''
+    if lastrev
+      str << "r#{lastrev[1]} "
+    end
+    str << 'ruby '
+    if reldate
+      reldate = reldate[1]
+    elsif relyear && relmonth && relday
+      reldate = "#{relyear[1]}-#{relmonth[1]}-#{relday[1]}"
+    end
+    if version && reldate
+      str << version[1]
+      str << (patchlev[1] == '-1' ? 'dev' : "p#{patchlev[1]}") if patchlev
+      str << " (" << reldate << ")"
+      str << " [" << platform[1] << "]" if platform
+      ss = title.suffixed_name.split(/-/)[1..-1].reject {|s|
+        /\A(trunk|1\.8)\z/ =~ s ||
+        version[1] == s
+      }
+      str << " [#{ss.join(',')}]" if !ss.empty?
+    end
+    str.sub!(/ \z/, '')
+    title.update_title(:version, str)
+  end
+}
+
+ChkBuild.define_title_hook(%w[nativeruby crossruby], 'svn-info/ruby') {|title, log|
+  lastrev = /^Last Changed Rev: (\d+)$/.match(log)
+  if lastrev
+    title.update_hidden_title(:ruby_rev, "r#{lastrev[1]}")
+  end
+}
+
+def show_binaries(b)
+  if Util.search_command('file')
+    b.catch_error {
+      binaries = Dir.glob(%w[ruby ruby.exe rubyw.exe .ext/**/*.so])
+      binaries.sort!
+      args = ["file", *binaries] + [{:section=>'ruby-file', :hide_commandline=>true}]
+      b.run(*args)
+    }
+  end
+end
+
+def show_fake_rb(b)
+  b.catch_error {
+    filenames = Dir.glob('*-fake.rb')
+    args = ['cat', *filenames]
+    args << {:section=>'fake.rb'}
+    b.run(*args)
+  }
+end
+
+ChkBuild.define_build_proc('nativeruby') {|b|
+  b.git("https://github.com/ruby/ruby", 'ruby', {:git_fetch_refspec => "refs/notes/commits:refs/notes/commits"})
+  Dir.chdir('ruby') {
+    show_version_h(b)
+    b.run('autoconf')
+    configure_args = []
+    configure_args << "--prefix=#{b.build_dir}"
+    configure_args << "--disable-install-doc"
+    b.run('./configure', *configure_args)
+    show_verconf_h(b)
+    b.make
+    b.make('install')
+  }
+}
+
+ChkBuild.define_build_proc('crossruby') {|b|
+  target_system = b.opts[:target]
+  nativeruby_build = b.depbuilds.find {|depbuild| depbuild.target.target_name == 'nativeruby' }
+  baseruby = "#{nativeruby_build.dir}/bin/ruby"
+  b.catch_error { b.run(baseruby, "-v", :section=>"baseruby-version") }
+  branch = b.opts[:branch] || 'master'
+  b.git("https://github.com/ruby/ruby", 'ruby', {:git_fetch_refspec => "refs/notes/commits:refs/notes/commits", :ruby_branch => branch})
+  Dir.chdir('ruby') {
+    show_version_h(b)
+    b.run('autoconf')
+    if File.exist? 'tool/config.guess'
+      build_system = `tool/config.guess`.chomp
+    else
+      config_guess = "#{nativeruby_build.dir}/ruby/tool/config.guess"
+      if File.exist? config_guess
+        build_system = `#{config_guess}`.chomp
+      end
+    end
+    configure_args = []
+    configure_args << "--prefix=/usr"
+    configure_args << "--build=#{build_system}" if build_system
+    configure_args << "--host=#{target_system}"
+    configure_args << "--with-baseruby=#{baseruby}"
+    configure_args << "--disable-install-doc"
+    b.run('./configure', *configure_args)
+    show_verconf_h(b)
+    b.make
+    show_binaries(b)
+    show_fake_rb(b)
+    b.make('install', "DESTDIR=#{b.build_dir}")
+  }
+}
+
+nativeruby = ChkBuild.def_target('nativeruby',
+  :timeout => '1h',
+  :output_interval_timeout => '5min')
+
+crossruby_args = []
+
+crossruby_args << [
+  { :suffix_? => 'master', :output_interval_timeout => '20min' },
+  #{:suffix_? => '2.0.0', :branch => 'branches/ruby_2_0_0' },
+]
+
+crossruby_args << [
+  { :suffix_? => 'mingw32', :target => 'i686-w64-mingw32' },
+  { :suffix_? => 'mingw64', :target => 'x86_64-w64-mingw32' },
+  { :suffix_? => 'arm', :target => 'arm-linux-gnueabi' },
+  { :suffix_? => 'mips', :target => 'mips-linux-gnu' },
+  { :suffix_? => 'mipsel', :target => 'mipsel-linux-gnu' },
+  { :suffix_? => 'powerpc', :target => 'powerpc-linux-gnu' },
+  { :suffix_? => 's390', :target => 's390-linux-gnu' },
+  { :suffix_? => 'sparc', :target => 'sparc64-linux-gnu' },
+  { :suffix_? => 'aarch64', :target => 'aarch64-linux-gnu' },
+  { :suffix_? => 'sh4', :target => 'sh4-linux-gnu' },
+  { :suffix_? => 'hppa', :target => 'hppa-linux-gnu' },
+  { :suffix_? => 'm68k', :target => 'm68k-linux-gnu' },
+  # TODO: android?
+  # TODO: emscripten
+].reject {|h| !Util.search_command("#{h[:target]}-gcc") }
+
+crossruby_args << {
+  :timeout => '1h',
+  :output_interval_timeout => '5min',
+}
+
+crossruby_args << nativeruby if nativeruby
+
+ChkBuild.def_target('crossruby', *crossruby_args)
+
+# dependencies:
+# nativeruby 20130501T223400Z (ruby 2.1.0dev (2013-05-01) [x86_64-linux])
+ChkBuild.define_diff_preprocess_gsub('crossruby',
+  /^nativeruby .*/) {|match|
+  'nativeruby <datetime> (<version>)'
+}
+
+# #define RUBY_PATCHLEVEL 180
+ChkBuild.define_diff_preprocess_gsub(%w[nativeruby crossruby],
+  /^\#define RUBY_PATCHLEVEL \d*/) {|match|
+  '#define RUBY_PATCHLEVEL <patchlevel>'
+}
+
+# #define RUBY_RELEASE_DATE "2013-04-06"
+ChkBuild.define_diff_preprocess_gsub(%w[nativeruby crossruby],
+  /^\#define RUBY_RELEASE_DATE ".*"/) {|match|
+  '#define RUBY_RELEASE_DATE "<year>-<mm>-<dd>"'
+}
+
+# #define RUBY_RELEASE_YEAR 2013
+# #define RUBY_RELEASE_MONTH 4
+# #define RUBY_RELEASE_DAY 6
+ChkBuild.define_diff_preprocess_gsub(%w[nativeruby crossruby],
+  /^\#define RUBY_RELEASE_(YEAR|MONTH|DAY) \d+/) {|match|
+  "\#define RUBY_RELEASE_#{match[1]} <num>"
+}
+
+# ruby 1.9.2dev (2009-12-07 trunk 26037) [i686-linux]
+# ruby 1.9.1p376 (2009-12-07 revision 26040) [i686-linux]
+# | ruby 1.9.2dev (2010-02-18 trunk 26704) [x86_64-linux]
+ChkBuild.define_diff_preprocess_gsub(%w[nativeruby crossruby],
+  /ruby [0-9.a-z]+ \(.*\) \[.*\]$/) {|match|
+  "ruby <version>"
+}
+
+# fake.rb:
+#   RUBY_DESCRIPTION = "ruby #{RUBY_VERSION} (2013-05-01) [#{RUBY_PLATFORM}]"
+ChkBuild.define_diff_preprocess_gsub('crossruby',
+  /^( *RUBY_DESCRIPTION = )".*"$/) {|match|
+  "#{match[1]}\"<description>\""
+}
+
+# done.  (0.07user 0.01system 0.05elapsed)
+ChkBuild.define_diff_preprocess_gsub(%w[nativeruby crossruby],
+  /^done\.  \(\d+\.\d\duser \d+\.\d\dsystem \d+\.\d\delapsed\)/) {|match|
+  "done.  (X.XXuser X.XXsystem X.XXelapsed)"
+}
+
+ChkBuild.main
