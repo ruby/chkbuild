@@ -294,7 +294,7 @@ if __FILE__ == $0
   load File.expand_path('../../start-build', __FILE__)
 
   Dir.foreach(ChkBuild.s3_localpath("")) do |depsuffixed_name|
-    next unless depsuffixed_name.start_with?('ruby-')
+    next if depsuffixed_name !~ /\A(?:cross)?ruby-/
     ChkBuild.run_upload_hooks(depsuffixed_name)
   end
 end
