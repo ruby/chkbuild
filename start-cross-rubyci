@@ -251,6 +251,7 @@ crossruby_args << [
 crossruby_args << {
   :timeout => '1h',
   :output_interval_timeout => '5min',
+  :git_shallow_clone => true,
 }
 
 crossruby_args << nativeruby if nativeruby
