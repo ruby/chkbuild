@@ -106,7 +106,7 @@ End
   DOMAINLABEL = /[A-Za-z0-9-]+/
   DOMAINPAT = /#{DOMAINLABEL}(\.#{DOMAINLABEL})*/
 
-  OldestMaintainedRelease = "2.5"
+  OldestMaintainedRelease = "2.6"
 
   module_function
 
