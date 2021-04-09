@@ -241,7 +241,7 @@ crossruby_args << [
   { :suffix_? => 's390', :target => 's390-linux-gnu' },
   { :suffix_? => 'sparc', :target => 'sparc64-linux-gnu' },
   { :suffix_? => 'aarch64', :target => 'aarch64-linux-gnu' },
-  { :suffix_? => 'sh4', :target => 'sh4-linux-gnu' },
+  #{ :suffix_? => 'sh4', :target => 'sh4-linux-gnu' }, # looks like sh4-gcc is broken: http://rubyci.s3.amazonaws.com/crossruby/crossruby-master-sh4/log/20210409T051310Z.fail.html.gz
   { :suffix_? => 'hppa', :target => 'hppa-linux-gnu' },
   { :suffix_? => 'm68k', :target => 'm68k-linux-gnu' },
   # TODO: android?
