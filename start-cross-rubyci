@@ -211,6 +211,7 @@ ChkBuild.define_build_proc('crossruby') {|b|
     configure_args << "--host=#{target_system}"
     configure_args << "--with-baseruby=#{baseruby}"
     configure_args << "--disable-install-doc"
+    configure_args.concat b.opts[:configure_args] if b.opts[:configure_args]
     b.run('./configure', *configure_args)
     show_verconf_h(b)
     b.make
@@ -247,6 +248,24 @@ crossruby_args << [
   # TODO: android?
   # TODO: emscripten
 ].reject {|h| !Util.search_command("#{h[:target]}-gcc") }
+
+crossruby_args[-1].concat([
+  { :suffix_? => 'aarch64-android30', :target => 'aarch64-linux-android' },
+  { :suffix_? => 'armv7a-android30', :target => 'armv7a-linux-androideabi' },
+  { :suffix_? => 'i686-android30', :target => 'i686-linux-android' },
+  { :suffix_? => 'x86_64-android30', :target => 'x86_64-linux-android' },
+].map do |h|
+  clang = "#{h[:target]}30-clang"
+  if Util.search_command(clang)
+    configure_args = ["CC=" + clang]
+    clangxx = "#{ clang }++"
+    configure_args << ("CXX=" + clangxx) if Util.search_command(clangxx)
+    h[:configure_args] = configure_args
+    h
+  else
+    nil
+  end
+end.compact)
 
 crossruby_args << {
   :timeout => '1h',
