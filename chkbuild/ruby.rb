@@ -320,6 +320,9 @@ def (ChkBuild::Ruby).build_proc(b)
 
   b.run(autoconf_command, '--version', :section=>'autoconf-version')
   b.run('bison', '--version', :section=>'bison-version')
+  if system('xcodebuild', '-version', out: File::NULL, err: File::NULL)
+    b.run('xcodebuild', '-version', :section=>'xcode-version')
+  end
 
   if validate_dependencies
     cflags ||= []
