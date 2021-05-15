@@ -190,6 +190,8 @@ when /^solaris/ # F
   end
 when "raspbian10-aarch64"
   ENV["RUBY_TEST_TIMEOUT_SCALE"] = "3"
+when "raspbian10-armv7l"
+  h[:git_shallow_clone] = true
 when "debian-riscv64"
   arg[0].slice!(1,9)
 when "osx1013", "osx1015", "osx1100arm"
