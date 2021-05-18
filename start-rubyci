@@ -142,6 +142,7 @@ when 'openbsd-current'
   h[:output_interval_timeout] = '10min'
   ENV['RUBY_FIBER_VM_STACK_SIZE'] = '32768'
   ENV['RUBY_FIBER_MACHINE_STACK_SIZE'] = '65536'
+  ENV["AUTOMAKE_VERSION"] = "1.16"
   h[:git_shallow_clone] = true
 when 'freebsd12'
   h[:configure_args_with_opt_dir] = %w[--with-opt-dir=/usr/local]
