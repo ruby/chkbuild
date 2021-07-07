@@ -245,9 +245,20 @@ crossruby_args << [
   #{ :suffix_? => 'sh4', :target => 'sh4-linux-gnu' }, # looks like sh4-gcc is broken: http://rubyci.s3.amazonaws.com/crossruby/crossruby-master-sh4/log/20210409T051310Z.fail.html.gz
   { :suffix_? => 'hppa', :target => 'hppa-linux-gnu' },
   { :suffix_? => 'm68k', :target => 'm68k-linux-gnu' },
-  # TODO: android?
-  # TODO: emscripten
 ].reject {|h| !Util.search_command("#{h[:target]}-gcc") }
+
+crossruby_args.concat([
+  { :suffix_? => 'wasm32_emscripten', :target => 'wasm32-unknown-emscripten' },
+  { :suffix_? => 'wasm64_emscripten', :target => 'wasm64-unknown-emscripten' },
+].map do |h|
+  h[:configure_args] = %w(
+    --with-static-linked-ext --with-ext=stringio,ripper,date,strscan,io/console,monitor,digest,pathname,psych optflags=-Os debugflags=-g0 CC=emcc LD=emcc AR=emar RANLIB=emranlib
+  )
+  h
+end)
+
+# suppress 'emcc: warning: LLVM version appears incorrect (seeing "12.0", expected "11.0") [-Wversion-check]' in Ubuntu 21.04
+ENV["EMCC_SKIP_SANITY_CHECK"] = "1"
 
 crossruby_args[-1].concat([
   { :suffix_? => 'aarch64-android30', :target => 'aarch64-linux-android' },
