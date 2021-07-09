@@ -247,7 +247,7 @@ crossruby_args << [
   { :suffix_? => 'm68k', :target => 'm68k-linux-gnu' },
 ].reject {|h| !Util.search_command("#{h[:target]}-gcc") }
 
-crossruby_args.concat([
+crossruby_args[-1].concat([
   { :suffix_? => 'wasm32_emscripten', :target => 'wasm32-unknown-emscripten' },
   { :suffix_? => 'wasm64_emscripten', :target => 'wasm64-unknown-emscripten' },
 ].map do |h|
