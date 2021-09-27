@@ -61,7 +61,7 @@ ChkBuild.nickname = ENV["RUBYCI_NICKNAME"] if ENV["RUBYCI_NICKNAME"]
 ChkBuild.s3_upload_target
 arg = [].push(
   [
-    { :suffix_? => 'master', :output_interval_timeout => '20min' },
+    { :suffix_? => 'master', :output_interval_timeout => '30min' },
     *ChkBuild::Ruby.maintained_release_branches
   ],
 
