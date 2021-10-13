@@ -229,7 +229,7 @@ module TimeoutCommand
         else
           msgout.puts "timeout: #{timeout_reason}" if msgout
           begin
-            Process.kill(0, -pid)
+            Process.kill("QUIT", -pid)
             show_process_group("timeout: the process group #{pid} is alive.", pid, msgout)
             kill_processgroup(pid, msgout)
           rescue Errno::ESRCH # no process
