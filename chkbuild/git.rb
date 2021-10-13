@@ -108,6 +108,7 @@ class ChkBuild::IBuild
           begin
             self.run(*command)
           rescue ChkBuild::Build::CommandError
+            command.delete("--filter=blob:none")
             try += 1
             retry if try < 3
             raise
