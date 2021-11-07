@@ -83,7 +83,8 @@ class ChkBuild::IBuild
       command = ["git", "clone", "-q"]
       if opts[:git_shallow_clone]
         command << "--depth=1"
-      elsif /^error:/ !~ IO.popen(['git', 'clone', '--filter=blob:none', '-h', err: [:child, :out]], &:read)
+      end
+      if opts[:git_blobless_clone]
         command << "--filter=blob:none"
       end
       command << '--branch' << branch if branch

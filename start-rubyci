@@ -192,15 +192,13 @@ when /^solaris/ # F
 when "raspbian10-aarch64"
   ENV["RUBY_TEST_TIMEOUT_SCALE"] = "3"
 when "raspbian10-armv7l"
-  h[:git_shallow_clone] = true
+  h[:git_blobless_clone] = true
 when "debian-riscv64"
   arg[0].slice!(1,9)
 when "osx1013", "osx1015", "osx1100arm"
   h[:autoreconf_command] = 'autoreconf'
   ENV["PATH"] = "/opt/local/bin:/opt/local/sbin:#{ENV['PATH']}"
   h[:configure_args_with_openssl_dir] = %w[--with-openssl-dir=/opt/local]
-  # `--filter=blob:none` causes `Operation not permitted (Errno::EPERM)`
-  h[:git_shallow_clone] = true if ChkBuild.nickname.start_with?("osx10")
 when "ppc64le"
   ENV["CC"] = "gcc-10"
   ENV["CXX"] = "g++-10"
