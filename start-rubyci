@@ -127,9 +127,12 @@ end
 case ChkBuild.nickname
 when 'tk2-243-31075', 'armv8b'
   arg[0].slice!(1,9)
+when 'debian' # Debian 11.0(testing) x86_64
+  h[:autoreconf_command] = 'autoreconf'
 when 'arch'
   h[:autoreconf_command] = 'autoreconf'
 when 'archlinux'
+  h[:autoreconf_command] = 'autoreconf'
   h[:configure_args_cc] = %w[CC=clang]
   ENV['RUBY_FORCE_TEST_JIT'] = '1'
 when 'scw-9d6766'
