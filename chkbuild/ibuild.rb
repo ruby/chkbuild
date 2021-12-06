@@ -337,13 +337,13 @@ class ChkBuild::IBuild # internal build
       d = @target_dir+d
       if d.symlink?
         if d.exist?
-          d.realpath.rmtree
+          FileUtils.rm_rf(d.realpath)
           d.unlink
         else
           d.unlink
         end
       else
-        d.rmtree
+        FileUtils.rm_rf(d)
       end
     }
   end
