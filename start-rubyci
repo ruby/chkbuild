@@ -196,6 +196,7 @@ when "raspbian10-armv7l"
   h[:git_shallow_clone] = true
 when "debian-riscv64"
   arg[0].slice!(1,9)
+  h[:timeout] = '4h'
 when "osx1013", "osx1015", "osx1100arm"
   h[:autoreconf_command] = 'autoreconf'
   ENV["PATH"] = "/opt/local/bin:/opt/local/sbin:#{ENV['PATH']}"
