@@ -228,7 +228,7 @@ nativeruby = ChkBuild.def_target('nativeruby',
 crossruby_args = []
 
 crossruby_args << [
-  { :suffix_? => 'master', :output_interval_timeout => '20min' },
+  { :suffix_? => 'master', :output_interval_timeout => '3h' },
   #{:suffix_? => '2.0.0', :branch => 'branches/ruby_2_0_0' },
 ]
 
@@ -246,6 +246,18 @@ crossruby_args << [
   { :suffix_? => 'hppa', :target => 'hppa-linux-gnu' },
   { :suffix_? => 'm68k', :target => 'm68k-linux-gnu' },
 ].reject {|h| !Util.search_command("#{h[:target]}-gcc") }
+
+crossruby_args[-1].concat([
+  { :suffix_? => 'wasm32_wasi', :target => 'wasm32-unknown-wasi' },
+  #{ :suffix_? => 'wasm64_wasi', :target => 'wasm64-unknown-wasi' },
+].map do |h|
+  h[:configure_args] = %w(
+    --with-static-linked-ext --with-ext=ripper,monitor
+  )
+  h["LDFLAGS"] = "-Xlinker\ -zstack-size=16777216"
+  h[:output_interval_timeout] = '3h'
+  h
+end)
 
 crossruby_args[-1].concat([
   { :suffix_? => 'wasm32_emscripten', :target => 'wasm32-unknown-emscripten' },
