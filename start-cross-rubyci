@@ -196,6 +196,7 @@ ChkBuild.define_build_proc('crossruby') {|b|
   b.git("https://github.com/ruby/ruby", 'ruby', {:git_fetch_refspec => "refs/notes/commits:refs/notes/commits", :ruby_branch => branch})
   Dir.chdir('ruby') {
     show_version_h(b)
+    b.run('ruby', 'tool/downloader.rb', '-d', 'tool', '-e', 'gnu', 'config.guess', 'config.sub')
     b.run('./autogen.sh')
     if File.exist? 'tool/config.guess'
       build_system = `tool/config.guess`.chomp
