@@ -180,16 +180,21 @@ when /^solaris/ # F
     ENV["PKG_CONFIG"] = "/opt/csw/bin/pkg-config" # system's pkg-config is too old
     if ChkBuild.nickname == "solaris10-gcc"
       ENV["CC"] = "/opt/csw/bin/gcc"
+      h[:configure_args_with_libyaml_dir] = %w[--with-libyaml-dir=/export/home/chkbuild/libyaml-gcc]
+      ENV["LD_LIBRARY_PATH"] = "/export/home/chkbuild/libyaml-gcc/lib"
     else # solaris10-sunc
       ENV["CC"] = "cc"
       # Open Solaris Studio's cc (sunc) does not record the rpath of OpenCSW's
       # libssl.so to the executable, so explicitly specify the rpath
       ENV["LDFLAGS"] = "-R/opt/csw/lib"
+      h[:configure_args_with_libyaml_dir] = %w[--with-libyaml-dir=/export/home/chkbuild/libyaml-sunc]
+      ENV["LD_LIBRARY_PATH"] = "/export/home/chkbuild/libyaml-sunc/lib"
     end
   else
     if ChkBuild.nickname == "solaris11-gcc"
       ENV["PKG_CONFIG_PATH"] = "/usr/lib/64/pkgconfig"
       ENV["CC"] = "/usr/gcc/9/bin/gcc"
+      h[:configure_args_with_libyaml_dir] = %w[--with-libyaml-dir=/opt/csw]
     end
   end
 when "raspbian10-armv7l"
