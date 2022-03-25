@@ -201,6 +201,7 @@ when "osx1013", "osx1015", "osx1100arm"
   h[:autoreconf_command] = 'autoreconf'
   ENV["PATH"] = "/opt/local/bin:/opt/local/sbin:#{ENV['PATH']}"
   h[:configure_args_with_openssl_dir] = %w[--with-openssl-dir=/opt/local]
+  h[:configure_args_with_libyaml_dir] = %w[--with-libyaml-dir=/opt/local]
 when "ppc64le"
   ENV["CC"] = "gcc-10"
   ENV["CXX"] = "g++-10"
