@@ -641,7 +641,7 @@ End
   def make_last_html(title, has_diff)
     atomic_make_file(ChkBuild.public_top+@last_html_relpath) {|_erbout|
       with_page_uri_from_top(@last_html_relpath) {
-	ERBIO.new(LAST_HTMLTemplate, nil, '%').result(binding)
+	ERBIO.new(LAST_HTMLTemplate, trim_mode: '%').result(binding)
       }
     }
   end
@@ -706,7 +706,7 @@ End
   def make_diffhtml(title, has_diff)
     atomic_make_compressed_file(ChkBuild.public_top+@compressed_diffhtml_relpath) {|_erbout|
       with_page_uri_from_top(@compressed_diffhtml_relpath) {
-	ERBIO.new(DIFF_HTMLTemplate, nil, '%').result(binding)
+	ERBIO.new(DIFF_HTMLTemplate, trim_mode: '%').result(binding)
       }
     }
   end
@@ -770,7 +770,7 @@ End
   def make_loghtml(title, has_diff)
     atomic_make_compressed_file(ChkBuild.public_top+@compressed_loghtml_relpath) {|_erbout|
       with_page_uri_from_top(@compressed_loghtml_relpath) {
-	ERBIO.new(LOG_HTMLTemplate, nil, '%').result(binding)
+	ERBIO.new(LOG_HTMLTemplate, trim_mode: '%').result(binding)
       }
     }
   end
@@ -818,7 +818,11 @@ End
     # variables for RSS_CONTENT_HTMLTemplate:
     max_diff_lines = 500
 
-    ERB.new(RSS_CONTENT_HTMLTemplate, nil, '%').result(binding)
+    if ERB.instance_method(:initialize).parameters.assoc(:key) # Ruby 2.6+
+      ERB.new(RSS_CONTENT_HTMLTemplate, trim_mode: '%').result(binding)
+    else
+      ERB.new(RSS_CONTENT_HTMLTemplate, nil, '%').result(binding)
+    end
   end
 
   def make_rss(title, has_diff)
@@ -1217,7 +1221,7 @@ End
   def make_failhtml(title)
     atomic_make_compressed_file(ChkBuild.public_top+@compressed_failhtml_relpath) {|_erbout|
       with_page_uri_from_top(@compressed_failhtml_relpath) {
-	ERBIO.new(FAIL_HTMLTemplate, nil, '%').result(binding)
+	ERBIO.new(FAIL_HTMLTemplate, trim_mode: '%').result(binding)
       }
     }
   end

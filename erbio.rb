@@ -31,6 +31,12 @@
 require 'erb'
 
 class ERBIO < ERB
+  unless ERB.instance_method(:initialize).parameters.assoc(:key) # Ruby < 2.6
+    def initialize(str, trim_mode: nil)
+      super(str, nil, trim_mode)
+    end
+  end
+
   def set_eoutvar(compiler, eoutvar = '_erbout')
     compiler.put_cmd = "#{eoutvar}.write"
     compiler.insert_cmd = "#{eoutvar}.write"
