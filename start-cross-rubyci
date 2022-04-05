@@ -265,7 +265,7 @@ crossruby_args[-1].concat([
   { :suffix_? => 'wasm64_emscripten', :target => 'wasm64-unknown-emscripten' },
 ].map do |h|
   h[:configure_args] = %w(
-    --with-static-linked-ext --with-ext=stringio,ripper,date,strscan,io/console,monitor,digest,pathname,psych optflags=-Os debugflags=-g0 CC=emcc LD=emcc AR=emar RANLIB=emranlib
+    --with-static-linked-ext --with-ext=stringio,ripper,date,strscan,io/console,monitor,digest,pathname optflags=-Os debugflags=-g0 CC=emcc LD=emcc AR=emar RANLIB=emranlib
   )
   h
 end)
