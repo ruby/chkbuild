@@ -200,41 +200,38 @@ module ChkBuild
   end
 
   def self.do_upload_s3(bucket, branch)
-    cmd = %w[/opt/csw/bin/zgrep gzgrep zgrep].find{|x|spawn(x, '-V', out: IO::NULL, err: IO::NULL) rescue nil}
-    keep = []
-    require 'open3'
+    # upload log files
     logdir = s3_localpath("#{branch}/log")
-    res, _ = Open3.capture2('find', logdir, '-name', '*.fail.html.gz', '-exec', cmd,'-Hm1','placeholder_start','{}',';')
-    res.each_line do |line|
-      # 20150816T150308Z.fail.html.gz:      <!--placeholder_start-->NewerDiff<!--placeholder_end--> &gt;
-      keep << line[logdir.size+1, 16]
+    latest_datetime = "19700101T000000Z"
+    Dir.foreach(logdir) do |filename|
+      next unless filename.end_with?('.gz')
+      datetime = filename[0, 16]
+      latest_datetime = datetime if latest_datetime < datetime
     end
-    puts"keep: #{keep}"
 
-    now = Time.now
     Dir.foreach(logdir) do |filename|
       next unless filename.end_with?('.gz')
       path = "#{branch}/log/#{filename}"
       filepath = s3_localpath(path)
       if s3sync(bucket, path)
         # upload success
-        if path.end_with?('.html.gz') &&
-          IO.read(filepath, 1000).include?('placeholder_start')
-          next
-        end
-        unless keep.include?(filename[0, 16])
+        if path.include?(latest_datetime)
+          # keep to replace placeholder_start later...
+        else
           puts "remove: #{filename}"
-          File.unlink filepath # temporaly don't remove logs
+          File.unlink filepath
         end
       end
     end
 
+    # upload index
     %w[current.txt last.html.gz recent.ltsv summary.html summary.txt
       last.html last.txt recent.html rss summary.ltsv].each do |fn|
       path = "#{branch}/#{fn}"
       s3sync(bucket, path)
     end
 
+    # upload lcov
     lcovdir = s3_localpath("#{branch}/lcov")
     if File.directory?(lcovdir)
       prefix = s3_localpath("")
@@ -284,9 +281,8 @@ module ChkBuild
     if path.end_with?(".gz")
       bucket.object(blobname).upload_file(filepath, options)
     else
-      require 'zlib'
-      bucket.object(blobname).upload_stream do |write_stream|
-        Zlib::GzipWriter.wrap(write_stream, Zlib::BEST_COMPRESSION) do |gz|
+      bucket.object(blobname).upload_stream(options) do |write_stream|
+        ::Zlib::GzipWriter.wrap(write_stream, ::Zlib::BEST_COMPRESSION) do |gz|
           File.open(filepath) do |f|
             IO.copy_stream(f, gz)
           end
