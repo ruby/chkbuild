@@ -106,8 +106,6 @@ End
   DOMAINLABEL = /[A-Za-z0-9-]+/
   DOMAINPAT = /#{DOMAINLABEL}(\.#{DOMAINLABEL})*/
 
-  OldestMaintainedRelease = "2.7"
-
   module_function
 
   def ruby_branches
@@ -116,11 +114,15 @@ End
     }
   end
 
+  def oldest_maintained_release
+    JSON.parse(URI.open("https://cache.ruby-lang.org/pub/misc/ci_versions/cruby.json").read).first
+  end
+
   def maintained_release_branches(rbs=ruby_branches)
     rbs.map {|b|
       next if /\Aruby_(\d+)_(\d+)\z/ !~ b
       major_minor = [$1.to_i, $2.to_i]
-      major_minor = nil if (major_minor <=> OldestMaintainedRelease.scan(/\d+/).map(&:to_i)) < 0
+      major_minor = nil if (major_minor <=> oldest_maintained_release.scan(/\d+/).map(&:to_i)) < 0
       major_minor
     }.compact.sort.reverse.map {|major, minor|
       "#{major}.#{minor}"
