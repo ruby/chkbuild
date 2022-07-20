@@ -264,13 +264,12 @@ module ChkBuild
     end
 
     options = {}
+    options[:content_encoding] = 'gzip'
     case path
     when /\.txt\.gz\z/
       options[:content_type] = 'text/plain'
-      options[:content_encoding] = 'gzip'
     when /\.html\.gz\z/
       options[:content_type] = 'text/html'
-      options[:content_encoding] = 'gzip'
     when /\.(?:ltsv|txt)\z/
       options[:content_type] = 'text/plain'
     when /\.html\z/
@@ -282,7 +281,19 @@ module ChkBuild
     end
 
     puts "uploading '#{filepath}' to #{blobname}..."
-    bucket.object(blobname).upload_file(filepath, options)
+    if path.end_with?(".gz")
+      bucket.object(blobname).upload_file(filepath, options)
+    else
+      require 'zlib'
+      obj.upload_stream do |write_stream|
+        Zlib::GzipWriter.wrap(write_stream, Zlib::BEST_COMPRESSION) do |gz|
+          File.open(filepath) do |f|
+            IO.copy_stream(f, gz)
+          end
+        end
+      end
+    end
+
     true
   end
 end
