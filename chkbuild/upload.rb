@@ -285,7 +285,7 @@ module ChkBuild
       bucket.object(blobname).upload_file(filepath, options)
     else
       require 'zlib'
-      obj.upload_stream do |write_stream|
+      bucket.object(blobname).upload_stream do |write_stream|
         Zlib::GzipWriter.wrap(write_stream, Zlib::BEST_COMPRESSION) do |gz|
           File.open(filepath) do |f|
             IO.copy_stream(f, gz)
