@@ -223,12 +223,6 @@ def (ChkBuild::Ruby::CompleteOptions).call(target_opts)
     opts[:use_rubyspec_in_tree] = true
   end
 
-  # To use in-tree ruby/spec examples after Ruby 2.7
-  if ruby_branch.gsub(/^branches\/ruby_/, "").tr("_", ".") >= "2.7" && opts[:rubyspec]
-    opts[:use_rubyspec] = false
-    opts[:use_rubyspec_in_tree] = true
-  end
-
   if /master/ =~ ruby_branch && opts[:use_bundled_gems]
     opts[:use_bundled_gems] = true
   end
@@ -246,6 +240,10 @@ def (ChkBuild::Ruby::CompleteOptions).call(target_opts)
   if ruby_branch != "master"
     opts[:validate_dependencies] = false
   end
+
+  # XXX
+  opts[:use_rubyspec] = false
+  opts[:use_rubyspec_in_tree] = true
 
   opts
 end
