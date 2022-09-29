@@ -224,7 +224,7 @@ def (ChkBuild::Ruby::CompleteOptions).call(target_opts)
   end
 
   # To use in-tree ruby/spec examples after Ruby 2.7
-  if ruby_branch.gsub(/^ruby_/, "").tr("_", ".") >= "2.7" && opts[:rubyspec]
+  if ruby_branch.gsub(/^branches\/ruby_/, "").tr("_", ".") >= "2.7" && opts[:rubyspec]
     opts[:use_rubyspec] = false
     opts[:use_rubyspec_in_tree] = true
   end
