@@ -124,6 +124,11 @@ when /\ASunOS/
   h[:git_shallow_clone] = true
 end
 
+if ChkBuild.nickname.end_with?("-yjit")
+  arg[0].slice!(1,9) # run only master
+  h[:configure_args_enable_yjit] = %w[--enable-yjit]
+end
+
 case ChkBuild.nickname
 when 'tk2-243-31075', 'armv8b'
   arg[0].slice!(1,9)
