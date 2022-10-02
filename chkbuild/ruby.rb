@@ -525,6 +525,20 @@ def (ChkBuild::Ruby).build_proc(b)
     b.cc_version(cc)
   end
 
+  if /^RUSTC[ \t]*=[ \t](\S*)/ =~ File.read('Makefile')
+    rustc = $1
+    b.logfile.start_section 'rustc-version'
+    cmd = "#{rustc} --version"
+    puts "+ #{cmd}"
+    message = `#{cmd}`
+    status = $?
+    if status.success?
+      @logfile.start_section(secname) if secname
+      puts "+ #{cmd}"
+      puts message
+    end
+  end
+
   if coverage_measurement
     b.make("update-coverage")
     make_options["ENV:COVERAGE"] = "true"
