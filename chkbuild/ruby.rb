@@ -535,7 +535,7 @@ def (ChkBuild::Ruby).build_proc(b)
     message = `#{cmd}`
     status = $?
     if status.success?
-      @logfile.start_section(secname) if secname
+      @logfile.start_section("rustc-version")
       puts "+ #{cmd}"
       puts message
     end
