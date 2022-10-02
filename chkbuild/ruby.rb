@@ -520,12 +520,14 @@ def (ChkBuild::Ruby).build_proc(b)
     }
   end
 
-  if /^CC[ \t]*=[ \t](\S*)/ =~ File.read('Makefile')
+  makefile = File.read('Makefile')
+
+  if /^CC[ \t]*=[ \t]*(\S+)/ =~ makefile
     cc = $1
     b.cc_version(cc)
   end
 
-  if /^RUSTC[ \t]*=[ \t](\S*)/ =~ File.read('Makefile')
+  if /^RUSTC[ \t]*=[ \t]*(\S+)/ =~ makefile
     rustc = $1
     b.logfile.start_section 'rustc-version'
     cmd = "#{rustc} --version"
@@ -596,7 +598,7 @@ def (ChkBuild::Ruby).build_proc(b)
   b.catch_error { b.run("./miniruby", '-e', ChkBuild::Ruby::METHOD_LIST_SCRIPT, :section=>"method-list") }
 
   # Ruby 1.9 provides 'main' target to build ruby excluding documents.
-  makefile_lines = IO.readlines('Makefile')
+  makefile_lines = makefile.lines.to_a
   makefile_lines.concat IO.readlines('uncommon.mk') if File.file?('GNUmakefile') && File.file?('uncommon.mk')
 
   do_rdoc = true
