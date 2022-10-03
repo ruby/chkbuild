@@ -529,9 +529,7 @@ def (ChkBuild::Ruby).build_proc(b)
 
   if /^RUSTC[ \t]*=[ \t]*(\S+)/ =~ makefile
     rustc = $1
-    b.logfile.start_section 'rustc-version'
     cmd = "#{rustc} --version"
-    puts "+ #{cmd}"
     message = `#{cmd}`
     status = $?
     if status.success?
