@@ -241,10 +241,6 @@ def (ChkBuild::Ruby::CompleteOptions).call(target_opts)
     opts[:validate_dependencies] = false
   end
 
-  # XXX
-  opts[:use_rubyspec] = false
-  opts[:use_rubyspec_in_tree] = true
-
   opts
 end
 

@@ -101,6 +101,9 @@ arg = [].push(
 
   # :old => 1,
 
+  :use_rubyspec => false,
+  :use_rubyspec_in_tree => true,
+
   :timeout => '2h',
 
   :output_interval_timeout => '5min'
