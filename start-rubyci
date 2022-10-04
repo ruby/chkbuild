@@ -129,6 +129,13 @@ if ChkBuild.nickname.end_with?("-yjit")
   h[:configure_args_enable_yjit] = %w[--enable-yjit]
 end
 
+if ChkBuild.nickname.start_with?("osx")
+  h[:autoreconf_command] = 'autoreconf'
+  ENV["PATH"] = "/opt/local/bin:/opt/local/sbin:#{ENV['PATH']}"
+  h[:configure_args_with_openssl_dir] = %w[--with-openssl-dir=/opt/local]
+  h[:configure_args_with_libyaml_dir] = %w[--with-libyaml-dir=/opt/local]
+end
+
 case ChkBuild.nickname
 when 'tk2-243-31075', 'armv8b'
   arg[0].slice!(1,9)
@@ -207,11 +214,6 @@ when "raspbian10-armv7l"
 when "debian-riscv64"
   arg[0].slice!(1,9)
   h[:timeout] = '4h'
-when ChkBuild.nickname.start_with?("osx")
-  h[:autoreconf_command] = 'autoreconf'
-  ENV["PATH"] = "/opt/local/bin:/opt/local/sbin:#{ENV['PATH']}"
-  h[:configure_args_with_openssl_dir] = %w[--with-openssl-dir=/opt/local]
-  h[:configure_args_with_libyaml_dir] = %w[--with-libyaml-dir=/opt/local]
 when "ppc64le"
   ENV["CC"] = "gcc-10"
   ENV["CXX"] = "g++-10"
