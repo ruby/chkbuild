@@ -523,8 +523,7 @@ def (ChkBuild::Ruby).build_proc(b)
     b.cc_version(cc)
   end
 
-  if /^RUSTC[ \t]*=[ \t]*(\S+)/ =~ makefile
-    rustc = $1
+  if /^RUSTC[ \t]*=[ \t]*(\S+)/ =~ makefile && (rustc = $1) != 'no'
     cmd = "#{rustc} --version"
     message = `#{cmd}`
     status = $?
