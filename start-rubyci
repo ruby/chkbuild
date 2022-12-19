@@ -127,7 +127,10 @@ when /\ASunOS/
   h[:git_shallow_clone] = true
 end
 
-if ChkBuild.nickname.end_with?("-yjit")
+if ChkBuild.nickname.end_with?("-no-yjit")
+  arg[0].slice!(1,9) # run only master
+  h[:configure_args_disable_yjit] = %w[--disable-yjit]
+elsif ChkBuild.nickname.end_with?("-yjit")
   arg[0].slice!(1,9) # run only master
   h[:configure_args_enable_yjit] = %w[--enable-yjit]
 end
