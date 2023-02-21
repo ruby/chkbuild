@@ -349,7 +349,11 @@ class ChkBuild::IFormat # internal format
 	  page_title = "#{@depsuffixed_name} build summary (#{ChkBuild.nickname})"
 	  f.puts "<title>#{h page_title}</title>"
 	  f.puts "<h1>#{h page_title}</h1>"
-	  f.puts "<p><a href=#{ha uri_from_top('.')}>chkbuild</a></p>"
+    if ENV["RUBYCI_NICKNAME"]
+	    f.puts "<p><a href='https://rubyci.org'>rubyci</a></p>"
+    else
+	    f.puts "<p><a href=#{ha uri_from_top('.')}>chkbuild</a></p>"
+    end
 	end
 	f.print "<a href=#{ha uri_from_top(@compressed_loghtml_relpath)} name=#{ha @t}>#{h @t}</a>"
 	f.print "(<a href=#{ha uri_from_top(@compressed_failhtml_relpath)} name=#{ha @t}>#{h @current_status}</a>)"
