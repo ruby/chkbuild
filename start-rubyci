@@ -220,9 +220,6 @@ when "raspbian10-armv7l"
 when "debian-riscv64"
   arg[0].slice!(1,9)
   h[:timeout] = '4h'
-when "ppc64le"
-  ENV["CC"] = "gcc-10"
-  ENV["CXX"] = "g++-10"
 end
 
 autoconf_command = '/home/naruse/local/autoconf/bin/autoconf'
