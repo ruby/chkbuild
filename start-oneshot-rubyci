@@ -1,0 +1,37 @@
+#!/usr/bin/env ruby
+
+# start-oneshot-rubyci - Start RubyCI for a specific commit
+#
+# Usage:
+#   start-oneshot-rubyci <commit> [-D] [chkbuild-args...]
+#
+# Options:
+#   -D: Start chkbuild in foreground
+#
+# Example:
+#   start-oneshot-rubyci 6b3e6b1 build ruby-master-oneshot
+
+$:.unshift File.dirname(File.expand_path(__FILE__))
+
+require "rbconfig"
+require "chkbuild"
+
+rev = ARGV.shift
+if rev.nil?
+  abort "Usage: #$0 <commit>"
+end
+daemon = !ARGV.delete("-D")
+
+cmd = [RbConfig.ruby, "#{__dir__}/start-rubyci", *ARGV]
+if ARGV.empty?
+  # Build the given commit with master branch build configuration
+  cmd.push "build", "ruby-master-oneshot"
+end
+
+Dir.chdir(__dir__) do
+  $stderr.puts "Starting RubyCI for #{rev} in #{daemon ? "foreground" : "background"}..."
+  Process.daemon(true) if daemon
+  # Spawn a new chkbuild process instead of in-process because
+  # `ChkBuild.main_build` invokes `$0` to start a internal build process.
+  system({ "RUBYCI_ONESHOT_BUILD_COMMIT" => rev }, *cmd, exception: true)
+end

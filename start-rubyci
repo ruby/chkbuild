@@ -57,6 +57,10 @@ ChkBuild.nickname = ENV["RUBYCI_NICKNAME"] if ENV["RUBYCI_NICKNAME"]
 # ChkBuild.top_uri = "file://#{ChkBuild.public_top}/"
 # ChkBuild.top_uri = nil # use relative URL
 
+# Oneshot commit build is not triggered periodically, so wait until
+# other builds are finished.
+ChkBuild.wait_for_lock = true if ENV["RUBYCI_ONESHOT_BUILD_COMMIT"]
+
 #ChkBuild.azure_upload_target rescue nil
 ChkBuild.s3_upload_target
 arg = [].push(
@@ -64,6 +68,9 @@ arg = [].push(
     { :suffix_? => 'master', :output_interval_timeout => '30min' },
     *ChkBuild::Ruby.maintained_release_branches
   ],
+  if commit = ENV["RUBYCI_ONESHOT_BUILD_COMMIT"]
+    { :suffix_? => 'oneshot', :ruby_revision => commit }
+  end,
 
 #   [ # :abi_check needs --enable-shared
 #     { :suffix_? => 'trunk', :abi_check_notitle => '/home/akr/ruby/200p0', :output_interval_timeout => '10min' },
