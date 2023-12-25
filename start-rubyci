@@ -59,7 +59,7 @@ ChkBuild.nickname = ENV["RUBYCI_NICKNAME"] if ENV["RUBYCI_NICKNAME"]
 
 # Oneshot commit build is not triggered periodically, so wait until
 # other builds are finished.
-ChkBuild.wait_for_lock = true if ENV["RUBYCI_ONESHOT_BUILD_COMMIT"]
+ChkBuild.wait_in_progress_builds = true if ENV["RUBYCI_ONESHOT_BUILD_COMMIT"]
 
 #ChkBuild.azure_upload_target rescue nil
 ChkBuild.s3_upload_target

@@ -32,10 +32,10 @@ module ChkBuild
   LOCK_PATH = ChkBuild.build_top + '.lock'
 
   # If true, wait until another chkbuild process finishes.
-  @wait_for_lock = false
+  @wait_in_progress_builds = false
 
   class << self
-    attr_accessor :wait_for_lock
+    attr_accessor :wait_in_progress_builds
   end
 
   def self.lock_start
@@ -43,7 +43,7 @@ module ChkBuild
       @lock_io = LOCK_PATH.open(File::WRONLY|File::CREAT|File::APPEND)
     end
     lock_op = File::LOCK_EX
-    lock_op |= File::LOCK_NB unless @wait_for_lock
+    lock_op |= File::LOCK_NB unless @wait_in_progress_builds
     if @lock_io.flock(lock_op) == false
       raise "another chkbuild is running."
     end
