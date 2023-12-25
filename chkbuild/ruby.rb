@@ -348,7 +348,12 @@ def (ChkBuild::Ruby).build_proc(b)
     svn_info_section = b.logfile.get_section('svn-info/ruby')
     ruby_rev = svn_info_section[/Last Changed Rev: (\d+)/, 1].to_i
   else
-    b.git("https://github.com/ruby/ruby", 'ruby', {:git_fetch_refspec => "refs/notes/commits:refs/notes/commits"}.update(bopts))
+    git_opts = bopts.dup
+    git_opts[:git_fetch_refspec] = "refs/notes/commits:refs/notes/commits"
+    if rev = bopts[:ruby_revision]
+      git_opts[:revision] = rev
+    end
+    b.git("https://github.com/ruby/ruby", 'ruby', git_opts)
     ruby_rev = Dir.chdir('ruby') {b.git_head_commit[0..10]}
   end
 
