@@ -220,6 +220,8 @@ when "raspbian10-armv7l"
 when /riscv64/
   arg[0].slice!(1,9)
   h[:timeout] = '4h'
+  ENV["RUBY_TEST_TIMEOUT_SCALE"] = "2"
+  h[:git_shallow_clone] = true
 end
 
 autoconf_command = '/home/naruse/local/autoconf/bin/autoconf'
