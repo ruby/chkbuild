@@ -149,10 +149,6 @@ when 'debian' # Debian 11.0(testing) x86_64
   h[:autoreconf_command] = 'autoreconf'
 when 'arch'
   h[:autoreconf_command] = 'autoreconf'
-when 'archlinux'
-  h[:autoreconf_command] = 'autoreconf'
-  h[:configure_args_cc] = %w[CC=clang]
-  ENV['RUBY_FORCE_TEST_JIT'] = '1'
 when 'scw-9d6766'
   arg[0].slice!(1,9)
   h[:timeout] = '3h'
@@ -165,56 +161,16 @@ when 'openbsd-current'
   ENV['RUBY_FIBER_MACHINE_STACK_SIZE'] = '65536'
   ENV["AUTOMAKE_VERSION"] = "1.16"
   h[:git_shallow_clone] = true
-when 'freebsd12'
-  h[:configure_args_with_opt_dir] = %w[--with-opt-dir=/usr/local]
-when 'amazon'
-  h[:timeout] = '4h'
-  h[:output_interval_timeout] = '5min'
 when 'icc-x64'
   ENV["CC"] = "icx -std=gnu99"
   ENV["CXX"] = "icx -std=gnu++11"
   h[:output_interval_timeout] = '20min'
-when 'centos7'
-  h[:cppflags] ||= []
-  # GCC is very old and buggy in CentOS7.  This is needed to disable the false positive warning:
-  # https://rubyci.org/logs/rubyci.s3.amazonaws.com/centos7/ruby-master/log/20200512T153002Z.log.html.gz
-  #
-  #   eval.c:577:17: warning: ‘file’ may be used uninitialized in this function [-Wmaybe-uninitialized]
-  #        const char *file = rb_source_location_cstr(&line);
-  h[:cppflags] << "-Wno-maybe-uninitialized"
 when /\Aandroid\d+-/
   arg[0].slice!(1,9)
   h[:git_shallow_clone] = true
   # hardlink is not available for a normal user on Android
   def File.link(new, old); end
   h[:autoreconf_command] = 'autoreconf'
-when /^solaris/ # F
-  ENV["MAKE"] = "gmake"
-  ENV["RUBY_TEST_TIMEOUT_SCALE"] = "10" if ChkBuild.nickname =~ /sunc$/
-  h[:timeout] = '5h'
-  if ChkBuild.nickname =~ /^solaris10/
-    h[:configure_args_disable_largefile] = %w[--disable-largefile]
-    h[:configure_args_disable_werror] = %w[--disable-werror] # needed?
-    ENV["PKG_CONFIG"] = "/opt/csw/bin/pkg-config" # system's pkg-config is too old
-  end
-  case ChkBuild.nickname
-  when "solaris10-gcc"
-    ENV["CC"] = "/opt/csw/bin/gcc"
-  when "solaris10-sunc"
-    ENV["CC"] = "cc"
-    # Open Solaris Studio's cc (sunc) does not record the rpath of OpenCSW's
-    # libssl.so to the executable, so explicitly specify the rpath
-    ENV["LDFLAGS"] = "-R/opt/csw/lib"
-    h[:configure_args_with_libyaml_dir] = %w[--with-libyaml-dir=/opt/csw]
-  when "solaris11-gcc"
-    ENV["PKG_CONFIG_PATH"] = "/usr/lib/64/pkgconfig"
-    ENV["CC"] = "/usr/gcc/9/bin/gcc"
-    h[:configure_args_with_libyaml_dir] = %w[--with-libyaml-dir=/export/home/chkbuild/libyaml-gcc]
-    ENV["LD_LIBRARY_PATH"] = "/export/home/chkbuild/libyaml-gcc/lib"
-  when "solaris11-sunc"
-    h[:configure_args_with_libyaml_dir] = %w[--with-libyaml-dir=/export/home/chkbuild/libyaml-sunc]
-    ENV["LD_LIBRARY_PATH"] = "/export/home/chkbuild/libyaml-sunc/lib"
-  end
 when "raspbian10-armv7l"
   h[:git_shallow_clone] = true
 when /riscv64/
