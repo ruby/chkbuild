@@ -119,12 +119,6 @@ when /\AFreeBSD/
   ENV['PATH'] = "#{ENV['PATH']}:/usr/local/bin"
   h[:configure_args_with_opt_dir] = %w[--with-opt-dir=/usr/local]
   h[:optflags] = '-O3 -mfpmath=sse -msse2' if /i.86/ =~ uname
-when /\ASunOS/
-  h[:configure_args_disable_werror] = %w[--disable-werror]
-#  h[:configure_args_cc] = %w[CC=/opt/solarisstudio12.4/bin/cc]
-  arg[0].slice!(1,9)
-  h[:optflags] = '-O3 -mfpmath=sse -msse2' if /i86/ =~ uname
-  h[:git_shallow_clone] = true
 end
 
 if ChkBuild.nickname.end_with?("-no-yjit")
