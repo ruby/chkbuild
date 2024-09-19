@@ -180,12 +180,6 @@ when /riscv64/
   h[:git_shallow_clone] = true
 end
 
-autoconf_command = '/home/naruse/local/autoconf/bin/autoconf'
-h[:autoconf_command] = autoconf_command if File.exist?(autoconf_command)
-
-autoreconf_command = '/home/naruse/local/autoconf/bin/autoreconf'
-h[:autoreconf_command] = autoreconf_command if File.exist?(autoreconf_command)
-
 h[:configure_args] = ["--with-baseruby=#{RbConfig.ruby}"]
 
 ChkBuild::Ruby.def_target(*arg)
