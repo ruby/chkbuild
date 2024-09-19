@@ -155,9 +155,9 @@ class ChkBuild::Build
       Marshal.dump(ibuild, f)
     }
     status = ChkBuild.lock_puts("#{@t} #{@depsuffixed_name} build") {
-      system(ruby_command, "-I#{ChkBuild::TOP_DIRECTORY}", $0,
-             "internal-build",
-             target_params_name.to_s)
+      commands = [ruby_command, "-I#{ChkBuild::TOP_DIRECTORY}", $0,"internal-build", target_params_name.to_s]
+      puts "Command: #{commands.join(' ')}"
+      system(*commands)
       $?.success?
     }
     @success = status # definition of @success
@@ -169,9 +169,9 @@ class ChkBuild::Build
       Marshal.dump(iformat, f)
     }
     status2 = ChkBuild.lock_puts("#{@t} #{@depsuffixed_name} format") {
-      system(ruby_command, "-I#{ChkBuild::TOP_DIRECTORY}", $0,
-             "internal-format",
-             format_params_name.to_s)
+      commands = [ruby_command, "-I#{ChkBuild::TOP_DIRECTORY}", $0, "internal-format", format_params_name.to_s]
+      puts "Command: #{commands.join(' ')}"
+      system(*commands)
       $?.success?
     }
 
