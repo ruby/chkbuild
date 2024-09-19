@@ -116,6 +116,25 @@ class ChkBuild::IBuild
           end
         }
       end
+
+      if revision = opts[:revision]
+        Dir.chdir(working_dir) {
+          opts2[:section] = nil
+          command = ["git", "fetch", "-q", "origin", revision]
+          command << opts2
+          begin
+            self.run(*command)
+          rescue ChkBuild::Build::CommandError
+            try += 1
+            retry if try < 3
+            raise
+          end
+
+          command = ["git", "checkout", "-q", revision]
+          command << opts2
+          self.run(*command)
+        }
+      end
     }
     Dir.chdir(working_dir) {
       new_head = git_head_commit
