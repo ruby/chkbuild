@@ -237,8 +237,8 @@ module ChkBuild
       prefix = s3_localpath("")
       Dir.glob(lcovdir + "/**/*", File::FNM_DOTMATCH).sort.each do |filepath|
         if File.file?(filepath) && filepath.start_with?(prefix)
-	  path = filepath[prefix.size..-1]
-	  s3sync(bucket, path)
+          path = filepath[prefix.size..-1]
+          s3sync(bucket, path)
         end
       end
     end

@@ -34,21 +34,21 @@ class ChkBuild::IBuild
   def git_logfile(opts)
     with_templog(self.build_dir, "git.out.") {|outfile, outio|
       with_templog(self.build_dir, "git.err.") {|errfile, errio|
-	opts2 = opts.dup
-	opts2[:stdout] = outfile
-	opts2[:stderr] = errfile
-	begin
-	  yield opts2
-	ensure
-	  outio.rewind
-	  outcontent = outio.read
-	  outcontent.gsub!(/^.*[\r\e].*\n/, "")
-	  outcontent.each_line {|line| puts "GITOUT #{line}" }
-	  errio.rewind
-	  errcontent = errio.read
-	  errcontent.gsub!(/^.*[\r\e].*\n/, "")
-	  errcontent.each_line {|line| puts "GITERR #{line}" }
-	end
+        opts2 = opts.dup
+        opts2[:stdout] = outfile
+        opts2[:stderr] = errfile
+        begin
+          yield opts2
+        ensure
+          outio.rewind
+          outcontent = outio.read
+          outcontent.gsub!(/^.*[\r\e].*\n/, "")
+          outcontent.each_line {|line| puts "GITOUT #{line}" }
+          errio.rewind
+          errcontent = errio.read
+          errcontent.gsub!(/^.*[\r\e].*\n/, "")
+          errcontent.each_line {|line| puts "GITERR #{line}" }
+        end
       }
     }
   end
@@ -140,7 +140,7 @@ class ChkBuild::IBuild
       new_head = git_head_commit
       new_head_log = git_single_log(new_head)
       new_head_log.each_line {|line|
-	puts "LASTLOG #{line}"
+        puts "LASTLOG #{line}"
       }
       puts "CHECKOUT git #{cloneurl} #{working_dir}"
       puts "LASTCOMMIT #{new_head}"

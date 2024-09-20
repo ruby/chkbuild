@@ -68,13 +68,13 @@ class ChkBuild::IBuild
       Dir.chdir(working_dir) {
         self.run "svn", "cleanup", opts
         opts[:section] = nil
-	svn_logfile(opts) {|outio, opts2|
-	  opts2[:output_interval_file_list] = [STDOUT, STDERR, outio]
-	  self.run "svn", "update", opts2
-	}
+        svn_logfile(opts) {|outio, opts2|
+          opts2[:output_interval_file_list] = [STDOUT, STDERR, outio]
+          self.run "svn", "update", opts2
+        }
         h2 = svn_revisions
-	svn_print_lastlog(h2['.'][0])
-	svn_print_revisions(svnroot, rep_dir, h2)
+        svn_print_lastlog(h2['.'][0])
+        svn_print_revisions(svnroot, rep_dir, h2)
       }
     else
       if File.exist?(working_dir)
@@ -83,13 +83,13 @@ class ChkBuild::IBuild
       h2 = nil
       svn_logfile(opts) {|outio, opts2|
         opts2[:output_interval_file_list] = [STDOUT, STDERR, outio]
-	self.run "svn", "checkout", url, working_dir, opts2
+        self.run "svn", "checkout", url, working_dir, opts2
       }
       opts[:section] = nil
       Dir.chdir(working_dir) {
         h2 = svn_revisions
-	svn_print_lastlog(h2['.'][0])
-	svn_print_revisions(svnroot, rep_dir, h2)
+        svn_print_lastlog(h2['.'][0])
+        svn_print_revisions(svnroot, rep_dir, h2)
       }
     end
   end
@@ -99,10 +99,10 @@ class ChkBuild::IBuild
       opts2 = opts.dup
       opts2[:stdout] = outfile
       begin
-	yield outio, opts2
+        yield outio, opts2
       ensure
-	outio.rewind
-	outio.each_line {|line| puts "SVNOUT #{line}" }
+        outio.rewind
+        outio.each_line {|line| puts "SVNOUT #{line}" }
       end
     }
   end
@@ -149,10 +149,10 @@ class ChkBuild::IBuild
     svn_path_sort(h.keys).each {|f|
       r, ftype = h[f]
       if ftype == 'directory'
-	puts "DIRECTORY #{f}\t#{r}"
+        puts "DIRECTORY #{f}\t#{r}"
       else
         digest = sha256_digest_file(f)
-	puts "FILE #{f}\t#{r}\t#{digest}"
+        puts "FILE #{f}\t#{r}\t#{digest}"
       end
     }
   end
@@ -228,10 +228,10 @@ class ChkBuild::IFormat
       else
         svn_print_del_line(f, r1,
           d1 == 'directory' ? svn_dir_uri(viewer, f, top_r1) :
-			      svn_markup_uri(viewer, f, top_r1), out) if r1 != 'none'
+                              svn_markup_uri(viewer, f, top_r1), out) if r1 != 'none'
         svn_print_add_line(f, r2,
           d2 == 'directory' ? svn_dir_uri(viewer, f, top_r2) :
-			      svn_markup_uri(viewer, f, top_r2), out) if r2 != 'none'
+                              svn_markup_uri(viewer, f, top_r2), out) if r2 != 'none'
       end
     }
   end

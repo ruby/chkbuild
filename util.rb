@@ -332,17 +332,17 @@ module Util
     opts_list.each {|opts|
       opts.each {|k, v|
         if /_\?\z/ =~ k.to_s
-	  base = $`
-	  n = (max[base] += 1)
-	  k = "#{base}_#{n}".intern
-	end
-	if /_(\d+)\z/ =~ k.to_s
-	  base = $`
-	  max[base] = $1.to_i
-	end
+          base = $`
+          n = (max[base] += 1)
+          k = "#{base}_#{n}".intern
+        end
+        if /_(\d+)\z/ =~ k.to_s
+          base = $`
+          max[base] = $1.to_i
+        end
         if !h.include?(k)
-	  h[k] = v
-	end
+          h[k] = v
+        end
       }
     }
     h
@@ -360,9 +360,9 @@ module Util
     k = []
     str.scan(/(\d+)|\D+/) {
       if $1
-	k << [0, $1.to_i, $&]
+        k << [0, $1.to_i, $&]
       else
-	k << [1, $&]
+        k << [1, $&]
       end
     }
     k
@@ -385,19 +385,19 @@ module Util
     result = []
     template_list.each {|e|
       if Symbol === e
-	e = e.to_s
+        e = e.to_s
         if /_\?\z/ =~ e
-	  base = $`
-	  re2 = /\A#{Regexp.escape base.to_s}_/
-	  ps, pairs = pairs.partition {|k, v| re2 =~ k }
-	else
-	  ps, pairs = pairs.partition {|k, v| e == k }
-	end
-	ps = ps.sort_by {|k, v| Util.numstrkey(k) }
-	ps.each {|k, v|
-	  v = [v] unless Array === v
-	  result.concat v
-	}
+          base = $`
+          re2 = /\A#{Regexp.escape base.to_s}_/
+          ps, pairs = pairs.partition {|k, v| re2 =~ k }
+        else
+          ps, pairs = pairs.partition {|k, v| e == k }
+        end
+        ps = ps.sort_by {|k, v| Util.numstrkey(k) }
+        ps.each {|k, v|
+          v = [v] unless Array === v
+          result.concat v
+        }
       else
         result << e
       end
@@ -438,27 +438,27 @@ module Find
     while file = paths.shift
       catch(:prune) do
         yield file.dup.taint
-	begin
-	  s = File.lstat(file)
+        begin
+          s = File.lstat(file)
         rescue Errno::ENOENT
-	  next
+          next
         end
         begin
           if s.directory? then
-	    fs = Dir.entries(file)
-	    fs.sort!
-	    fs.reverse!
-	    for f in fs
-	      next if f == "." or f == ".."
-	      if File::ALT_SEPARATOR and file =~ /^(?:[\/\\]|[A-Za-z]:[\/\\]?)$/ then
-		f = file + f
-	      elsif file == "/" then
-		f = "/" + f
-	      else
-		f = File.join(file, f)
-	      end
-	      paths.unshift f.untaint
-	    end
+            fs = Dir.entries(file)
+            fs.sort!
+            fs.reverse!
+            for f in fs
+              next if f == "." or f == ".."
+              if File::ALT_SEPARATOR and file =~ /^(?:[\/\\]|[A-Za-z]:[\/\\]?)$/ then
+                f = file + f
+              elsif file == "/" then
+                f = "/" + f
+              else
+                f = File.join(file, f)
+              end
+              paths.unshift f.untaint
+            end
           end
         rescue Errno::ENOENT, Errno::EACCES
         end

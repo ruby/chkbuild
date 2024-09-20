@@ -44,23 +44,23 @@ class ChkBuild::IBuild
     end
     if File.directory?(working_dir)
       Dir.chdir(working_dir) {
-	cvs_logfile(opts) {|outio, errio, opts2|
-	  opts2[:output_interval_file_list] = [STDOUT, STDERR, outio, errio]
-	  self.run("cvs", "-f", "-z3", "update", "-kb", "-dP", opts2)
-	}
+        cvs_logfile(opts) {|outio, errio, opts2|
+          opts2[:output_interval_file_list] = [STDOUT, STDERR, outio, errio]
+          self.run("cvs", "-f", "-z3", "update", "-kb", "-dP", opts2)
+        }
         h2 = cvs_revisions
         cvs_print_revisions(cvsroot, mod, branch, h2)
       }
     else
       if branch
-	command = ["cvs", "-f", "-z3", "-d", cvsroot, "co", "-kb", "-d", working_dir, "-P", "-r", branch, mod]
+        command = ["cvs", "-f", "-z3", "-d", cvsroot, "co", "-kb", "-d", working_dir, "-P", "-r", branch, mod]
       else
         command = ["cvs", "-f", "-z3", "-d", cvsroot, "co", "-kb", "-d", working_dir, "-P", mod]
       end
       cvs_logfile(opts) {|outio, errio, opts2|
-	opts2[:output_interval_file_list] = [STDOUT, STDERR, outio, errio]
-	command << opts2
-	self.run(*command)
+        opts2[:output_interval_file_list] = [STDOUT, STDERR, outio, errio]
+        command << opts2
+        self.run(*command)
       }
       Dir.chdir(working_dir) {
         h2 = cvs_revisions
@@ -113,17 +113,17 @@ class ChkBuild::IBuild
   def cvs_logfile(opts)
     with_templog(self.build_dir, "cvs.out.") {|outfile, outio|
       with_templog(self.build_dir, "cvs.err.") {|errfile, errio|
-	opts2 = opts.dup
-	opts2[:stdout] = outfile
-	opts2[:stderr] = errfile
-	begin
-	  yield outio, errio, opts2
-	ensure
-	  outio.rewind
-	  outio.each_line {|line| puts "CVSOUT #{line}" }
-	  errio.rewind
-	  errio.each_line {|line| puts "CVSERR #{line}" }
-	end
+        opts2 = opts.dup
+        opts2[:stdout] = outfile
+        opts2[:stderr] = errfile
+        begin
+          yield outio, errio, opts2
+        ensure
+          outio.rewind
+          outio.each_line {|line| puts "CVSOUT #{line}" }
+          errio.rewind
+          errio.each_line {|line| puts "CVSERR #{line}" }
+        end
       }
     }
   end
@@ -150,7 +150,7 @@ class ChkBuild::IFormat
     lines.each {|line|
       case line
       when /\AFILE (\S+)\t(\S+)/
-	h[$1] = $2
+        h[$1] = $2
       end
     }
     h
@@ -170,14 +170,14 @@ class ChkBuild::IFormat
         end
         line << " #{f}\t#{r1}->#{r2}"
         if viewer
-	  if r1 == 'none'
-	    uri = viewer.markup_uri(nil, f, r2)
-	  elsif r2 == 'none'
-	    uri = viewer.markup_uri(nil, f, r1)
-	  else
-	    uri = viewer.diff_uri(nil, f, r1, r2)
-	  end
-	  line << "\t" << uri
+          if r1 == 'none'
+            uri = viewer.markup_uri(nil, f, r2)
+          elsif r2 == 'none'
+            uri = viewer.markup_uri(nil, f, r1)
+          else
+            uri = viewer.diff_uri(nil, f, r1, r2)
+          end
+          line << "\t" << uri
         end
         out.puts line
       end

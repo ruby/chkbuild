@@ -201,7 +201,7 @@ class UDiff
       open(path2) {|f2|
         f2.set_encoding "ascii-8bit" if f2.respond_to? :set_encoding
         command = Escape.shell_command(%W[diff -n #{path1} #{path2}]).to_s
-	command = "LC_ALL='C' LANG='C' #{command}"
+        command = "LC_ALL='C' LANG='C' #{command}"
         IO.popen(command) {|d|
           d.set_encoding "ascii-8bit" if d.respond_to? :set_encoding
           has_diff = process_commands(f1, f2, d)

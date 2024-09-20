@@ -204,21 +204,21 @@ module TimeoutCommand
         limit_time = start_time + command_timeout
         command_status = nil
         while true
-	  now = Time.now
+          now = Time.now
           if limit_time < now
             timeout_reason = "command execution time exceeds #{command_timeout} seconds."
             break
           end
           if output_interval_timeout and
              t = last_output_time(file_list) and
-	     t + output_interval_timeout < now
-	    timeout_reason = "output interval exceeds #{output_interval_timeout} seconds."
-	    break
+             t + output_interval_timeout < now
+            timeout_reason = "output interval exceeds #{output_interval_timeout} seconds."
+            break
           end
-	  if open(output_filename, "r") {|f| output_line_max < f.stat.size and f.seek(-output_line_max, IO::SEEK_END) and /\n/ !~ f.read }
-	    timeout_reason = "too long line. (#{output_line_max} bytes at least.)"
-	    break
-	  end
+          if open(output_filename, "r") {|f| output_line_max < f.stat.size and f.seek(-output_line_max, IO::SEEK_END) and /\n/ !~ f.read }
+            timeout_reason = "too long line. (#{output_line_max} bytes at least.)"
+            break
+          end
           if wait_thread.join(1.0)
             command_status = wait_thread.value
             break
@@ -245,18 +245,18 @@ module TimeoutCommand
       ensure
         if processgroup_alive?(pid)
           show_process_group("some descendant process in process group #{pid} remain.", pid, msgout)
-	  if process_remain_timeout
-	    timelimit = Time.now + process_remain_timeout
-	    timeout_reason = opts[:process_remain_timeout]
-	    while Time.now < timelimit
-	      sleep 1
-	      if !processgroup_alive?(pid)
-		timeout_reason = nil
-		break
-	      end
-	    end
-	    msgout.puts "timeout: #{timeout_reason}" if msgout && timeout_reason
-	  end
+          if process_remain_timeout
+            timelimit = Time.now + process_remain_timeout
+            timeout_reason = opts[:process_remain_timeout]
+            while Time.now < timelimit
+              sleep 1
+              if !processgroup_alive?(pid)
+                timeout_reason = nil
+                break
+              end
+            end
+            msgout.puts "timeout: #{timeout_reason}" if msgout && timeout_reason
+          end
           kill_processgroup(pid, msgout)
         end
       end
