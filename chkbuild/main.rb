@@ -83,7 +83,7 @@ End
       next if !(ARGV.empty? || ARGV.include?(build.depsuffixed_name))
       build.update_option(:procmemsize => true) if use_procmemsize
       if build.depbuilds.all? {|depbuild| depbuild.success? }
-	build.build
+        build.build
       end
     }
   end
@@ -128,16 +128,16 @@ End
       puts build.depsuffixed_name
       opts = build.opts
       if opts[:complete_options] && opts[:complete_options].respond_to?(:merge_dependencies)
-	dep_dirs = []
-	build.depbuilds.each {|depbuild|
-	  dir = ChkBuild.build_top + depbuild.depsuffixed_name + "<time>"
-	  dep_dirs << "#{depbuild.target.target_name}=#{dir}"
-	}
-	opts = opts[:complete_options].merge_dependencies(opts, dep_dirs)
+        dep_dirs = []
+        build.depbuilds.each {|depbuild|
+          dir = ChkBuild.build_top + depbuild.depsuffixed_name + "<time>"
+          dep_dirs << "#{depbuild.target.target_name}=#{dir}"
+        }
+        opts = opts[:complete_options].merge_dependencies(opts, dep_dirs)
       end
       opts.keys.sort_by {|k| k.to_s }.each {|k|
-	v = opts[k]
-	puts "option #{k.inspect} => #{v.inspect}"
+        v = opts[k]
+        puts "option #{k.inspect} => #{v.inspect}"
       }
       puts
     }
@@ -148,10 +148,10 @@ End
       next if !ARGV.empty? && !ARGV.include?(build.depsuffixed_name)
       last_txt = ChkBuild.public_top + build.depsuffixed_name + 'last.txt'
       if last_txt.exist?
-	logfile = ChkBuild::LogFile.read_open(last_txt)
-	title = ChkBuild::Title.new(t, logfile)
-	title.run_hooks
-	puts "#{build.depsuffixed_name}:\t#{title.make_title}"
+        logfile = ChkBuild::LogFile.read_open(last_txt)
+        title = ChkBuild::Title.new(t, logfile)
+        title.run_hooks
+        puts "#{build.depsuffixed_name}:\t#{title.make_title}"
       end
     }
   end
@@ -164,8 +164,8 @@ End
       raise "no log: #{build.depsuffixed_name}/#{arg_t1}" if arg_t1 and !ts.include?(arg_t1)
       raise "no log: #{build.depsuffixed_name}/#{arg_t2}" if arg_t2 and !ts.include?(arg_t2)
       if ts.length < 2
-	puts "#{build.depsuffixed_name}: less than 2 logs"
-	next
+        puts "#{build.depsuffixed_name}: less than 2 logs"
+        next
       end
       t1 = arg_t1 || ts[-2]
       t2 = arg_t2 || ts[-1]
@@ -198,8 +198,8 @@ End
       ts = build.log_time_sequence
       raise "no log: #{build.depsuffixed_name}/#{arg_t}" if arg_t and !ts.include?(arg_t)
       if ts.empty?
-	puts "#{build.depsuffixed_name}: no logs"
-	next
+        puts "#{build.depsuffixed_name}: no logs"
+        next
       end
       t = arg_t || ts[-1]
       puts "#{build.depsuffixed_name}: #{t}"

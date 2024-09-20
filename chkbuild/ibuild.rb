@@ -383,7 +383,7 @@ class ChkBuild::IBuild # internal build
     commands.reject! {|c|
       ENV["PATH"].split(/:/).all? {|d|
         f = File.join(d, c)
-	!File.file?(f) || !File.executable?(f)
+        !File.file?(f) || !File.executable?(f)
       }
     }
     if !commands.empty?
@@ -407,8 +407,8 @@ class ChkBuild::IBuild # internal build
       separated_stderr.rewind
       if separated_stderr.size != 0
         puts "stderr:"
-	FileUtils.copy_stream(separated_stderr, STDOUT)
-	separated_stderr.close(true)
+        FileUtils.copy_stream(separated_stderr, STDOUT)
+        separated_stderr.close(true)
       end
     end
     begin
@@ -537,7 +537,7 @@ class ChkBuild::IBuild # internal build
       message = `#{cmd} 2>&1`
       status = $?
       if status.success?
-	@logfile.start_section(secname) if secname
+        @logfile.start_section(secname) if secname
         puts "+ #{cmd}"
         puts message
         return
@@ -551,7 +551,7 @@ class ChkBuild::IBuild # internal build
       message = `#{cmd} 2>&1`
       status = $?
       if status.success?
-	@logfile.start_section(secname) if secname
+        @logfile.start_section(secname) if secname
         puts "+ #{cmd}"
         puts message
         return
@@ -566,7 +566,7 @@ class ChkBuild::IBuild # internal build
       message = `#{cmd} 2>&1`
       status = $?
       if status.success? && /^FreeBSD clang version/ =~ message
-	@logfile.start_section(secname) if secname
+        @logfile.start_section(secname) if secname
         puts "+ #{cmd}"
         puts message
         return
@@ -578,7 +578,7 @@ class ChkBuild::IBuild # internal build
       message = `#{cmd} 2>&1`
       status = $?
       if status.success? && /^cc: Sun C/ =~ message
-	@logfile.start_section(secname) if secname
+        @logfile.start_section(secname) if secname
         puts "+ #{cmd}"
         puts message
         return
@@ -603,33 +603,33 @@ class ChkBuild::IBuild # internal build
       argv2 = []
       ARGV.each_with_index {|arg, i|
         if i == ARGV.length - 1
-	  m = nil
-	elsif %r{/\z} !~ arg
-	  m = nil
+          m = nil
+        elsif %r{/\z} !~ arg
+          m = nil
         elsif /::/ =~ arg
-	  m = rsync_repos + '/' + arg.sub(/::/, '/')
-	elsif %r{\Arsync://} =~ arg
-	  m = $'
-	  m = nil if /%/ =~ m # URL escape
-	else
-	  m = nil
-	end
-	if m && %r{(?:\A|/)\.\.(?:/|\z)} =~ m
-	  m = nil
-	end
-	if m
-	  mirrors << [arg, m.chomp('/')]
-	  argv2.push m
-	else
-	  argv2.push arg
-	end
+          m = rsync_repos + '/' + arg.sub(/::/, '/')
+        elsif %r{\Arsync://} =~ arg
+          m = $'
+          m = nil if /%/ =~ m # URL escape
+        else
+          m = nil
+        end
+        if m && %r{(?:\A|/)\.\.(?:/|\z)} =~ m
+          m = nil
+        end
+        if m
+          mirrors << [arg, m.chomp('/')]
+          argv2.push m
+        else
+          argv2.push arg
+        end
       }
 
       mirrors.each {|src, m|
         FileUtils.mkpath m
         mirror_command = [real_rsync, '-Lrtvzp', '--delete', src, m]
-	STDERR.puts mirror_command.join(' ')
-	system *mirror_command
+        STDERR.puts mirror_command.join(' ')
+        system *mirror_command
       }
 
       command = [real_rsync, *argv2]

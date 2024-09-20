@@ -39,13 +39,13 @@ module ChkBuild
     def cached_download(b, url, dst)
       return if File.exist?(dst)
       b.network_access {
-	URI(url).open {|f|
-	  File.open(dst, 'wb') {|f2|
-	    while buf = f.read(4096)
-	      f2.write buf
-	    end
-	  }
-	}
+        URI(url).open {|f|
+          File.open(dst, 'wb') {|f2|
+            while buf = f.read(4096)
+              f2.write buf
+            end
+          }
+        }
       }
     end
 
@@ -61,18 +61,18 @@ module ChkBuild
       cached_download(b, url, basename)
       if /\.tar\.gz\z/ =~ basename
         d = $`
-	c = "#{Escape.shell_command(['gzip', '-dc'])} < #{Escape.shell_single_word basename} | tar xf -"
+        c = "#{Escape.shell_command(['gzip', '-dc'])} < #{Escape.shell_single_word basename} | tar xf -"
       elsif /\.tar\.bz2\z/ =~ basename
         d = $`
-	c = "#{Escape.shell_command(['bzip2', '-dc'])} < #{Escape.shell_single_word basename} | tar xf -"
+        c = "#{Escape.shell_command(['bzip2', '-dc'])} < #{Escape.shell_single_word basename} | tar xf -"
       else
         raise "unexpected basename: #{basename.inspect}"
       end
       if !File.directory?(d)
-	b.run('sh', '-c', c)
-	if !File.directory?(d)
-	  raise "not exist: #{d.inspect}"
-	end
+        b.run('sh', '-c', c)
+        if !File.directory?(d)
+          raise "not exist: #{d.inspect}"
+        end
       end
       File.symlink "../#{d}", destination
     end

@@ -129,26 +129,26 @@ class ChkBuild::IFormat # internal format
         Zlib::GzipReader.wrap(open(@filename)) {|f|
           f.each_line {|line|
             line.force_encoding("ascii-8bit") if line.respond_to? :force_encoding
-	    if /\A\s*\z/ =~ line
-	      empty_lines << line
-	    else
-	      empty_lines.each {|el| yield el }
-	      empty_lines = []
-	      yield line
-	    end
+            if /\A\s*\z/ =~ line
+              empty_lines << line
+            else
+              empty_lines.each {|el| yield el }
+              empty_lines = []
+              yield line
+            end
           }
         }
       else
         open(@filename) {|f|
           f.each_line {|line|
             line.force_encoding("ascii-8bit") if line.respond_to? :force_encoding
-	    if /\A\s*\z/ =~ line
-	      empty_lines << line
-	    else
-	      empty_lines.each {|el| yield el }
-	      empty_lines = []
-	      yield line
-	    end
+            if /\A\s*\z/ =~ line
+              empty_lines << line
+            else
+              empty_lines.each {|el| yield el }
+              empty_lines = []
+              yield line
+            end
           }
         }
       end
@@ -171,12 +171,12 @@ class ChkBuild::IFormat # internal format
 
   def uri_from_top(relpath, absolute_arg=nil)
     abs = if absolute_arg != nil
-	    absolute_arg
-	  elsif @page_uri_absolute != nil
-	    @page_uri_absolute
-	  else
-	    false
-	  end
+            absolute_arg
+          elsif @page_uri_absolute != nil
+            @page_uri_absolute
+          else
+            false
+          end
     if abs
       reluri = relpath.gsub(%r{[^/]+}) { u($&) }
       "#{ChkBuild.top_uri}#{reluri}"
@@ -185,11 +185,11 @@ class ChkBuild::IFormat # internal format
       r = relpath
       while 0 < n && %r{/} =~ r
         n -= 1
-	r = $'
+        r = $'
       end
       reluri = r.gsub(%r{[^/]+}) { u($&) }
       if 0 < n
-	reluri = "../" * n + (reluri == '.' ? '' : reluri)
+        reluri = "../" * n + (reluri == '.' ? '' : reluri)
       end
       reluri
     end
@@ -249,13 +249,13 @@ class ChkBuild::IFormat # internal format
     block = lambda {|src, dst|
       src.each_line {|line|
         line = line.gsub(/<!--placeholder_start-->(?:nextdiff|newerdiff|NewerDiff)<!--placeholder_end-->/) {
-	  "<a href=#{ha uri_from_top(@compressed_diffhtml_relpath) }>NewerDiff</a>"
-	}
+          "<a href=#{ha uri_from_top(@compressed_diffhtml_relpath) }>NewerDiff</a>"
+        }
         line = line.gsub(/<!--placeholder_start-->(?:nextlog|newerlog|NewerLog)<!--placeholder_end-->/) {
-	  "<a href=#{ha uri_from_top(@compressed_loghtml_relpath) }>#{@t}</a>" +
-	  "(<a href=#{ha uri_from_top(@compressed_failhtml_relpath) }>#{h @current_status}</a>)"
-	}
-	dst.print line
+          "<a href=#{ha uri_from_top(@compressed_loghtml_relpath) }>#{@t}</a>" +
+          "(<a href=#{ha uri_from_top(@compressed_failhtml_relpath) }>#{h @current_status}</a>)"
+        }
+        dst.print line
       }
     }
     with_page_uri_from_top(@compressed_older_loghtml_relpath) {
@@ -273,7 +273,7 @@ class ChkBuild::IFormat # internal format
     return if !File.file?(filename)
     atomic_make_compressed_file(filename) {|dst|
       Zlib::GzipReader.wrap(open(filename)) {|src|
-	yield src, dst
+        yield src, dst
       }
     }
   end
@@ -332,7 +332,7 @@ class ChkBuild::IFormat # internal format
       if different_sections.empty?
         diff_txt = "diff"
       else
-	different_sections = different_sections.map {|secname|
+        different_sections = different_sections.map {|secname|
           secname.sub(%r{(.)/.*\z}) { "#$1/" }
         }.uniq
         diff_txt = "diff:#{different_sections.join(',')}"
@@ -345,25 +345,25 @@ class ChkBuild::IFormat # internal format
     }
     with_page_uri_from_top(@summary_html_relpath) {
       open(ChkBuild.public_top+@summary_html_relpath, "a") {|f|
-	if f.stat.size == 0
-	  page_title = "#{@depsuffixed_name} build summary (#{ChkBuild.nickname})"
-	  f.puts "<title>#{h page_title}</title>"
-	  f.puts "<h1>#{h page_title}</h1>"
+        if f.stat.size == 0
+          page_title = "#{@depsuffixed_name} build summary (#{ChkBuild.nickname})"
+          f.puts "<title>#{h page_title}</title>"
+          f.puts "<h1>#{h page_title}</h1>"
     if ENV["RUBYCI_NICKNAME"]
-	    f.puts "<p><a href='https://rubyci.org'>rubyci</a></p>"
+            f.puts "<p><a href='https://rubyci.org'>rubyci</a></p>"
     else
-	    f.puts "<p><a href=#{ha uri_from_top('.')}>chkbuild</a></p>"
+            f.puts "<p><a href=#{ha uri_from_top('.')}>chkbuild</a></p>"
     end
-	end
-	f.print "<a href=#{ha uri_from_top(@compressed_loghtml_relpath)} name=#{ha @t}>#{h @t}</a>"
-	f.print "(<a href=#{ha uri_from_top(@compressed_failhtml_relpath)} name=#{ha @t}>#{h @current_status}</a>)"
-	f.print " #{h title}"
-	if diff_txt
-	  f.print " (<a href=#{ha uri_from_top(@compressed_diffhtml_relpath)}>#{h diff_txt}</a>)"
-	else
-	  f.print " (<a href=#{ha uri_from_top(@compressed_diffhtml_relpath)}>no diff</a>)"
-	end
-	f.puts "<br>"
+        end
+        f.print "<a href=#{ha uri_from_top(@compressed_loghtml_relpath)} name=#{ha @t}>#{h @t}</a>"
+        f.print "(<a href=#{ha uri_from_top(@compressed_failhtml_relpath)} name=#{ha @t}>#{h @current_status}</a>)"
+        f.print " #{h title}"
+        if diff_txt
+          f.print " (<a href=#{ha uri_from_top(@compressed_diffhtml_relpath)}>#{h diff_txt}</a>)"
+        else
+          f.print " (<a href=#{ha uri_from_top(@compressed_diffhtml_relpath)}>no diff</a>)"
+        end
+        f.puts "<br>"
       }
       open(ChkBuild.public_top+@summary_ltsv_relpath, "a") {|f|
         assoc = []
@@ -463,8 +463,8 @@ End
     log.each_line {|line|
       if /\A== (\S+)/ =~ line
         if !tags.empty?
-	  tags.last << !ChkBuild::LogFile.failed_line?(lastline)
-	end
+          tags.last << !ChkBuild::LogFile.failed_line?(lastline)
+        end
         tags << [$1]
       end
       if /\A\s*\z/ !~ line
@@ -481,7 +481,7 @@ End
     if str.respond_to? :ascii_only?
       if str.ascii_only?
         ustr = str.dup.force_encoding("UTF-8")
-	ustr
+        ustr
       else
         locale_encoding = Encoding.find("locale")
         if locale_encoding == Encoding::US_ASCII
@@ -501,11 +501,11 @@ End
             end
           }
         end
-	ustr
+        ustr
       end
     else
       str = str.gsub(/[^\t\r\n -~]+/) {|invalid|
-	"[" + invalid.unpack("H*")[0] + "]"
+        "[" + invalid.unpack("H*")[0] + "]"
       }
     end
   end
@@ -645,7 +645,7 @@ End
   def make_last_html(title, has_diff)
     atomic_make_file(ChkBuild.public_top+@last_html_relpath) {|_erbout|
       with_page_uri_from_top(@last_html_relpath) {
-	ERBIO.new(LAST_HTMLTemplate, trim_mode: '%').result(binding)
+        ERBIO.new(LAST_HTMLTemplate, trim_mode: '%').result(binding)
       }
     }
   end
@@ -710,7 +710,7 @@ End
   def make_diffhtml(title, has_diff)
     atomic_make_compressed_file(ChkBuild.public_top+@compressed_diffhtml_relpath) {|_erbout|
       with_page_uri_from_top(@compressed_diffhtml_relpath) {
-	ERBIO.new(DIFF_HTMLTemplate, trim_mode: '%').result(binding)
+        ERBIO.new(DIFF_HTMLTemplate, trim_mode: '%').result(binding)
       }
     }
   end
@@ -774,7 +774,7 @@ End
   def make_loghtml(title, has_diff)
     atomic_make_compressed_file(ChkBuild.public_top+@compressed_loghtml_relpath) {|_erbout|
       with_page_uri_from_top(@compressed_loghtml_relpath) {
-	ERBIO.new(LOG_HTMLTemplate, trim_mode: '%').result(binding)
+        ERBIO.new(LOG_HTMLTemplate, trim_mode: '%').result(binding)
       }
     }
   end
@@ -829,35 +829,35 @@ End
     with_page_uri_from_top(@rss_relpath, true) {
       latest_url = uri_from_top(@compressed_diffhtml_relpath)
       if (ChkBuild.public_top+@rss_relpath).exist?
-	rss = RSS::Parser.parse((ChkBuild.public_top+@rss_relpath).read)
-	olditems = rss.items
-	n = 24
-	if n < olditems.length
-	  olditems = olditems.sort_by {|item| item.date }[-n,n]
-	end
+        rss = RSS::Parser.parse((ChkBuild.public_top+@rss_relpath).read)
+        olditems = rss.items
+        n = 24
+        if n < olditems.length
+          olditems = olditems.sort_by {|item| item.date }[-n,n]
+        end
       else
-	olditems = []
+        olditems = []
       end
       rss = RSS::Maker.make("1.0") {|maker|
-	maker.channel.about = uri_from_top(@rss_relpath)
-	maker.channel.title = "#{@depsuffixed_name} (#{ChkBuild.nickname})"
-	maker.channel.description = "chkbuild #{@depsuffixed_name}"
-	maker.channel.link = uri_from_top(@depsuffixed_name)
-	maker.items.do_sort = true
-	olditems.each {|olditem|
-	  maker.items.new_item {|item|
-	    item.link = olditem.link
-	    item.title = olditem.title
-	    item.date = olditem.date
-	    item.content_encoded = olditem.content_encoded
-	  }
-	}
-	maker.items.new_item {|item|
-	  item.link = latest_url
-	  item.title = title
-	  item.date = Time.parse(@t)
-	  item.content_encoded = make_rss_html_content(has_diff)
-	}
+        maker.channel.about = uri_from_top(@rss_relpath)
+        maker.channel.title = "#{@depsuffixed_name} (#{ChkBuild.nickname})"
+        maker.channel.description = "chkbuild #{@depsuffixed_name}"
+        maker.channel.link = uri_from_top(@depsuffixed_name)
+        maker.items.do_sort = true
+        olditems.each {|olditem|
+          maker.items.new_item {|item|
+            item.link = olditem.link
+            item.title = olditem.title
+            item.date = olditem.date
+            item.content_encoded = olditem.content_encoded
+          }
+        }
+        maker.items.new_item {|item|
+          item.link = latest_url
+          item.title = title
+          item.date = Time.parse(@t)
+          item.content_encoded = make_rss_html_content(has_diff)
+        }
       }
       atomic_make_file(ChkBuild.public_top+@rss_relpath) {|f| f.puts rss.to_s }
     }
@@ -971,7 +971,7 @@ End
     open_gziped_log(t2) {|f|
       has_change_line = false
       f.each {|line|
-	line.force_encoding("ascii-8bit") if line.respond_to? :force_encoding
+        line.force_encoding("ascii-8bit") if line.respond_to? :force_encoding
         if ChkBuild::CHANGE_LINE_PAT =~ line
           out.puts line
           has_change_line = true
@@ -990,26 +990,26 @@ End
     open_gziped_log(t) {|f|
       lines = nil
       f.each {|line|
-	line.force_encoding("ascii-8bit") if line.respond_to? :force_encoding
+        line.force_encoding("ascii-8bit") if line.respond_to? :force_encoding
         # CHECKOUT svn http://svn.ruby-lang.org/repos/ruby trunk
-	# VIEWER ViewVC http://svn.ruby-lang.org/cgi-bin/viewvc.cgi?diff_format=u
-	# DIRECTORY .     28972
-	# FILE .document  27092   sha256:88112f5a76d27b7a4b0623a1cbda18d2dd0bc4b3847fc47812fb3a3052f2bcee
-	# LASTCOMMIT 66c9eb68ccdc473025d2f6fb34019fc3a977c252
-	if !lines
-	  if /\ACHECKOUT / =~ line
-	    result << lines if lines
-	    lines = [line]
-	  end
-	else
-	  case line
-	  when /\AVIEWER /, /\ADIRECTORY /, /\AFILE /, /\ALASTCOMMIT /
-	    lines << line
-	  else
-	    result << lines
-	    lines = nil
-	  end
-	end
+        # VIEWER ViewVC http://svn.ruby-lang.org/cgi-bin/viewvc.cgi?diff_format=u
+        # DIRECTORY .     28972
+        # FILE .document  27092   sha256:88112f5a76d27b7a4b0623a1cbda18d2dd0bc4b3847fc47812fb3a3052f2bcee
+        # LASTCOMMIT 66c9eb68ccdc473025d2f6fb34019fc3a977c252
+        if !lines
+          if /\ACHECKOUT / =~ line
+            result << lines if lines
+            lines = [line]
+          end
+        else
+          case line
+          when /\AVIEWER /, /\ADIRECTORY /, /\AFILE /, /\ALASTCOMMIT /
+            lines << line
+          else
+            result << lines
+            lines = nil
+          end
+        end
       }
       result << lines if lines
     }
@@ -1025,17 +1025,17 @@ End
       if c == 0
         lines1.shift
         lines2.shift
-	next
+        next
       end
       if c < 0
         out.puts "- #{lines1.first}"
-	lines1.shift
-	next
+        lines1.shift
+        next
       end
       if c > 0
         out.puts "+ #{lines2.first}"
-	lines2.shift
-	next
+        lines2.shift
+        next
       end
     end
     while !lines1.empty?
@@ -1066,20 +1066,20 @@ End
       has_change_line = true
       if lines1 && lines2
         if /\ACHECKOUT\s+([a-z]+)/ =~ checkout_line
-	  reptype = $1
-	  meth = "output_#{reptype}_change_lines"
-	  if self.respond_to? meth
-	    self.send(meth, checkout_line, lines1, lines2, out)
-	  else
-	    generic_output_change_lines(checkout_line, lines1, lines2, out)
-	  end
-	end
+          reptype = $1
+          meth = "output_#{reptype}_change_lines"
+          if self.respond_to? meth
+            self.send(meth, checkout_line, lines1, lines2, out)
+          else
+            generic_output_change_lines(checkout_line, lines1, lines2, out)
+          end
+        end
       else
         if lines1
-	  out.puts "DEL #{checkout_line}"
-	else
-	  out.puts "ADD #{checkout_line}"
-	end
+          out.puts "DEL #{checkout_line}"
+        else
+          out.puts "ADD #{checkout_line}"
+        end
       end
     }
     out.puts if has_change_line
@@ -1105,9 +1105,9 @@ End
     state = {}
     open_gziped_log(time) {|z|
       z.each_line {|line|
-	line.force_encoding("ascii-8bit") if line.respond_to? :force_encoding
+        line.force_encoding("ascii-8bit") if line.respond_to? :force_encoding
         line = line.gsub(pat) { timemap[$&] }
-	ChkBuild.fetch_diff_preprocess_hook(@target.target_name).each {|block|
+        ChkBuild.fetch_diff_preprocess_hook(@target.target_name).each {|block|
           iformat_catch_error(block.to_s) { line = block.call(line, state) }
         }
         tmp << line
@@ -1221,7 +1221,7 @@ End
   def make_failhtml(title)
     atomic_make_compressed_file(ChkBuild.public_top+@compressed_failhtml_relpath) {|_erbout|
       with_page_uri_from_top(@compressed_failhtml_relpath) {
-	ERBIO.new(FAIL_HTMLTemplate, trim_mode: '%').result(binding)
+        ERBIO.new(FAIL_HTMLTemplate, trim_mode: '%').result(binding)
       }
     }
   end

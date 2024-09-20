@@ -39,14 +39,14 @@ class ChkBuild::Title
     @title_order = [:version, :dep_versions, :hostname, :warn, :mark, :status]
     @logfile.each_secname {|secname|
       if @logfile.failed_section?(secname)
-	log = @logfile.get_section(secname)
-	lastline = log.chomp("").lastline
-	sym = "failure_#{secname}".intern
-	if %r{/} =~ secname && lastline == "failed(#{secname})"
-	  lastline = "failed(#{secname.sub(%r{/.*\z}, '/')})"
-	end
-	@title_order << sym
-	@title[sym] = lastline
+        log = @logfile.get_section(secname)
+        lastline = log.chomp("").lastline
+        sym = "failure_#{secname}".intern
+        if %r{/} =~ secname && lastline == "failed(#{secname})"
+          lastline = "failed(#{secname.sub(%r{/.*\z}, '/')})"
+        end
+        @title_order << sym
+        @title[sym] = lastline
       end
     }
   end
@@ -93,10 +93,10 @@ class ChkBuild::Title
     ChkBuild.fetch_failure_hook(@target.target_name).each {|secname, block|
       if @logfile.failed_section?(secname)
         log = @logfile.get_section(secname)
-	sym = "failure_#{secname}".intern
-	if newval = block.call(log)
-	  @title[sym] = newval
-	end
+        sym = "failure_#{secname}".intern
+        if newval = block.call(log)
+          @title[sym] = newval
+        end
       end
     }
   end
@@ -136,13 +136,13 @@ class ChkBuild::Title
       if h[s] == 1
         a2 << s
       elsif h[s] > 1
-	n = h[s]
+        n = h[s]
         if /\A[0-9]/ =~ s
-	  a2 << "#{n}_#{s}"
-	else
-	  a2 << "#{n}#{s}"
-	end
-	h[s] = 0
+          a2 << "#{n}_#{s}"
+        else
+          a2 << "#{n}#{s}"
+        end
+        h[s] = 0
       end
     }
     a2.join(' ').gsub(/\s+/, ' ').strip
