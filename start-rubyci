@@ -172,8 +172,6 @@ when /\Aandroid\d+-/
   # hardlink is not available for a normal user on Android
   def File.link(new, old); end
   h[:autoreconf_command] = 'autoreconf'
-when "raspbian10-armv7l"
-  h[:git_shallow_clone] = true
 when /riscv64/
   arg[0].slice!(1,9)
   h[:timeout] = '4h'
