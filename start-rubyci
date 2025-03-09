@@ -175,7 +175,7 @@ when /\Aandroid\d+-/
 when /riscv64/
   arg[0].slice!(1,9)
   h[:timeout] = '4h'
-  ENV["RUBY_TEST_TIMEOUT_SCALE"] = "2"
+  ENV["RUBY_TEST_TIMEOUT_SCALE"] = "5"
   h[:git_shallow_clone] = true
 end
 
