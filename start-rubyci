@@ -172,6 +172,8 @@ when /riscv64/
   h[:timeout] = '4h'
   ENV["RUBY_TEST_TIMEOUT_SCALE"] = "5"
   h[:git_shallow_clone] = true
+when /s390x/
+  ENV["RUBY_TEST_TIMEOUT_SCALE"] = "5"
 end
 
 h[:configure_args] = ["--with-baseruby=#{RbConfig.ruby}"]
