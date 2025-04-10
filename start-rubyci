@@ -144,15 +144,10 @@ if ChkBuild.nickname.start_with?("osx")
 end
 
 case ChkBuild.nickname
-when 'tk2-243-31075', 'armv8b'
-  arg[0].slice!(1,9)
 when 'debian' # Debian 11.0(testing) x86_64
   h[:autoreconf_command] = 'autoreconf'
 when 'arch'
   h[:autoreconf_command] = 'autoreconf'
-when 'scw-9d6766'
-  arg[0].slice!(1,9)
-  h[:timeout] = '3h'
 when 'openbsd-current'
   h[:autoconf_command] = 'autoconf-2.69'
   h[:autoreconf_command] = 'autoreconf-2.69'
