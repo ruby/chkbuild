@@ -149,6 +149,7 @@ when 'debian' # Debian 11.0(testing) x86_64
 when 'arch'
   h[:autoreconf_command] = 'autoreconf'
 when 'openbsd-current'
+  arg[0].slice!(1,9) # run only master
   h[:autoconf_command] = 'autoconf-2.69'
   h[:autoreconf_command] = 'autoreconf-2.69'
   h[:configure_args_opt] = %w[--with-opt-dir=/usr/local]
