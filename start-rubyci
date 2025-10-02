@@ -156,7 +156,11 @@ when 'openbsd-current'
   h[:output_interval_timeout] = '10min'
   ENV['RUBY_FIBER_VM_STACK_SIZE'] = '32768'
   ENV['RUBY_FIBER_MACHINE_STACK_SIZE'] = '65536'
+  # OpenBSD needs to specify autotools version
   ENV["AUTOMAKE_VERSION"] = "1.16"
+  ENV["AUTOCONF_VERSION"] = "2.69"
+  # NetBSD make(bmake) is not compatible the current master.
+  ENV["MAKE"] = "gmake"
   h[:git_shallow_clone] = true
 when 'icc-x64'
   ENV["CC"] = "icx -std=gnu99"
