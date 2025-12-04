@@ -177,7 +177,12 @@ class ChkBuild::IBuild # internal build
       self.run('cat', '/proc/cpuinfo', :section => 'cpu-info')
     end
     if /freebsd/ =~ RUBY_PLATFORM
-      self.run('sysctl', 'hw.model', 'hw.ncpu', 'hw.byteorder', 'hw.clockrate', 'hw.machine', 'hw.machine_arch', :section => 'cpu-info')
+      if `uname -m`.chomp == 'arm64'
+        # hw.clockrate is not available on FreeBSD/arm64
+        self.run('sysctl', 'hw.model', 'hw.ncpu', 'hw.byteorder', 'hw.machine', 'hw.machine_arch', :section => 'cpu-info')
+      else
+        self.run('sysctl', 'hw.model', 'hw.ncpu', 'hw.byteorder', 'hw.clockrate', 'hw.machine', 'hw.machine_arch', :section => 'cpu-info')
+      end
     end
     if /dragonfly/ =~ RUBY_PLATFORM
       self.run('sysctl', 'hw.model', 'hw.ncpu', 'hw.byteorder', 'hw.clockrate', 'hw.machine', 'hw.machine_arch', :section => 'cpu-info')
