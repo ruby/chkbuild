@@ -280,7 +280,7 @@ module ChkBuild
     transfer_manager = Aws::S3::TransferManager.new(client: s3_client)
 
     if path.end_with?(".gz")
-      transfer_manager.upload({ bucket: bucket_name, key: blobname, file: filepath }.merge(options))
+      transfer_manager.upload_file(filepath, bucket: bucket_name, key: blobname, **options)
     else
       require 'tempfile'
       tmp = Tempfile.new(['chkbuild-upload', '.gz'])
@@ -290,7 +290,7 @@ module ChkBuild
             IO.copy_stream(f, gz)
           end
         end
-        transfer_manager.upload({ bucket: bucket_name, key: blobname, file: tmp.path }.merge(options))
+        transfer_manager.upload_file(tmp.path, bucket: bucket_name, key: blobname, **options)
       ensure
         tmp.close!
       end
