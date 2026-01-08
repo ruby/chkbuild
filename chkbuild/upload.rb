@@ -197,7 +197,7 @@ module ChkBuild
     }
   end
 
-  def self.do_upload_s3(bucket, branch)
+  def self.do_upload_s3(bucket_name, branch)
     # upload log files
     logdir = s3_localpath("#{branch}/log")
     latest_datetime = "19700101T000000Z"
@@ -211,7 +211,7 @@ module ChkBuild
       next unless filename.end_with?('.gz')
       path = "#{branch}/log/#{filename}"
       filepath = s3_localpath(path)
-      if s3sync(bucket, path)
+      if s3sync(bucket_name, path)
         # upload success
         if path.include?(latest_datetime)
           # keep to replace placeholder_start later...
@@ -226,7 +226,7 @@ module ChkBuild
     %w[current.txt last.html.gz recent.ltsv summary.html summary.txt
       last.html last.txt recent.html rss summary.ltsv].each do |fn|
       path = "#{branch}/#{fn}"
-      s3sync(bucket, path)
+      s3sync(bucket_name, path)
     end
 
     # upload lcov
@@ -236,7 +236,7 @@ module ChkBuild
       Dir.glob(lcovdir + "/**/*", File::FNM_DOTMATCH).sort.each do |filepath|
         if File.file?(filepath) && filepath.start_with?(prefix)
           path = filepath[prefix.size..-1]
-          s3sync(bucket, path)
+          s3sync(bucket_name, path)
         end
       end
     end
@@ -250,7 +250,7 @@ module ChkBuild
     "#{ChkBuild.nickname}/#{path}"
   end
 
-  def self.s3sync(bucket, path)
+  def self.s3sync(bucket_name, path)
     blobname = s3_remotepath(path)
     filepath = s3_localpath(path)
     unless File.exist?(filepath)
@@ -280,7 +280,7 @@ module ChkBuild
     transfer_manager = Aws::S3::TransferManager.new(client: s3_client)
 
     if path.end_with?(".gz")
-      transfer_manager.upload({ bucket: bucket, key: blobname, file: filepath }.merge(options))
+      transfer_manager.upload({ bucket: bucket_name, key: blobname, file: filepath }.merge(options))
     else
       require 'tempfile'
       tmp = Tempfile.new(['chkbuild-upload', '.gz'])
@@ -290,7 +290,7 @@ module ChkBuild
             IO.copy_stream(f, gz)
           end
         end
-        transfer_manager.upload({ bucket: bucket, key: blobname, file: tmp.path }.merge(options))
+        transfer_manager.upload({ bucket: bucket_name, key: blobname, file: tmp.path }.merge(options))
       ensure
         tmp.close!
       end
