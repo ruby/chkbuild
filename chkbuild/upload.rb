@@ -185,7 +185,6 @@ module ChkBuild
   def self.s3_upload_target
     return if ENV["DISABLE_S3_UPLOAD"] # for local test
     bucket_name = 'rubyci'
-    region = 'ap-northeast-1'
     begin
       require 'aws-sdk'
       $RUBYCI_AWS_SDK = "aws-sdk"
@@ -193,9 +192,8 @@ module ChkBuild
       require 'aws-sdk-s3'
       $RUBYCI_AWS_SDK = "aws-sdk-s3"
     end
-    bucket = Aws::S3::Resource.new(region: region).bucket(bucket_name)
     self.add_upload_hook {|depsuffixed_name|
-      self.do_upload_s3(bucket, depsuffixed_name)
+      self.do_upload_s3(bucket_name, depsuffixed_name)
     }
   end
 
@@ -278,15 +276,23 @@ module ChkBuild
     end
 
     puts "uploading '#{filepath}' to #{blobname}..."
+    s3_client = Aws::S3::Client.new(region: 'ap-northeast-1')
+    transfer_manager = Aws::S3::TransferManager.new(client: s3_client)
+
     if path.end_with?(".gz")
-      bucket.object(blobname).upload_file(filepath, options)
+      transfer_manager.upload({ bucket: bucket, key: blobname, file: filepath }.merge(options))
     else
-      bucket.object(blobname).upload_stream(options) do |write_stream|
-        ::Zlib::GzipWriter.wrap(write_stream, ::Zlib::BEST_COMPRESSION) do |gz|
+      require 'tempfile'
+      tmp = Tempfile.new(['chkbuild-upload', '.gz'])
+      begin
+        ::Zlib::GzipWriter.open(tmp.path, ::Zlib::BEST_COMPRESSION) do |gz|
           File.open(filepath) do |f|
             IO.copy_stream(f, gz)
           end
         end
+        transfer_manager.upload({ bucket: bucket, key: blobname, file: tmp.path }.merge(options))
+      ensure
+        tmp.close!
       end
     end
 
