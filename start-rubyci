@@ -56,6 +56,7 @@ ChkBuild.nickname = ENV["RUBYCI_NICKNAME"] if ENV["RUBYCI_NICKNAME"]
 # ChkBuild.top_uri is used for RSS.
 # ChkBuild.top_uri = "file://#{ChkBuild.public_top}/"
 # ChkBuild.top_uri = nil # use relative URL
+ChkBuild.top_uri = ENV.fetch("RUBYCI_TOP_URI") { "https://rubyci.s3.amazonaws.com/#{ChkBuild.nickname}/" }
 
 # Oneshot commit build is not triggered periodically, so wait until
 # other builds are finished.
