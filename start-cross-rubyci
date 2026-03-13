@@ -211,6 +211,8 @@ ChkBuild.define_build_proc('crossruby') {|b|
     configure_args << "--build=#{build_system}" if build_system
     configure_args << "--host=#{target_system}"
     configure_args << "--with-baseruby=#{baseruby}"
+    dump_ast = "#{nativeruby_build.dir}/ruby/dump_ast"
+    configure_args << "--with-dump-ast=#{dump_ast}" if File.exist?(dump_ast)
     configure_args << "--disable-install-doc"
     configure_args.concat b.opts[:configure_args] if b.opts[:configure_args]
     b.run('./configure', *configure_args)
