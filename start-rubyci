@@ -62,7 +62,6 @@ ChkBuild.top_uri = ENV.fetch("RUBYCI_TOP_URI") { "https://rubyci.s3.amazonaws.co
 # other builds are finished.
 ChkBuild.wait_in_progress_builds = true if ENV["RUBYCI_ONESHOT_BUILD_COMMIT"]
 
-#ChkBuild.azure_upload_target rescue nil
 ChkBuild.s3_upload_target
 arg = [].push(
   [
