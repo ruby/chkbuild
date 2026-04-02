@@ -73,7 +73,6 @@ require 'chkbuild/ibuild'
 require 'chkbuild/iformat'
 
 require 'chkbuild/cvs'
-require 'chkbuild/svn'
 require 'chkbuild/git'
 require 'chkbuild/viewvc'
 
