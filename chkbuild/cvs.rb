@@ -186,22 +186,3 @@ class ChkBuild::IFormat
 end
 
 
-# segment       = *pchar
-# pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
-# unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
-# pct-encoded   = "%" HEXDIG HEXDIG
-# sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
-#               / "*" / "+" / "," / ";" / "="
-segment_regexp = '(?:[A-Za-z0-9\-._~!$&\'()*+,;=:@]|%[0-9A-Fa-f][0-9A-Fa-f])*'
-
-ChkBuild.define_file_changes_viewer('cvs',
-  %r{\A:pserver:anonymous@puszcza\.gnu\.org\.ua:/cvsroot/(#{segment_regexp}) (#{segment_regexp}(/#{segment_regexp})*)?\z}o) {
-  |match, reptype, pat, checkout_line|
-  # :pserver:anonymous@puszcza.gnu.org.ua:/cvsroot/gdbm gdbm
-  # http://puszcza.gnu.org.ua/viewvc/gdbm/
-
-  project = match[1]
-  mod = match[2]
-  ChkBuild::ViewVC.new("http://puszcza.gnu.org.ua/viewvc/#{project}/?diff_format=u", false, mod)
-}
-

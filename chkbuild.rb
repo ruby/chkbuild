@@ -74,7 +74,6 @@ require 'chkbuild/iformat'
 
 require 'chkbuild/cvs'
 require 'chkbuild/git'
-require 'chkbuild/viewvc'
 
 require 'chkbuild/ruby'
 require 'chkbuild/gcc'
