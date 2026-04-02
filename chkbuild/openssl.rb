@@ -58,7 +58,9 @@ end
 
 ChkBuild.define_build_proc('openssl') {|b|
   make_options = Util.opts2hashparam(b.opts, :make_options)
-  b.git("https://github.com/openssl/openssl", 'openssl', b.opts)
+  git_opts = b.opts.dup
+  git_opts[:branch] = git_opts.delete(:openssl_branch) if git_opts[:openssl_branch]
+  b.git("https://github.com/openssl/openssl", 'openssl', git_opts)
   bdir = b.build_dir
   configure_args = [
     "--prefix=#{bdir}",
