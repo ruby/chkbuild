@@ -39,13 +39,7 @@ require 'chkbuild'
 #ChkBuild.limit(:data => 1024*1024*500*word_bytes) # bytes
 #ChkBuild.limit(:as => 1024*1024*500*word_bytes) # bytes
 
-# cvs -d anonymous@cvs.openssl.org:/openssl-cvs co openssl
-# branch: OpenSSL_x_y_z-stable
-#  OpenSSL_1_0_2-stable
-#  OpenSSL_1_0_1-stable
-#  OpenSSL_1_0_0-stable
-#  OpenSSL_0_9_8-stable
-#  ...
+# https://github.com/openssl/openssl
 
 openssl_choices = [
   {

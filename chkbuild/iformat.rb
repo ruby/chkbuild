@@ -991,10 +991,9 @@ End
       lines = nil
       f.each {|line|
         line.force_encoding("ascii-8bit") if line.respond_to? :force_encoding
-        # CHECKOUT svn http://svn.ruby-lang.org/repos/ruby trunk
-        # VIEWER ViewVC http://svn.ruby-lang.org/cgi-bin/viewvc.cgi?diff_format=u
-        # DIRECTORY .     28972
-        # FILE .document  27092   sha256:88112f5a76d27b7a4b0623a1cbda18d2dd0bc4b3847fc47812fb3a3052f2bcee
+        # CHECKOUT git https://github.com/ruby/ruby master
+        # VIEWER GitHub https://github.com/ruby/ruby
+        # FILE .document  sha256:88112f5a76d27b7a4b0623a1cbda18d2dd0bc4b3847fc47812fb3a3052f2bcee
         # LASTCOMMIT 66c9eb68ccdc473025d2f6fb34019fc3a977c252
         if !lines
           if /\ACHECKOUT / =~ line
