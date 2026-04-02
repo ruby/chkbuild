@@ -1425,24 +1425,6 @@ ChkBuild.define_diff_preprocess_gsub('ruby', %r{\#<(IO|File|TCPSocket|TCPServer|
   "\#<#{match[1]}:fd <fd>>"
 }
 
-# segment       = *pchar
-# pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
-# unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
-# pct-encoded   = "%" HEXDIG HEXDIG
-# sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
-#               / "*" / "+" / "," / ";" / "="
-segment_regexp = '(?:[A-Za-z0-9\-._~!$&\'()*+,;=:@]|%[0-9A-Fa-f][0-9A-Fa-f])*'
-
-ChkBuild.define_file_changes_viewer('svn',
-  %r{\Ahttp://svn\.ruby-lang\.org/repos/ruby (#{segment_regexp}(/#{segment_regexp})*)?\z}o) {
-  |match, reptype, pat, checkout_line|
-  # http://svn.ruby-lang.org/repos/ruby
-  # http://svn.ruby-lang.org/cgi-bin/viewvc.cgi?diff_format=u
-
-  mod = match[1]
-  mod = nil if mod && mod.empty?
-  ChkBuild::ViewVC.new('http://svn.ruby-lang.org/cgi-bin/viewvc.cgi?diff_format=u', false, mod)
-}
 
 ChkBuild.define_failure_start_pattern('ruby', nil, /\[BUG\]/)
 ChkBuild.define_failure_start_pattern('ruby', 'btest', /: $/)
