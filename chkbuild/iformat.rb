@@ -822,20 +822,34 @@ End
     # variables for RSS_CONTENT_HTMLTemplate:
     max_diff_lines = 500
 
-    ERB.new(RSS_CONTENT_HTMLTemplate, trim_mode: '%').result(binding)
+    content = ERB.new(RSS_CONTENT_HTMLTemplate, trim_mode: '%').result(binding)
+    # max_diff_lines doesn't help when a single line is huge.  Limit the
+    # content size in bytes to keep the RSS file small.
+    max_content_bytes = 512 * 1024
+    if max_content_bytes < content.bytesize
+      content = content.byteslice(0, max_content_bytes).scrub('') + "\n...(truncated)...\n"
+    end
+    content
   end
 
   def make_rss(title, has_diff)
     with_page_uri_from_top(@rss_relpath, true) {
       latest_url = uri_from_top(@compressed_diffhtml_relpath)
-      if (ChkBuild.public_top+@rss_relpath).exist?
-        rss = RSS::Parser.parse((ChkBuild.public_top+@rss_relpath).read)
+      max_rss_size = 10 * 1024 * 1024
+      rss_path = ChkBuild.public_top+@rss_relpath
+      if rss_path.exist? && rss_path.size <= max_rss_size
+        rss = RSS::Parser.parse(rss_path.read)
         olditems = rss.items
         n = 24
         if n < olditems.length
           olditems = olditems.sort_by {|item| item.date }[-n,n]
         end
       else
+        if rss_path.exist?
+          # Parsing a huge RSS file can exhaust memory.  Discard it and
+          # regenerate from scratch.
+          STDERR.puts "RSS file too large (#{rss_path.size} bytes): #{rss_path}"
+        end
         olditems = []
       end
       rss = RSS::Maker.make("1.0") {|maker|
