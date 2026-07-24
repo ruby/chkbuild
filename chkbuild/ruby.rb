@@ -895,7 +895,7 @@ ChkBuild.define_title_hook('ruby', "abi-check") {|title, log|
   #low = 0
   #log.scan(/ Low +([0-9])+ *$/) { low += $1.to_i }
   if high != 0 || medium != 0 # || low != 0
-    str = "ABI:"
+    str = String.new("ABI:")
     str << "#{high}H" if high != 0
     str << "#{medium}M" if medium != 0
     #str << "#{low}L" if low != 0
@@ -916,7 +916,7 @@ ChkBuild.define_title_hook('ruby', nil) {|title, logfile|
     numsigabrt += line.scan(/chkbuild: signal SIGABRT/i).length
     numfatal += line.scan(/\[FATAL\]/i).length
   }
-  mark = ''
+  mark = String.new
   mark << " #{numbugs == 1 ? '' : numbugs}[BUG]" if 0 < numbugs
   mark << " #{numsegv == 1 ? '' : numsegv}[SEGV]" if 0 < numsegv
   mark << " #{numsigbus == 1 ? '' : numsigbus}[SIGBUS]" if 0 < numsigbus

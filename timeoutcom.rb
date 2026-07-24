@@ -110,7 +110,7 @@ module TimeoutCommand
 
   def show_process_group(msg, pgid, msgout)
     return if !msgout
-    msgbuf = ''
+    msgbuf = String.new
     # ps -A and -o option is defined by POSIX.
     # However MirOS BSD (MirBSD 10 GENERIC#1382 i386) don't have -A and -ax can be used instead.
     #
@@ -123,7 +123,7 @@ module TimeoutCommand
     when /\bmirbsd/
       ps_all_process_option = '-ax'
     end
-    ps_additional_options = ''
+    ps_additional_options = String.new
     case RUBY_PLATFORM
     when /\blinux\b/
       ps_additional_options << ' -L' # show threads

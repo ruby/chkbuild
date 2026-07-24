@@ -534,7 +534,7 @@ End
 
   def markup_log_line(line)
     line = encode_invalid(line)
-    result = ''
+    result = String.new
     if /\A== (\S+)/ =~ line
       tag = $1
       rest = $'
@@ -547,7 +547,7 @@ End
 
   def markup_fail_line(line)
     line = encode_invalid(line)
-    result = ''
+    result = String.new
     if /\A== (\S+)/ =~ line
       tag = $1
       rest = $'
@@ -566,14 +566,14 @@ End
       url = $2
       "<a href=#{ha url}>#{h content.strip}</a>"
     else
-      result = ''
+      result = String.new
       markup_uri(line, result)
       result
     end
   end
 
   def markup_diff(str)
-    result = ''
+    result = String.new
     str.each_line {|line|
       result << markup_diff_line(line)
     }

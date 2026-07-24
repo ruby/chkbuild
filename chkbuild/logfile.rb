@@ -63,7 +63,7 @@ class ChkBuild::LogFile
       when /\A7\.0/; codename = 'wheezy'
       else codename = nil
       end
-      rel = ''
+      rel = String.new
       rel << "Distributor ID:\tDebian\n"
       rel << "Description:\tDebian GNU/Linux #{ver}"
       rel << " (#{codename})" if codename
