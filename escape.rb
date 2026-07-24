@@ -112,7 +112,7 @@ module Escape
     elsif %r{\A[0-9A-Za-z+,./:=@_-]+\z} =~ str
       ShellEscaped.new(str)
     else
-      result = ''
+      result = String.new
       str.scan(/('+)|[^']+/) {
         if $1
           result << %q{\'} * $1.length
@@ -276,7 +276,7 @@ module Escape
   #
   # See HTML 4.01 for details.
   def html_form(pairs, sep='&')
-    r = ''
+    r = String.new
     first = true
     pairs.each {|k, v|
       # query-chars - pct-encoded - x-www-form-urlencoded-delimiters =
@@ -548,7 +548,7 @@ module Escape
   end
 
   def ltsv_line(assoc)
-    result = ''
+    result = String.new
     assoc.each {|k, v|
       result << _ltsv_key(k)
       result << ':'

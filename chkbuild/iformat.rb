@@ -140,6 +140,11 @@ class ChkBuild::IFormat # internal format
         }
       else
         open(@filename) {|f|
+          # STDOUT/STDERR may be redirected to this file while reading it.
+          # Stop at the size at open to avoid reading lines appended by
+          # this process itself, such as warnings emitted per line.
+          # https://github.com/ruby/chkbuild/issues/77
+          stop = f.stat.size
           f.each_line {|line|
             line.force_encoding("ascii-8bit") if line.respond_to? :force_encoding
             if /\A\s*\z/ =~ line
@@ -149,6 +154,7 @@ class ChkBuild::IFormat # internal format
               empty_lines = []
               yield line
             end
+            break if stop <= f.pos
           }
         }
       end
@@ -528,7 +534,7 @@ End
 
   def markup_log_line(line)
     line = encode_invalid(line)
-    result = ''
+    result = String.new
     if /\A== (\S+)/ =~ line
       tag = $1
       rest = $'
@@ -541,7 +547,7 @@ End
 
   def markup_fail_line(line)
     line = encode_invalid(line)
-    result = ''
+    result = String.new
     if /\A== (\S+)/ =~ line
       tag = $1
       rest = $'
@@ -560,14 +566,14 @@ End
       url = $2
       "<a href=#{ha url}>#{h content.strip}</a>"
     else
-      result = ''
+      result = String.new
       markup_uri(line, result)
       result
     end
   end
 
   def markup_diff(str)
-    result = ''
+    result = String.new
     str.each_line {|line|
       result << markup_diff_line(line)
     }

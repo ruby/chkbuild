@@ -433,7 +433,7 @@ class ChkBuild::IBuild # internal build
   end
 
   def script_to_run_in_child(opts, command, alt_commands, *args)
-    ruby_script = ''
+    ruby_script = String.new
     opts.each {|k, v|
       next if /\AENV:/ !~ k.to_s
       k = $'
