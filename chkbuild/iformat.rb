@@ -140,6 +140,11 @@ class ChkBuild::IFormat # internal format
         }
       else
         open(@filename) {|f|
+          # STDOUT/STDERR may be redirected to this file while reading it.
+          # Stop at the size at open to avoid reading lines appended by
+          # this process itself, such as warnings emitted per line.
+          # https://github.com/ruby/chkbuild/issues/77
+          stop = f.stat.size
           f.each_line {|line|
             line.force_encoding("ascii-8bit") if line.respond_to? :force_encoding
             if /\A\s*\z/ =~ line
@@ -149,6 +154,7 @@ class ChkBuild::IFormat # internal format
               empty_lines = []
               yield line
             end
+            break if stop <= f.pos
           }
         }
       end
