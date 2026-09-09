@@ -153,7 +153,7 @@ when /openbsd/
   h[:autoconf_command] = 'autoconf-2.69'
   h[:autoreconf_command] = 'autoreconf-2.69'
   h[:configure_args_opt] = %w[--with-opt-dir=/usr/local]
-  h[:output_interval_timeout] = '10min'
+  h[:output_interval_timeout] = '20min'
   ENV['RUBY_FIBER_VM_STACK_SIZE'] = '32768'
   ENV['RUBY_FIBER_MACHINE_STACK_SIZE'] = '65536'
   # OpenBSD needs to specify autotools version
@@ -161,6 +161,8 @@ when /openbsd/
   ENV["AUTOCONF_VERSION"] = "2.69"
   # NetBSD make(bmake) is not compatible the current master.
   ENV["MAKE"] = "gmake"
+  h[:timeout] = '5h'
+  ENV["RUBY_TEST_TIMEOUT_SCALE"] = "5"
   h[:git_shallow_clone] = true
 when 'icc-x64'
   ENV["CC"] = "icx -std=gnu99"
