@@ -163,6 +163,7 @@ when /openbsd/
   ENV["MAKE"] = "gmake"
   h[:timeout] = '5h'
   ENV["RUBY_TEST_TIMEOUT_SCALE"] = "5"
+  ENV["RUBYCI_OPENBSD"] = "1"
   h[:git_shallow_clone] = true
 when 'icc-x64'
   ENV["CC"] = "icx -std=gnu99"
